@@ -1,0 +1,31 @@
+
+"
+" compe#complete
+"
+function! compe#complete() abort
+  call luaeval('require"compe":complete()')
+  return ''
+endfunction
+
+"
+" compe#confirm
+"
+function! compe#confirm(...) abort
+  if complete_info(['selected']).selected != -1
+    call luaeval('require"compe":clear()')
+    return "\<C-y>"
+  endif
+  return get(a:000, 0, '')
+endfunction
+
+"
+" compe#close
+"
+function! compe#close(...) abort
+  if pumvisible()
+    call luaeval('require"compe":clear()')
+    return "\<C-e>"
+  endif
+  return get(a:000, 0, '')
+endfunction
+
