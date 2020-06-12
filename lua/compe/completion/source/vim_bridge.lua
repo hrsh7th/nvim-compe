@@ -26,9 +26,9 @@ function VimBridge:new(id)
   return this
 end
 
---- get_source_metadata
-function VimBridge:get_source_metadata()
-  return vim.api.nvim_call_function('compe#source#vim_bridge#get_source_metadata', { self.id })
+--- get_metadata
+function VimBridge:get_metadata()
+  return vim.api.nvim_call_function('compe#source#vim_bridge#get_metadata', { self.id })
 end
 
 --- get_item_metadata

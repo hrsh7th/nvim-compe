@@ -1,3 +1,4 @@
+local Async = require'compe.async'
 local Debug = require'compe.debug'
 local Context = require'compe.completion.context'
 local Matcher = require'compe.completion.matcher'
@@ -14,13 +15,26 @@ function Completion:new()
 end
 
 --- register_source
-function Completion:register_source(id, source)
-  self.sources[id] = source
+function Completion:register_source(source)
+  table.insert(self.sources, source)
+
+  table.sort(self.sources, function(a, b)
+    local a_meta = a:get_metadata()
+    local b_meta = b:get_metadata()
+    if a_meta.priority ~= b_meta.priority then
+      return a_meta.priority > b_meta.priority
+    end
+  end)
 end
 
 --- unregister_source
 function Completion:unregister_source(id)
-  self.sources[id] = nil
+  for i, source in ipairs(self.sources) do
+    if id == source:get_id() then
+      table.remove(self.sources, i)
+      break
+    end
+  end
 end
 
 --- complete
@@ -69,10 +83,12 @@ function Completion:trigger(context)
     return
   end
 
-  for _, source in pairs(self.sources) do
+  for _, source in ipairs(self.sources) do
     local status, value = pcall(function()
       source:trigger(context, function()
-        self:display(Context:new(self.insert_char_pre, true))
+        Async.debounce('completed', 100, function()
+          self:display(Context:new(self.insert_char_pre, true))
+        end)
       end)
     end)
     if not(status) then
@@ -93,7 +109,7 @@ function Completion:display(context)
 
   -- Datermine start_offset
   local start_offset = 0
-  for _, source in pairs(self.sources) do
+  for _, source in ipairs(self.sources) do
     if source.status == 'processing' or source.status == 'completed' then
       local source_start_offset = source:get_start_offset()
       if type(source_start_offset) == 'number' then
@@ -106,18 +122,20 @@ function Completion:display(context)
 
   -- Gather items
   local items = {}
-  for _, source in pairs(self.sources) do
+  for _, source in ipairs(self.sources) do
     if source.status == 'completed' then
-      for _, item in pairs(source:get_items()) do
+      for _, item in ipairs(Matcher.match(context, start_offset, source)) do
         table.insert(items, item)
       end
     end
   end
 
   -- Completion
-  if string.sub(vim.fn.mode(), 1, 1) == 'i' and #items > 0 and start_offset > 0 then
-    vim.fn.complete(start_offset, Matcher.match(context, start_offset, items))
-  end
+  vim.schedule(function()
+    if string.sub(vim.fn.mode(), 1, 1) == 'i' and #items > 0 and start_offset > 0 then
+        vim.fn.complete(start_offset, items)
+    end
+  end)
 end
 
 return Completion

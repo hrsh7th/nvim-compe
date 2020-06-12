@@ -23,11 +23,11 @@ function! compe#source#vim_bridge#unregister(id) abort
 endfunction
 
 "
-" compe#source#vim_bridge#get_source_metadata
+" compe#source#vim_bridge#get_metadata
 "
-function! compe#source#vim_bridge#get_source_metadata(id) abort
-  if has_key(s:sources, a:id) && has_key(s:sources[a:id], 'get_source_metadata')
-    return s:sources[a:id].get_source_metadata()
+function! compe#source#vim_bridge#get_metadata(id) abort
+  if has_key(s:sources, a:id) && has_key(s:sources[a:id], 'get_metadata')
+    return s:sources[a:id].get_metadata()
   endif
   return {}
 endfunction

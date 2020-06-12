@@ -7,17 +7,18 @@ let s:name_pattern = '[^/\\:\*?<>\|]'
 "
 function! compe_path#source#register() abort
   call compe#source#vim_bridge#register('path', {
-  \   'get_source_metadata': function('s:get_source_metadata'),
+  \   'get_metadata': function('s:get_metadata'),
   \   'datermine': function('s:datermine'),
   \   'complete': function('s:complete')
   \ })
 endfunction
 
 "
-" s:get_source_metadata
+" s:get_metadata
 "
-function! s:get_source_metadata() abort
+function! s:get_metadata() abort
   return {
+  \   'sort': v:false,
   \   'priority': 100,
   \ }
 endfunction

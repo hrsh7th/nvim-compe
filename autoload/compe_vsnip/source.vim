@@ -3,6 +3,7 @@
 "
 function! compe_vsnip#source#register() abort
   call compe#source#vim_bridge#register('vsnip', {
+  \   'get_metadata': function('s:get_metadata'),
   \   'get_item_metadata': function('s:get_item_metadata'),
   \   'datermine': function('s:datermine'),
   \   'complete': function('s:complete'),
@@ -10,9 +11,9 @@ function! compe_vsnip#source#register() abort
 endfunction
 
 "
-" s:get_source_metadata
+" s:get_metadata
 "
-function! s:get_item_metadata(item) abort
+function! s:get_metadata() abort
   return {
   \   'priority': 50
   \ }

@@ -30,7 +30,7 @@ function! s:source() abort
   let l:servers = filter(l:servers, { _, server -> server.supports('capabilities.completionProvider') })
   let s:state.ids = map(copy(l:servers), { _, server ->
   \   compe#source#vim_bridge#register(server.name, {
-  \     'get_source_metadata': function('s:get_source_metadata'),
+  \     'get_metadata': function('s:get_metadata'),
   \     'get_item_metadata': function('s:get_item_metadata'),
   \     'datermine': function('s:datermine', [server]),
   \     'complete': function('s:complete', [server]),
@@ -39,9 +39,9 @@ function! s:source() abort
 endfunction
 
 "
-" s:get_source_metadata
+" s:get_metadata
 "
-function! s:get_source_metadata() abort
+function! s:get_metadata() abort
   return {
   \   'priority': 1000,
   \ }

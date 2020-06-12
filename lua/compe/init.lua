@@ -14,12 +14,12 @@ end
 
 --- register_lua_source
 function Compe:register_lua_source(id, source)
-  self.completion:register_source(id, Source:new(id, source))
+  self.completion:register_source(Source:new(id, source))
 end
 
 --- registera_vim_source
 function Compe:register_vim_source(id)
-  self.completion:register_source(id, Source:new(id, VimBridge:new(id)))
+  self.completion:register_source(Source:new(id, VimBridge:new(id)))
 end
 
 --- unregister_source

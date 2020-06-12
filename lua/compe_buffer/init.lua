@@ -7,7 +7,7 @@ local Source = {
   cache = {};
 }
 
-function Source:get_source_metadata()
+function Source:get_metadata()
   return {
     priority = 10;
   }
