@@ -7,21 +7,17 @@ function Source:new(id, source)
   this.id = id
   this.source = source
   this.context = {}
-
-  this.status = 'waiting'
-  this.keyword_pattern_offset = 0
-  this.trigger_character_offset = 0
-
-  this.incomplete = false
-  this.items = {}
+  this:clear()
   return this
 end
 
 -- clear
 function Source:clear()
   self.status = 'waiting'
+  self.items = {}
   self.keyword_pattern_offset = 0
   self.trigger_character_offset = 0
+  self.incomplete = false
 end
 
 -- trigger
@@ -35,41 +31,43 @@ function Source:trigger(context, callback)
   state.keyword_pattern_offset = state.keyword_pattern_offset == 0 and state.trigger_character_offset or state.keyword_pattern_offset
 
   -- Does not match any patterns
-  if context.force ~= true and state.keyword_pattern_offset == 0 and state.trigger_character_offset == 0 then
-    self.status = 'waiting'
-    self.keyword_pattern_offset = 0
-    self.trigger_character_offset = 0
-    Debug:log('<clear> ' .. self.id .. '@ keyword_pattern_offset: ' .. self.keyword_pattern_offset .. ', trigger_character_offset: ' .. self.trigger_character_offset)
+  if context.manual ~= true and state.keyword_pattern_offset == 0 and state.trigger_character_offset == 0 then
+    Debug:log('<no completion> ' .. self.id .. '@ keyword_pattern_offset: ' .. self.keyword_pattern_offset .. ', trigger_character_offset: ' .. self.trigger_character_offset)
+    self:clear()
     return false
   end
 
   -- Force trigger conditions
   local force = false
+  force = force or context.manual
   force = force or state.trigger_character_offset > 0
-  force = force or context.force
   force = force or self.incomplete
 
-  -- Fix for manual completion / trigger character completion
-  if force and state.keyword_pattern_offset == 0 then
-    state.keyword_pattern_offset = context.col
+  local is_same_offset = self.context.lnum == context.lnum and self.keyword_pattern_offset == state.keyword_pattern_offset
+  local is_less_input = #context:get_input(state.keyword_pattern_offset) < vim.g.compe_min_length
+
+  if force == false then
+    -- Ignore when condition does not changed
+    if is_same_offset then
+      Debug:log('<ignore condition> ' .. self.id .. '@ keyword_pattern_offset: ' .. self.keyword_pattern_offset .. ', trigger_character_offset: ' .. self.trigger_character_offset)
+      return
+    end
+
+    -- Ignore when enough length of input
+    if is_less_input then
+      Debug:log('<ignore min_length> ' .. self.id .. '@ keyword_pattern_offset: ' .. self.keyword_pattern_offset .. ', trigger_character_offset: ' .. self.trigger_character_offset)
+      return
+    end
   end
 
-  -- Check ignore conditions
-  local ignore = false
-  ignore = ignore or self.context.lnum == context.lnum and self.keyword_pattern_offset == state.keyword_pattern_offset
-  ignore = ignore or #context:get_input(state.keyword_pattern_offset) < vim.g.compe_min_length
-  if force == false and ignore then
-    Debug:log('<ignore> ' .. self.id .. '@ keyword_pattern_offset: ' .. self.keyword_pattern_offset .. ', trigger_character_offset: ' .. self.trigger_character_offset)
-    return self.status ~= 'waiting'
-  end
-
-  -- Update completion state
-  self.status = force and self.status or 'processing'
+  -- Completion request.
+  self.status = is_same_offset and self.status or 'processing'
+  self.items = is_same_offset and self.items or {}
   self.keyword_pattern_offset = state.keyword_pattern_offset
   self.trigger_character_offset = state.trigger_character_offset
 
   -- Completion
-  Debug:log('<send> ' .. self.id .. '@ keyword_pattern_offset: ' .. self.keyword_pattern_offset .. ', trigger_character_offset: ' .. self.trigger_character_offset)
+  Debug:log('<completion> ' .. self.id .. '@ keyword_pattern_offset: ' .. self.keyword_pattern_offset .. ', trigger_character_offset: ' .. self.trigger_character_offset)
   self.source:complete({
     context = self.context;
     keyword_pattern_offset = self.keyword_pattern_offset;
@@ -123,6 +121,7 @@ end
 --- normalize_items
 function Source:normalize_items(context, items)
   local start_offset = self:get_start_offset()
+  local metadata = self:get_metadata()
   local normalized = {}
 
   local _, _, before = string.find(string.sub(context.before_line, 1, start_offset - 1), '([^%s]*)$')
@@ -180,6 +179,7 @@ function Source:normalize_items(context, items)
     item.empty = 1
 
     -- special properties
+    item.priority = metadata.priority or 0
     item.score = 0
 
     table.insert(normalized, item)

@@ -79,7 +79,7 @@ function Completion:trigger(context)
   if #vim.v.completed_item ~= 0 then
     return
   end
-  if self.context.changedtick == context.changedtick and context.force ~= true then
+  if self.context.changedtick == context.changedtick and context.manual ~= true then
     return
   end
 
@@ -102,7 +102,7 @@ function Completion:display(context)
   if #vim.v.completed_item ~= 0 then
     return
   end
-  if self.context.changedtick == context.changedtick and context.force ~= true then
+  if self.context.changedtick == context.changedtick and context.manual ~= true then
     return
   end
   self.context = context
