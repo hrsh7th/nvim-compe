@@ -1,4 +1,4 @@
-let s:accept_pattern = '\%([^\*<[:digit:][:blank:]~\./]\{-1,}\)'
+let s:accept_pattern = '\%([^/\:\*<[:blank:][:alnum:]]\{-1,}\)'
 let s:prefix_pattern = '\%(\~/\|\./\|\.\./\|/\)'
 let s:name_pattern = '[^/\\:\*?<>\|]'
 
