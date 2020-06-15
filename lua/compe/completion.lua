@@ -133,7 +133,10 @@ function Completion:display(context)
   -- Completion
   vim.schedule(function()
     if string.sub(vim.fn.mode(), 1, 1) == 'i' and #items > 0 and start_offset > 0 then
-        vim.fn.complete(start_offset, items)
+      local completeopt = vim.fn.getbufvar('%', '&completeopt', '')
+      vim.fn.setbufvar('%', 'completeopt', 'menu,menuone,noselect')
+      vim.fn.complete(start_offset, items)
+      vim.fn.setbufvar('%', 'completeopt', completeopt)
     end
   end)
 end

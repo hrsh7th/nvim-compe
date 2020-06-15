@@ -30,8 +30,14 @@ function Source:trigger(context, callback)
   state.keyword_pattern_offset = state.keyword_pattern_offset == nil and 0 or state.keyword_pattern_offset
   state.keyword_pattern_offset = state.keyword_pattern_offset == 0 and state.trigger_character_offset or state.keyword_pattern_offset
 
+  -- Fix for manual completion
+  if context.manual then
+    state.keyword_pattern_offset = state.keyword_pattern_offset ~= 0 and state.keyword_pattern_offset or context.col
+    self:clear()
+  end
+
   -- Does not match any patterns
-  if context.manual ~= true and state.keyword_pattern_offset == 0 and state.trigger_character_offset == 0 then
+  if state.keyword_pattern_offset == 0 and state.trigger_character_offset == 0 then
     Debug:log('<no completion> ' .. self.id .. '@ keyword_pattern_offset: ' .. self.keyword_pattern_offset .. ', trigger_character_offset: ' .. self.trigger_character_offset)
     self:clear()
     return false
