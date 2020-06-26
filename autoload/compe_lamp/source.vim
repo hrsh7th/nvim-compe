@@ -64,7 +64,7 @@ function! s:datermine(server, context) abort
     return {}
   endif
 
-  let [l:_, l:keyword_pattern_offset, l:__] = matchstrpos(a:context.before_line, '\w\+$')
+  let [l:_, l:keyword_pattern_offset, l:__] = matchstrpos(a:context.before_line, '\h\w*$')
   let l:keyword_pattern_offset += 1
 
   let l:trigger_chars = a:server.capability.get_completion_trigger_characters()

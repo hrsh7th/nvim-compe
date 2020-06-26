@@ -22,8 +22,6 @@ end
 
 -- trigger
 function Source:trigger(context, callback)
-  self.context = context
-
   -- Normalize trigger offsets
   local state = self.source:datermine(context)
   state.trigger_character_offset = state.trigger_character_offset == nil and 0 or state.trigger_character_offset
@@ -38,9 +36,9 @@ function Source:trigger(context, callback)
 
   -- Does not match any patterns
   if state.keyword_pattern_offset == 0 and state.trigger_character_offset == 0 then
-    Debug:log('<no completion> ' .. self.id .. '@ keyword_pattern_offset: ' .. self.keyword_pattern_offset .. ', trigger_character_offset: ' .. self.trigger_character_offset)
     self:clear()
-    return false
+    Debug:log('<no completion> ' .. self.id .. '@ keyword_pattern_offset: ' .. self.keyword_pattern_offset .. ', trigger_character_offset: ' .. self.trigger_character_offset)
+    return
   end
 
   -- Force trigger conditions
@@ -74,12 +72,17 @@ function Source:trigger(context, callback)
 
   -- Completion
   Debug:log('<completion> ' .. self.id .. '@ keyword_pattern_offset: ' .. self.keyword_pattern_offset .. ', trigger_character_offset: ' .. self.trigger_character_offset)
+  self.context = context
   self.source:complete({
     context = self.context;
     keyword_pattern_offset = self.keyword_pattern_offset;
     trigger_character_offset = self.trigger_character_offset;
     incomplete = self.incomplete;
     callback = function(result)
+      if context ~= self.context then
+      Debug:log('> completed skip: ' .. self.id .. ': ' .. #result.items)
+        return
+      end
       Debug:log('> completed: ' .. self.id .. ': ' .. #result.items)
 
       self.incomplete = result.incomplete or false
@@ -91,6 +94,7 @@ function Source:trigger(context, callback)
       self.incomplete = false
       self.items = {}
       self.status = 'waiting'
+      callback()
     end;
   })
   return true
@@ -187,6 +191,7 @@ function Source:normalize_items(context, items)
     -- special properties
     item.priority = metadata.priority or 0
     item.score = 0
+    item.asis = string.find(item.abbr, item.word, 1, true) == 1
 
     table.insert(normalized, item)
   end

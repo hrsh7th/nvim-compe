@@ -1,6 +1,6 @@
 let s:accept_pattern = '\%([^/\:\*<[:blank:][:alnum:]]\{-1,}\)'
 let s:prefix_pattern = '\%(\~/\|\./\|\.\./\|/\)'
-let s:name_pattern = '[^/\\:\*?<>\|]'
+let s:name_pattern = '\%([^/\\:\*?<>\|[:blank:]]\|\\ \)'
 
 "
 " compe_path#source#register
@@ -43,6 +43,7 @@ endfunction
 function! s:complete(args) abort
   let l:input = matchstr(a:args.context.before_line, s:accept_pattern . '\zs' . s:prefix_pattern . '\%(' . s:name_pattern . '\+/\)*$')
   let l:input = substitute(s:absolute(l:input), '[^/]*$', '', 'g')
+  let l:input = substitute(l:input, '\\ ', ' ', 'g')
 
   if !isdirectory(l:input) && !filereadable(l:input)
     return a:args.abort()
@@ -66,7 +67,7 @@ function! s:convert(input, key, path) abort
   endif
 
   return {
-  \   'word': '/' . l:part,
+  \   'word': '/' . fnameescape(l:part),
   \   'abbr': l:abbr,
   \   'menu': l:menu
   \ }
@@ -84,7 +85,6 @@ function! s:sort(item1, item2) abort
   endif
   return 0
 endfunction
-
 
 "
 " absolute

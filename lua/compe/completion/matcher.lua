@@ -26,7 +26,12 @@ function Matcher.match(context, start_offset, source)
     table.sort(matches, Matcher.sort)
   end
 
-  return matches
+  local limited = {}
+  for i = 1, 80 do
+    table.insert(limited, matches[i])
+  end
+
+  return limited
 end
 
 --- score
@@ -63,21 +68,19 @@ function Matcher.score(input, input_lower, item)
 
       -- does not match.
     else
+      -- required first char match
+      if i == 1 and j == 1 then
+        return 0
+      end
       if sequential > 0 then
-        score = score - 2
+        score = score - 2.5
       else
-        score = score - 1.5
+        score = score - 2
       end
       sequential = 0
     end
     j = j + 1
   end
-
-  -- remaining chars cost.
-  score = score - ((j - i + 1) * 0.5)
-
-  -- user_data bonus.
-  score = score + (item.user_data ~= nil and item.user_data ~= '' and 0.25 or 0)
 
   return score
 end
@@ -91,6 +94,16 @@ function Matcher.sort(item1, item2)
       return true
     end
     return item1.priority > item2.priority
+  end
+
+  if item1.asis ~= item2.asis then
+    return item2.asis
+  end
+
+  if item1.sort_text ~= nil and item2.sort_text ~= nil then
+    if item1.sort_text ~= item2.sort_text then
+      return item1.sort_text < item2.sort_text
+    end
   end
 
   if item1.score > item2.score then

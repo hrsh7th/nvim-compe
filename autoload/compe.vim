@@ -3,7 +3,7 @@
 " compe#complete
 "
 function! compe#complete() abort
-  call luaeval('require"compe":complete()')
+  call luaeval('require"compe":on_manual_complete()')
   return ''
 endfunction
 
@@ -24,7 +24,6 @@ endfunction
 function! compe#close(...) abort
   if pumvisible()
     call luaeval('require"compe":clear()')
-    return "\<C-e>"
   endif
   return get(a:000, 0, '')
 endfunction

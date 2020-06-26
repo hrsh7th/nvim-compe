@@ -37,17 +37,6 @@ function Completion:unregister_source(id)
   end
 end
 
---- complete
-function Completion:complete()
-  local context = Context:new(self.insert_char_pre, true)
-
-  Debug:log(' ')
-  Debug:log('>>> complete <<<: ' .. context.before_line)
-
-  self:trigger(context)
-  self:display(context)
-end
-
 --- on_insert_char_pre
 function Completion:on_insert_char_pre()
   self.insert_char_pre = self.insert_char_pre + 1
@@ -62,6 +51,17 @@ function Completion:on_text_changed()
 
   Debug:log(' ')
   Debug:log('>>> on_text_changed <<<: ' .. context.before_line)
+
+  self:trigger(context)
+  self:display(context)
+end
+
+--- on_manual_complete
+function Completion:on_manual_complete()
+  local context = Context:new(self.insert_char_pre, true)
+
+  Debug:log(' ')
+  Debug:log('>>> on_manual_complete <<<: ' .. context.before_line)
 
   self:trigger(context)
   self:display(context)
@@ -86,9 +86,7 @@ function Completion:trigger(context)
   for _, source in ipairs(self.sources) do
     local status, value = pcall(function()
       source:trigger(context, function()
-        Async.debounce('completed', 100, function()
-          self:display(Context:new(self.insert_char_pre, true))
-        end)
+        self:display(Context:new(self.insert_char_pre, true))
       end)
     end)
     if not(status) then
@@ -107,37 +105,46 @@ function Completion:display(context)
   end
   self.context = context
 
-  -- Datermine start_offset
-  local start_offset = 0
   for _, source in ipairs(self.sources) do
-    if source.status == 'processing' or source.status == 'completed' then
-      local source_start_offset = source:get_start_offset()
-      if type(source_start_offset) == 'number' then
-        if start_offset == 0 or source_start_offset < start_offset then
-          start_offset = source_start_offset
+    if source.status == 'processing' then
+      return
+    end
+  end
+
+  Async.throttle('display', 80, function()
+    -- Datermine start_offset
+    local start_offset = 0
+    for _, source in ipairs(self.sources) do
+      if source.status == 'processing' or source.status == 'completed' then
+        local source_start_offset = source:get_start_offset()
+        if type(source_start_offset) == 'number' then
+          if start_offset == 0 or source_start_offset < start_offset then
+            start_offset = source_start_offset
+          end
         end
       end
     end
-  end
 
-  -- Gather items
-  local items = {}
-  for _, source in ipairs(self.sources) do
-    if source.status == 'completed' then
-      for _, item in ipairs(Matcher.match(context, start_offset, source)) do
-        table.insert(items, item)
+    -- Gather items
+    local items = {}
+    for _, source in ipairs(self.sources) do
+      if source.status == 'completed' then
+        for _, item in ipairs(Matcher.match(context, start_offset, source)) do
+          table.insert(items, item)
+        end
       end
     end
-  end
+    Debug:log('!!! filter !!!: ' .. context.before_line)
 
-  -- Completion
-  vim.schedule(function()
-    if string.sub(vim.fn.mode(), 1, 1) == 'i' and #items > 0 and start_offset > 0 then
-      local completeopt = vim.fn.getbufvar('%', '&completeopt', '')
-      vim.fn.setbufvar('%', 'completeopt', 'menu,menuone,noselect')
-      vim.fn.complete(start_offset, items)
-      vim.fn.setbufvar('%', 'completeopt', completeopt)
-    end
+    -- Completion
+    vim.schedule(function()
+      if string.sub(vim.fn.mode(), 1, 1) == 'i' and #items > 0 and start_offset > 0 then
+        local completeopt = vim.fn.getbufvar('%', '&completeopt', '')
+        vim.fn.setbufvar('%', 'completeopt', 'menu,menuone,noselect')
+        vim.fn.complete(start_offset, items)
+        vim.fn.setbufvar('%', 'completeopt', completeopt)
+      end
+    end)
   end)
 end
 
