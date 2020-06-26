@@ -1,3 +1,4 @@
+local Character = require'compe.completion.character'
 local Matcher = {}
 
 -- match
@@ -49,33 +50,32 @@ function Matcher.score(input, input_lower, item)
     if string.byte(input_lower, i) == string.byte(word_lower, j) then
       sequential = sequential + 1
 
-      -- char match bonus
-      score = score + 0.5
-
       -- first char bonus
       if i == 1 and j == 1 then
-        score = score + 1.5
+        score = score + 4
+      elseif Matcher.is_semantic_index(word, j) then
+        score = score + 3
       end
 
       -- strict match bonus
       if string.byte(input, i) == string.byte(word, j) then
+        score = score + 1
+      else
         score = score + 0.5
       end
 
       -- sequencial match bonus
-      score = score + sequential * 0.25
+      score = score + sequential * 0.125
       i = i + 1
 
       -- does not match.
     else
-      -- required first char match
       if i == 1 and j == 1 then
-        return 0
-      end
-      if sequential > 0 then
-        score = score - 2.5
+        score = score - 8
+      elseif sequential > 0 then
+        score = score - 6
       else
-        score = score - 2
+        score = score - 4
       end
       sequential = 0
     end
@@ -117,6 +117,32 @@ function Matcher.sort(item1, item2)
   end
   return false
 end
+
+-- is_semantic_index
+function Matcher.is_semantic_index(word, index)
+  -- first-char
+  if index <= 1 then
+    return true
+  end
+
+  local curr = string.sub(word, index, index)
+  local prev = string.sub(word, index - 1, index - 1)
+
+  -- camel-case
+  if Character.is_upper(prev) ~= true and Character.is_upper(curr) then
+    return true
+
+  -- kebab-case
+  elseif prev == '-' and Character.is_alpha(curr) then
+    return true
+
+  -- snake-case
+  elseif prev == '_' and Character.is_alpha(curr) then
+    return true
+  end
+  return false
+end
+
 
 return Matcher
 
