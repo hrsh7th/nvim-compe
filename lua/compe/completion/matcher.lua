@@ -45,6 +45,7 @@ function Matcher.score(input, input_lower, item)
   local j = 1
   local sequential = 0
   while i <= #input and j <= #word do
+    local is_semantic_index = Matcher.is_semantic_index(word, j)
 
     -- match.
     if string.byte(input_lower, i) == string.byte(word_lower, j) then
@@ -52,30 +53,32 @@ function Matcher.score(input, input_lower, item)
 
       -- first char bonus
       if i == 1 and j == 1 then
+        score = score + 5
+      elseif is_semantic_index then
         score = score + 4
-      elseif Matcher.is_semantic_index(word, j) then
-        score = score + 3
       end
 
       -- strict match bonus
       if string.byte(input, i) == string.byte(word, j) then
         score = score + 1
       else
-        score = score + 0.5
+        score = score + 0.75
       end
 
       -- sequencial match bonus
-      score = score + sequential * 0.125
+      score = score + sequential * sequential * 0.5
       i = i + 1
 
       -- does not match.
     else
       if i == 1 and j == 1 then
-        score = score - 8
-      elseif sequential > 0 then
+        score = score - 7
+      elseif is_semantic_index then
         score = score - 6
+      elseif sequential > 0 then
+        score = score - sequential * sequential * 2
       else
-        score = score - 4
+        score = score - 3
       end
       sequential = 0
     end

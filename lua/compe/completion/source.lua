@@ -18,6 +18,7 @@ function Source:clear()
   self.keyword_pattern_offset = 0
   self.trigger_character_offset = 0
   self.incomplete = false
+  self.time = 0
 end
 
 -- trigger
@@ -73,6 +74,7 @@ function Source:trigger(context, callback)
   -- Completion
   Debug:log('<completion> ' .. self.id .. '@ keyword_pattern_offset: ' .. self.keyword_pattern_offset .. ', trigger_character_offset: ' .. self.trigger_character_offset)
   self.context = context
+  self.time = Debug:time()
   self.source:complete({
     context = self.context;
     keyword_pattern_offset = self.keyword_pattern_offset;
@@ -83,7 +85,7 @@ function Source:trigger(context, callback)
       Debug:log('> completed skip: ' .. self.id .. ': ' .. #result.items)
         return
       end
-      Debug:log('> completed: ' .. self.id .. ': ' .. #result.items)
+      Debug:log('> completed: ' .. self.id .. ': ' .. #result.items .. ', ms: ' .. Debug.time() - self.time)
 
       self.incomplete = result.incomplete or false
       self.items = self:normalize_items(context, result.items or {})
@@ -184,7 +186,7 @@ function Source:normalize_items(context, items)
     end
 
     -- required properties
-    item.dup = 1
+    item.dup = metadata.dup ~= nil and metadata.dup or 1
     item.equal = 1
     item.empty = 1
 

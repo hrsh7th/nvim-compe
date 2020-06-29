@@ -10,6 +10,7 @@ local Source = {
 function Source:get_metadata()
   return {
     priority = 10;
+    dup = 0;
   }
 end
 

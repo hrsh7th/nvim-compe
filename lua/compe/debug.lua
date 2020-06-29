@@ -10,4 +10,9 @@ function Debug:log(args)
   end
 end
 
+function Debug:time()
+  return vim.fn.reltimefloat(vim.fn.reltime()) * 1000
+end
+
 return Debug
+

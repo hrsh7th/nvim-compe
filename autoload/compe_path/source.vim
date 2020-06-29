@@ -41,8 +41,8 @@ endfunction
 " s:complete
 "
 function! s:complete(args) abort
-  let l:input = matchstr(a:args.context.before_line, s:accept_pattern . '\zs' . s:prefix_pattern . '\%(' . s:name_pattern . '\+/\)*$')
-  let l:input = substitute(s:absolute(l:input), '[^/]*$', '', 'g')
+  let l:input = matchstr(a:args.context.before_line, s:accept_pattern . '\zs' . s:prefix_pattern . '\%(\%(' . s:name_pattern . '\+/\)*\)' . s:name_pattern . '*$')
+  let l:input = s:absolute(substitute(l:input, '[^/]*$', '', 'g'))
   let l:input = substitute(l:input, '\\ ', ' ', 'g')
 
   if !isdirectory(l:input) && !filereadable(l:input)
