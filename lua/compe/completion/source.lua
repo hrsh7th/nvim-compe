@@ -149,6 +149,7 @@ function Source:normalize_items(context, items)
     end
 
     local word = item.word
+    local input = context:get_input(start_offset)
 
     -- fix complete overlap for prefix
     if before ~= nil then
@@ -157,11 +158,18 @@ function Source:normalize_items(context, items)
       end
     end
 
-    -- fix complete overlap for postfix
+    -- fix complete duplication
     if after ~= nil then
       local _, after_e = string.find(word, after, 1, true)
       if after_e == #word then
         word = string.sub(word, 1, #word - #after)
+      end
+    end
+
+    -- fix complete overlap for postfix
+    if after ~= nil then
+      if string.find(input .. after, word, 1, true) == 1 then
+        word = string.sub(word, 1, #input)
       end
     end
 
