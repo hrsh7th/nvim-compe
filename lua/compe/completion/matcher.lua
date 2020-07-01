@@ -76,7 +76,7 @@ function Matcher.score(input, input_lower, item)
       elseif is_semantic_index then
         score = score - 6
       elseif sequential > 0 then
-        score = score - sequential * sequential * 2
+        score = score - (sequential * sequential * 2 + 3)
       else
         score = score - 3
       end

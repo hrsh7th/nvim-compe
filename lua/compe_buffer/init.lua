@@ -11,12 +11,7 @@ function Source:get_metadata()
   return {
     priority = 10;
     dup = 0;
-  }
-end
-
-function Source:get_item_metadata()
-  return {
-    menu = '[b]'
+    menu = '[b]';
   }
 end
 

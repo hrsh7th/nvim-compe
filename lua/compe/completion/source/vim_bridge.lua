@@ -31,11 +31,6 @@ function VimBridge:get_metadata()
   return vim.api.nvim_call_function('compe#source#vim_bridge#get_metadata', { self.id })
 end
 
---- get_item_metadata
-function VimBridge:get_item_metadata(item)
-  return vim.api.nvim_call_function('compe#source#vim_bridge#get_item_metadata', { self.id, item })
-end
-
 --- new
 function VimBridge:datermine(context)
   return vim.api.nvim_call_function('compe#source#vim_bridge#datermine', { self.id, context })

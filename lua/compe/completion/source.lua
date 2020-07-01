@@ -136,10 +136,8 @@ function Source:normalize_items(context, items)
   local metadata = self:get_metadata()
   local normalized = {}
 
-  -- We Should make configurable the separator characters per source.
-  -- Currently we supports path source as special case.
-  local _, _, before = string.find(string.sub(context.before_line, 1, start_offset - 1), '([^%s/]*)$')
-  local _, _, after = string.find(context.after_line, '^([^%s/]*)')
+  local _, _, before = string.find(string.sub(context.before_line, 1, start_offset - 1), '([^%s]*)$')
+  local _, _, after = string.find(context.after_line, '^([^%s]*)')
 
   for _, item in pairs(items) do
     -- string to completed_item
@@ -150,30 +148,7 @@ function Source:normalize_items(context, items)
       }
     end
 
-    local word = item.word
-    local input = context:get_input(start_offset)
-
-    -- fix complete overlap for prefix
-    if before ~= nil then
-      if string.find(word, before, 1, true) == 1 then
-        word = string.sub(word,  #before + 1, #word)
-      end
-    end
-
-    -- fix complete duplication
-    if after ~= nil then
-      local _, after_e = string.find(word, after, 1, true)
-      if after_e == #word then
-        word = string.sub(word, 1, #word - #after)
-      end
-    end
-
-    -- fix complete overlap for postfix
-    if after ~= nil then
-      if string.find(input .. after, word, 1, true) == 1 then
-        word = string.sub(word, 1, #input)
-      end
-    end
+    local word = self:trim_word(before, after, item.word)
 
     if word ~= item.word then
       Debug:log(vim.inspect({
@@ -191,12 +166,9 @@ function Source:normalize_items(context, items)
       item.abbr = item.word
     end
 
-    for key, value in pairs(self.source:get_item_metadata(item)) do
-      item[key] = value
-    end
-
     -- required properties
     item.dup = metadata.dup ~= nil and metadata.dup or 1
+    item.menu = metadata.menu ~= nil and metadata.menu or item.menu
     item.equal = 1
     item.empty = 1
 
@@ -208,6 +180,32 @@ function Source:normalize_items(context, items)
     table.insert(normalized, item)
   end
   return normalized
+end
+
+-- trim_word
+function Source:trim_word(before, after, word)
+  local word_len = #word
+
+  if before ~= nil then
+    for prefix_overlap = word_len, 1, -1 do
+      if string.sub(before, #before - prefix_overlap + 1) == string.sub(word, 1, prefix_overlap) then
+        word = string.sub(word, prefix_overlap + 1)
+        break
+      end
+    end
+  end
+
+  if after ~= nil then
+    for postfix_overlap = word_len, 1, -1 do
+      local word_index = word_len - postfix_overlap + 1
+      if string.sub(after, 1, postfix_overlap) == string.sub(word, word_index) then
+        word = string.sub(word, 1, word_index - 1)
+        break
+      end
+    end
+  end
+
+  return word
 end
 
 return Source

@@ -31,7 +31,6 @@ function! s:source() abort
   let s:state.ids = map(copy(l:servers), { _, server ->
   \   compe#source#vim_bridge#register(server.name, {
   \     'get_metadata': function('s:get_metadata'),
-  \     'get_item_metadata': function('s:get_item_metadata'),
   \     'datermine': function('s:datermine', [server]),
   \     'complete': function('s:complete', [server]),
   \   })
@@ -44,14 +43,6 @@ endfunction
 function! s:get_metadata() abort
   return {
   \   'priority': 1000,
-  \ }
-endfunction
-
-"
-" s:get_item_metadata
-"
-function! s:get_item_metadata(item) abort
-  return {
   \   'menu': '[l]'
   \ }
 endfunction

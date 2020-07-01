@@ -4,7 +4,6 @@
 function! compe_vsnip#source#register() abort
   call compe#source#vim_bridge#register('vsnip', {
   \   'get_metadata': function('s:get_metadata'),
-  \   'get_item_metadata': function('s:get_item_metadata'),
   \   'datermine': function('s:datermine'),
   \   'complete': function('s:complete'),
   \ })
@@ -15,15 +14,7 @@ endfunction
 "
 function! s:get_metadata() abort
   return {
-  \   'priority': 50
-  \ }
-endfunction
-
-"
-" s:get_item_metadata
-"
-function! s:get_item_metadata(item) abort
-  return {
+  \   'priority': 50,
   \   'menu': '[v]',
   \ }
 endfunction

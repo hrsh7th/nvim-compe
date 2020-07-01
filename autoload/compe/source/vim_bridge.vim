@@ -33,16 +33,6 @@ function! compe#source#vim_bridge#get_metadata(id) abort
 endfunction
 
 "
-" compe#source#vim_bridge#get_item_metadata
-"
-function! compe#source#vim_bridge#get_item_metadata(id, item) abort
-  if has_key(s:sources, a:id) && has_key(s:sources[a:id], 'get_item_metadata')
-    return s:sources[a:id].get_item_metadata(a:item)
-  endif
-  return {}
-endfunction
-
-"
 " compe#source#vim_bridge#datermine
 "
 function! compe#source#vim_bridge#datermine(id, context) abort
