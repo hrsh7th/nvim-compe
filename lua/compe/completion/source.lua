@@ -136,8 +136,10 @@ function Source:normalize_items(context, items)
   local metadata = self:get_metadata()
   local normalized = {}
 
-  local _, _, before = string.find(string.sub(context.before_line, 1, start_offset - 1), '([^%s]*)$')
-  local _, _, after = string.find(context.after_line, '^([^%s]*)')
+  -- We Should make configurable the separator characters per source.
+  -- Currently we supports path source as special case.
+  local _, _, before = string.find(string.sub(context.before_line, 1, start_offset - 1), '([^%s/]*)$')
+  local _, _, after = string.find(context.after_line, '^([^%s/]*)')
 
   for _, item in pairs(items) do
     -- string to completed_item
