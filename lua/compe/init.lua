@@ -27,7 +27,6 @@ function Compe:unregister_source(id)
   self.completion:unregister_source(id)
 end
 
-
 --- on_insert_char_pre
 function Compe:on_insert_char_pre()
   if vim.g.compe_enabled then

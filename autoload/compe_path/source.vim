@@ -28,10 +28,11 @@ endfunction
 "
 function! s:datermine(context) abort
   let [l:_, l:keyword_pattern_offset, l:__] = matchstrpos(a:context.before_line, '/' . s:name_pattern . '*$')
-  let l:keyword_pattern_offset += 1
-  if l:keyword_pattern_offset > 0
+  let l:keyword_pattern_offset += 2
+  if l:keyword_pattern_offset > 1
     return {
-    \   'keyword_pattern_offset': l:keyword_pattern_offset
+    \   'keyword_pattern_offset': l:keyword_pattern_offset,
+    \   'trigger_character_offset': a:context.before_char == '/' ? a:context.col : 0
     \ }
   end
   return {}
@@ -67,7 +68,7 @@ function! s:convert(input, key, path) abort
   endif
 
   return {
-  \   'word': '/' . fnameescape(l:part),
+  \   'word': fnameescape(l:part),
   \   'abbr': l:abbr,
   \   'menu': l:menu
   \ }

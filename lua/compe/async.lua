@@ -16,6 +16,8 @@ local function throttle(id, timeout, callback)
   end
   throttle_timers[id] = vim.loop.new_timer()
   throttle_timers[id]:start(timeout, 0, function()
+    throttle_timers[id]:stop()
+    throttle_timers[id]:close()
     throttle_timers[id] = nil
     vim.schedule(callback)
   end)

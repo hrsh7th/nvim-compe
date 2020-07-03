@@ -40,6 +40,14 @@ function Matcher.score(input, input_lower, item)
   local word = item.word
   local word_lower = string.lower(item.word)
 
+  if word == input then
+    return 100
+  end
+
+  if word_lower == input_lower then
+    return 80
+  end
+
   local score = 0
   local i = 1
   local j = 1
@@ -76,7 +84,7 @@ function Matcher.score(input, input_lower, item)
       elseif is_semantic_index then
         score = score - 6
       elseif sequential > 0 then
-        score = score - (sequential * sequential * 2 + 3)
+        score = score - (sequential * sequential + 3)
       else
         score = score - 3
       end
@@ -101,6 +109,10 @@ function Matcher.sort(item1, item2)
 
   if item1.asis ~= item2.asis then
     return item2.asis
+  end
+
+  if item1.score - item2.score > 5 then
+    return item1.score > item2.score
   end
 
   if item1.sort_text ~= nil and item2.sort_text ~= nil then

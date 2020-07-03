@@ -38,7 +38,7 @@ function Source:trigger(context, callback)
   -- Does not match any patterns
   if state.keyword_pattern_offset == 0 and state.trigger_character_offset == 0 then
     self:clear()
-    Debug:log('<no completion> ' .. self.id .. '@ keyword_pattern_offset: ' .. self.keyword_pattern_offset .. ', trigger_character_offset: ' .. self.trigger_character_offset)
+    self:log('no_completion')
     return
   end
 
@@ -54,13 +54,13 @@ function Source:trigger(context, callback)
   if force == false then
     -- Ignore when condition does not changed
     if is_same_offset then
-      Debug:log('<ignore condition> ' .. self.id .. '@ keyword_pattern_offset: ' .. self.keyword_pattern_offset .. ', trigger_character_offset: ' .. self.trigger_character_offset)
+      self:log('same_offset')
       return
     end
 
     -- Ignore when enough length of input
     if is_less_input then
-      Debug:log('<ignore min_length> ' .. self.id .. '@ keyword_pattern_offset: ' .. self.keyword_pattern_offset .. ', trigger_character_offset: ' .. self.trigger_character_offset)
+      self:log('less_input')
       return
     end
   end
@@ -72,7 +72,7 @@ function Source:trigger(context, callback)
   self.trigger_character_offset = state.trigger_character_offset
 
   -- Completion
-  Debug:log('<completion> ' .. self.id .. '@ keyword_pattern_offset: ' .. self.keyword_pattern_offset .. ', trigger_character_offset: ' .. self.trigger_character_offset)
+  self:log('##### completion')
   self.context = context
   self.time = Debug:time()
   self.source:complete({
@@ -180,6 +180,11 @@ function Source:normalize_items(context, items)
     table.insert(normalized, item)
   end
   return normalized
+end
+
+-- log
+function Source:log(label)
+  Debug:log(string.format('<%s>	%s	k: %d	t: %d', label, self.id, self.keyword_pattern_offset, self.trigger_character_offset))
 end
 
 -- trim_word
