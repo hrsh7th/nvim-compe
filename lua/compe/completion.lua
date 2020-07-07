@@ -100,16 +100,17 @@ function Completion:display(context)
   if #vim.v.completed_item ~= 0 then
     return
   end
-  if self.context.changedtick == context.changedtick and context.manual ~= true then
-    return
-  end
-  self.context = context
 
   for _, source in ipairs(self.sources) do
     if source.status == 'processing' then
       return
     end
   end
+
+  if self.context.changedtick == context.changedtick and context.manual ~= true then
+    return
+  end
+  self.context = context
 
   Async.throttle('display', 80, function()
     -- Datermine start_offset

@@ -10,11 +10,7 @@ function Matcher.match(context, start_offset, source)
   for _, item in ipairs(source:get_items()) do
     local score = 0
     if #item.word >= #input then
-      if source.incomplete then
-        score = 1.1
-      else
-        score = Matcher.score(input, input_lower, item)
-      end
+      score = Matcher.score(input, input_lower, item)
     end
 
     if score > 1 or #input == 0 then
@@ -23,7 +19,7 @@ function Matcher.match(context, start_offset, source)
     end
   end
 
-  if source:get_metadata().sort and source.incomplete ~= true then
+  if source:get_metadata().sort then
     table.sort(matches, Matcher.sort)
   end
 
@@ -39,14 +35,6 @@ end
 function Matcher.score(input, input_lower, item)
   local word = item.word
   local word_lower = string.lower(item.word)
-
-  if word == input then
-    return 100
-  end
-
-  if word_lower == input_lower then
-    return 80
-  end
 
   local score = 0
   local i = 1
@@ -74,7 +62,7 @@ function Matcher.score(input, input_lower, item)
       end
 
       -- sequencial match bonus
-      score = score + sequential * sequential * 0.5
+      score = score + ((sequential * 0.2) * (sequential * 0.2))
       i = i + 1
 
       -- does not match.
@@ -84,7 +72,7 @@ function Matcher.score(input, input_lower, item)
       elseif is_semantic_index then
         score = score - 6
       elseif sequential > 0 then
-        score = score - (sequential * sequential + 3)
+        score = score - ((sequential * 0.2) * (sequential * 0.2) + 3)
       else
         score = score - 3
       end
@@ -111,7 +99,7 @@ function Matcher.sort(item1, item2)
     return item2.asis
   end
 
-  if item1.score - item2.score > 5 then
+  if math.abs(item1.score - item2.score) > 15 then
     return item1.score > item2.score
   end
 
@@ -121,16 +109,7 @@ function Matcher.sort(item1, item2)
     end
   end
 
-  if item1.score > item2.score then
-    return true
-  elseif item1.score < item2.score then
-    return false
-  end
-
-  if #item1.word < #item2.word then
-    return true
-  end
-  return false
+  return #item1.word < #item2.word
 end
 
 -- is_semantic_index
