@@ -133,6 +133,10 @@ function Matcher.is_semantic_index(word, index)
   -- snake-case
   elseif prev == '_' and Character.is_alpha(curr) then
     return true
+
+  -- boundaly
+  elseif Character.is_alpha(curr) and Character.is_alpha(curr) ~= true then
+    return true
   end
   return false
 end
