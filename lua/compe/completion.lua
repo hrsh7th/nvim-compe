@@ -112,40 +112,38 @@ function Completion:display(context)
   end
   self.context = context
 
-  Async.throttle('display', 80, function()
-    -- Datermine start_offset
-    local start_offset = 0
-    for _, source in ipairs(self.sources) do
-      if source.status == 'processing' or source.status == 'completed' then
-        local source_start_offset = source:get_start_offset()
-        if type(source_start_offset) == 'number' then
-          if start_offset == 0 or source_start_offset < start_offset then
-            start_offset = source_start_offset
-          end
+  -- Datermine start_offset
+  local start_offset = 0
+  for _, source in ipairs(self.sources) do
+    if source.status == 'processing' or source.status == 'completed' then
+      local source_start_offset = source:get_start_offset()
+      if type(source_start_offset) == 'number' then
+        if start_offset == 0 or source_start_offset < start_offset then
+          start_offset = source_start_offset
         end
       end
     end
+  end
 
-    -- Gather items
-    local items = {}
-    for _, source in ipairs(self.sources) do
-      if source.status == 'completed' then
-        for _, item in ipairs(Matcher.match(context, start_offset, source)) do
-          table.insert(items, item)
-        end
+  -- Gather items
+  local items = {}
+  for _, source in ipairs(self.sources) do
+    if source.status == 'completed' then
+      for _, item in ipairs(Matcher.match(context, start_offset, source)) do
+        table.insert(items, item)
       end
     end
-    Debug:log('!!! filter !!!: ' .. context.before_line)
+  end
+  Debug:log('!!! filter !!!: ' .. context.before_line)
 
-    -- Completion
-    vim.schedule(function()
-      if string.sub(vim.fn.mode(), 1, 1) == 'i' and #items > 0 and start_offset > 0 then
-        local completeopt = vim.fn.getbufvar('%', '&completeopt', '')
-        vim.fn.setbufvar('%', 'completeopt', 'menu,menuone,noselect')
-        vim.fn.complete(start_offset, items)
-        vim.fn.setbufvar('%', 'completeopt', completeopt)
-      end
-    end)
+  -- Completion
+  vim.schedule(function()
+    if string.sub(vim.fn.mode(), 1, 1) == 'i' and #items > 0 and start_offset > 0 then
+      local completeopt = vim.fn.getbufvar('%', '&completeopt', '')
+      vim.fn.setbufvar('%', 'completeopt', 'menu,menuone,noselect')
+      vim.fn.complete(start_offset, items)
+      vim.fn.setbufvar('%', 'completeopt', completeopt)
+    end
   end)
 end
 
