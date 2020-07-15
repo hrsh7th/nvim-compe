@@ -1,6 +1,4 @@
--- TODO: Use vim regex for split word
--- TODO: Define language keyword patterns in core.
-local default_pattern = '([%a%$_][%w%-_]*)'
+local Pattern = require'compe.pattern'
 
 local Source = {
   context = {};
@@ -17,7 +15,7 @@ end
 
 function Source:datermine(context)
   return {
-    keyword_pattern_offset = string.find(context.before_line, default_pattern .. '$')
+    keyword_pattern_offset = Pattern:get_keyword_pattern_offset(context)
   }
 end
 
@@ -42,18 +40,19 @@ function Source:_get_items(context)
   end
 
   local buffer = table.concat(lines, ' ')
+  local regex = vim.regex(Pattern:get_keyword_pattern(context))
   local items = {}
-  local start = 0
   while true do
-    local s, e, t = string.find(buffer, default_pattern, start + 1)
+    local s, e = regex:match_str(buffer)
     if s == nil then
       break
     end
 
-    if #t > 2 and vim.tbl_contains(items, t) ~= true then
-      table.insert(items, t)
+    local word = string.sub(buffer, s + 1, e)
+    if #word > 2 and vim.tbl_contains(items, word) ~= true then
+      table.insert(items, word)
     end
-    start = e
+    buffer = string.sub(buffer, e + 1)
   end
 
   self.cache = items

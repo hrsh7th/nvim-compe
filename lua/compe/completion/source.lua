@@ -38,7 +38,7 @@ function Source:trigger(context, callback)
   -- Does not match any patterns
   if state.keyword_pattern_offset == 0 and state.trigger_character_offset == 0 then
     self:clear()
-    self:log('no_completion')
+    self:log('no_completion', context, state)
     return
   end
 
@@ -54,13 +54,13 @@ function Source:trigger(context, callback)
   if force == false then
     -- Ignore when condition does not changed
     if is_same_offset then
-      self:log('same_offset')
+      self:log('same_offset', context, state)
       return
     end
 
     -- Ignore when enough length of input
     if is_less_input then
-      self:log('less_input')
+      self:log('less_input', context, state)
       return
     end
   end
@@ -72,7 +72,7 @@ function Source:trigger(context, callback)
   self.trigger_character_offset = state.trigger_character_offset
 
   -- Completion
-  self:log('##### completion')
+  self:log('completion', context, state)
   self.context = context
   self.time = Debug:time()
   self.source:complete({
@@ -82,7 +82,11 @@ function Source:trigger(context, callback)
     incomplete = self.incomplete;
     callback = function(result)
       if context ~= self.context then
-      Debug:log('> completed skip: ' .. self.id .. ': ' .. #result.items)
+        Debug:log('> completed skip: ' .. self.id .. ': ' .. #result.items)
+        return
+      end
+      if #result.items == 0 then
+        Debug:log('> completed empty: ' .. self.id .. ': ' .. #result.items)
         return
       end
       Debug:log('> completed: ' .. self.id .. ': ' .. #result.items .. ', ms: ' .. Debug.time() - self.time)
@@ -93,6 +97,7 @@ function Source:trigger(context, callback)
       callback()
     end;
     abort = function()
+      Debug:log('> completed abort: ' .. self.id)
       self.incomplete = false
       self.items = {}
       self.status = 'waiting'
@@ -128,6 +133,25 @@ end
 --- get_items
 function Source:get_items()
   return self.items or {}
+end
+
+-- log
+function Source:log(label, context, state)
+  local force_type = ''
+  if context.manual then
+    force_type = 'manual'
+  elseif state.trigger_character_offset > 0 then
+    force_type = 'trigger'
+  elseif self.incomplete then
+    force_type = 'incomplete'
+  end
+  Debug:log(string.format('<%s>	%s	k: %d	t: %d, f: %s',
+    label,
+    self.id,
+    self.keyword_pattern_offset,
+    self.trigger_character_offset,
+    force_type
+  ))
 end
 
 --- normalize_items
@@ -180,11 +204,6 @@ function Source:normalize_items(context, items)
     table.insert(normalized, item)
   end
   return normalized
-end
-
--- log
-function Source:log(label)
-  Debug:log(string.format('<%s>	%s	k: %d	t: %d', label, self.id, self.keyword_pattern_offset, self.trigger_character_offset))
 end
 
 -- trim_word

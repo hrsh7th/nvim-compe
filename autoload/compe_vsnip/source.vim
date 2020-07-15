@@ -23,10 +23,10 @@ endfunction
 " s:datermine
 "
 function! s:datermine(context) abort
-  let [l:_, l:keyword_pattern_offset, l:__] = matchstrpos(a:context.before_line, '\h\w*$')
-  if l:keyword_pattern_offset != -1
+  let l:keyword_pattern_offset = compe#pattern#get_keyword_pattern_offset(a:context)
+  if l:keyword_pattern_offset > 0
     return {
-    \   'keyword_pattern_offset': l:keyword_pattern_offset + 1
+    \   'keyword_pattern_offset': l:keyword_pattern_offset
     \ }
   endif
   return {}

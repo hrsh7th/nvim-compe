@@ -33,5 +33,6 @@ if g:compe_enabled
   call compe_lamp#source#register()
   call compe_vsnip#source#register()
   call compe_path#source#register()
+  call compe#pattern#set_defaults()
 end
 
