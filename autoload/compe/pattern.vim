@@ -3,7 +3,7 @@
 "
 function! compe#pattern#set_defaults() abort
   call compe#pattern#set('vim', {
-  \   'keyword_pattern': '\h\%(\w\|#\)*',
+  \   'keyword_pattern': '\h\(\w\|\#\)*',
   \ })
   call compe#pattern#set('php', {
   \   'keyword_pattern': '\%(\$\|\h\)\%(\w\)*',
