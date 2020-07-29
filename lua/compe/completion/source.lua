@@ -85,15 +85,18 @@ function Source:trigger(context, callback)
         Debug:log('> completed skip: ' .. self.id .. ': ' .. #result.items)
         return
       end
+
+      self.status = 'completed'
+
       if #result.items == 0 then
         Debug:log('> completed empty: ' .. self.id .. ': ' .. #result.items)
+        self.status = 'completed'
         return
       end
       Debug:log('> completed: ' .. self.id .. ': ' .. #result.items .. ', ms: ' .. Debug.time() - self.time)
 
       self.incomplete = result.incomplete or false
       self.items = self:normalize_items(context, result.items or {})
-      self.status = 'completed'
       callback()
     end;
     abort = function()
