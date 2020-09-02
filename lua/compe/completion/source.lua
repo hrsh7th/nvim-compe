@@ -69,7 +69,7 @@ function Source:trigger(context, callback)
   self.status = is_same_offset and self.status or 'processing'
   self.items = is_same_offset and self.items or {}
   self.keyword_pattern_offset = state.keyword_pattern_offset
-  self.trigger_character_offset = state.trigger_character_offset
+  self.trigger_character_offset = is_same_offset and self.trigger_character_offset or state.trigger_character_offset
 
   -- Completion
   self:log('completion', context, state)
@@ -131,6 +131,11 @@ end
 --- get_start_offset
 function Source:get_start_offset()
   return self.keyword_pattern_offset
+end
+
+--- is_triggered_by_character
+function Source:is_triggered_by_character()
+  return self.trigger_character_offset > 0
 end
 
 --- get_items

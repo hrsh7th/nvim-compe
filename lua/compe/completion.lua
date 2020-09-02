@@ -97,53 +97,58 @@ end
 
 --- display
 function Completion:display(context)
-  if #vim.v.completed_item ~= 0 then
-    return
-  end
-
-  for _, source in ipairs(self.sources) do
-    if source.status == 'processing' then
+  Async.debounce('completion', 20, function()
+    if #vim.v.completed_item ~= 0 then
       return
     end
-  end
 
-  if self.context.changedtick == context.changedtick and context.manual ~= true then
-    return
-  end
-  self.context = context
+    for _, source in ipairs(self.sources) do
+      if source.status == 'processing' then
+        return
+      end
+    end
 
-  -- Datermine start_offset
-  local start_offset = 0
-  for _, source in ipairs(self.sources) do
-    if source.status == 'processing' or source.status == 'completed' then
-      local source_start_offset = source:get_start_offset()
-      if type(source_start_offset) == 'number' then
-        if start_offset == 0 or source_start_offset < start_offset then
-          start_offset = source_start_offset
+    if self.context.changedtick == context.changedtick and context.manual ~= true then
+      return
+    end
+    self.context = context
+
+    -- Datermine start_offset
+    local start_offset = 0
+    for _, source in ipairs(self.sources) do
+      if source.status == 'processing' or source.status == 'completed' then
+        local source_start_offset = source:get_start_offset()
+        if type(source_start_offset) == 'number' then
+          if start_offset == 0 or source_start_offset < start_offset then
+            start_offset = source_start_offset
+          end
         end
       end
     end
-  end
 
-  -- Gather items
-  local items = {}
-  for _, source in ipairs(self.sources) do
-    if source.status == 'completed' then
-      for _, item in ipairs(Matcher.match(context, start_offset, source)) do
-        table.insert(items, item)
+    -- Gather items
+    local use_trigger_character = false
+    local items = {}
+    for _, source in ipairs(self.sources) do
+      local is_triggered_by_character = source:is_triggered_by_character()
+      if source.status == 'completed' and (is_triggered_by_character or is_triggered_by_character == use_trigger_character) then
+        use_trigger_character = is_triggered_by_character
+        for _, item in ipairs(Matcher.match(context, start_offset, source)) do
+          table.insert(items, item)
+        end
       end
     end
-  end
-  Debug:log('!!! filter !!!: ' .. context.before_line)
+    Debug:log('!!! filter !!!: ' .. context.before_line)
 
-  -- Completion
-  vim.schedule(function()
-    if string.sub(vim.fn.mode(), 1, 1) == 'i' and #items > 0 and start_offset > 0 then
-      local completeopt = vim.fn.getbufvar('%', '&completeopt', '')
-      vim.fn.setbufvar('%', 'completeopt', 'menu,menuone,noselect')
-      vim.fn.complete(start_offset, items)
-      vim.fn.setbufvar('%', 'completeopt', completeopt)
-    end
+    -- Completion
+    vim.schedule(function()
+      if string.sub(vim.fn.mode(), 1, 1) == 'i' and #items > 0 and start_offset > 0 then
+        local completeopt = vim.fn.getbufvar('%', '&completeopt', '')
+        vim.fn.setbufvar('%', 'completeopt', 'menu,menuone,noselect')
+        vim.fn.complete(start_offset, items)
+        vim.fn.setbufvar('%', 'completeopt', completeopt)
+      end
+    end)
   end)
 end
 
