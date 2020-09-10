@@ -154,6 +154,16 @@ function Completion:display(context)
         vim.fn.complete(start_offset, items)
         vim.fn.setbufvar('%', 'completeopt', completeopt)
       end
+
+      -- preselect
+      if vim.fn.has('nvim') then
+        for i, item in ipairs(items) do
+          if item.preselect == true then
+            vim.api.nvim_select_popupmenu_item(i - 1, false, false, {})
+            break
+          end
+        end
+      end
     end)
   end)
 end
