@@ -146,23 +146,42 @@ function Completion:display(context)
     -- Completion
     vim.schedule(function()
       if #vim.v.completed_item ~= 0 then
-          return
+        return
       end
-      if string.sub(vim.fn.mode(), 1, 1) == 'i' and #items > 0 and start_offset > 0 then
+
+      local words = {}
+      local filtered_items = {}
+      for _, item in ipairs(items) do
+        if words[item.word] ~= true then
+          table.insert(filtered_items, item)
+          words[item.word] = true
+        end
+      end
+
+      if string.sub(vim.fn.mode(), 1, 1) == 'i' and #filtered_items > 0 and start_offset > 0 then
         local completeopt = vim.fn.getbufvar('%', '&completeopt', '')
         vim.fn.setbufvar('%', 'completeopt', 'menu,menuone,noselect')
-        vim.fn.complete(start_offset, items)
+        vim.fn.complete(start_offset, filtered_items)
         vim.fn.setbufvar('%', 'completeopt', completeopt)
       end
 
       -- preselect
-      if vim.fn.has('nvim') then
-        for i, item in ipairs(items) do
-          if item.preselect == true then
-            vim.api.nvim_select_popupmenu_item(i - 1, false, false, {})
-            break
+      if vim.fn.has('nvim') and vim.fn.pumvisible() then
+        (function()
+          for i, item in ipairs(filtered_items) do
+            if item.preselect == true then
+              vim.api.nvim_select_popupmenu_item(i - 1, false, false, {})
+              return
+            end
           end
-        end
+
+          if vim.g.compe_auto_preselect then
+            if #filtered_items <= 1 then
+              vim.api.nvim_select_popupmenu_item(0, false, false, {})
+              return
+            end
+          end
+        end)()
       end
     end)
   end)

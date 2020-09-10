@@ -25,9 +25,7 @@ function Context:get_before_char(lnum, before_line)
   while current_lnum > 0 do
     local line = current_lnum == lnum and before_line or vim.fn.getline(current_lnum)
     local _, _, c = string.find(line, '([^%s])%s*$')
-    if vim.tbl_contains(vim.g.compe_linewise_chars, c) then
-      return c
-    elseif c ~= nil then
+    if c ~= nil then
       break
     end
     current_lnum = current_lnum - 1

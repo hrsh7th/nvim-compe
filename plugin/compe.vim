@@ -6,7 +6,7 @@ let g:loaded_compe = v:true
 let g:compe_enabled = get(g:, 'compe_enabled', v:false)
 let g:compe_debug = get(g:, 'compe_debug', v:false)
 let g:compe_min_length = get(g:, 'compe_min_length', 1)
-let g:compe_linewise_chars = get(g:, 'compe_linewise_chars', ['<', '(', '{', ','])
+let g:compe_auto_preselect = get(g:, 'compe_auto_preselect', v:false)
 
 augroup compe
   autocmd!
