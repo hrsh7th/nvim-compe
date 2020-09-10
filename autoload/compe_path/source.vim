@@ -60,10 +60,10 @@ endfunction
 function! s:convert(input, key, path) abort
   let l:part = fnamemodify(a:path, ':t')
   if isdirectory(a:path)
-    let l:menu = '[d]'
+    let l:menu = '[DIR]'
     let l:abbr = '/' . l:part
   else
-    let l:menu = '[f]'
+    let l:menu = '[FILE]'
     let l:abbr =  l:part
   endif
 

@@ -9,7 +9,7 @@ function Source:get_metadata()
   return {
     priority = 10;
     dup = 0;
-    menu = '[b]';
+    menu = '[BUFFER]';
   }
 end
 

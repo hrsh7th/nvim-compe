@@ -130,11 +130,14 @@ function Completion:display(context)
     local use_trigger_character = false
     local items = {}
     for _, source in ipairs(self.sources) do
-      local is_triggered_by_character = source:is_triggered_by_character()
-      if source.status == 'completed' and (is_triggered_by_character or is_triggered_by_character == use_trigger_character) then
-        use_trigger_character = is_triggered_by_character
-        for _, item in ipairs(Matcher.match(context, start_offset, source)) do
-          table.insert(items, item)
+      if source.status == 'completed' then
+        local is_triggered_by_character = source:is_triggered_by_character()
+        local source_items = Matcher.match(context, start_offset, source)
+        if #source_items > 0 and (is_triggered_by_character or is_triggered_by_character == use_trigger_character) then
+            use_trigger_character = is_triggered_by_character
+            for _, item in ipairs(source_items) do
+              table.insert(items, item)
+            end
         end
       end
     end
@@ -142,6 +145,9 @@ function Completion:display(context)
 
     -- Completion
     vim.schedule(function()
+      if #vim.v.completed_item ~= 0 then
+          return
+      end
       if string.sub(vim.fn.mode(), 1, 1) == 'i' and #items > 0 and start_offset > 0 then
         local completeopt = vim.fn.getbufvar('%', '&completeopt', '')
         vim.fn.setbufvar('%', 'completeopt', 'menu,menuone,noselect')

@@ -43,7 +43,7 @@ endfunction
 function! s:get_metadata() abort
   return {
   \   'priority': 1000,
-  \   'menu': '[l]'
+  \   'menu': '[LSP]'
   \ }
 endfunction
 
@@ -120,6 +120,9 @@ function! s:on_response(server, args, complete_position, response) abort
     return a:args.abort()
   endif
 
+  let l:completion_items = []
+  let l:completion_items = type(a:response) == type({}) ? get(a:response, 'items', []) : l:completion_items
+  let l:completion_items = type(a:response) == type([]) ? a:response : l:completion_items
   call a:args.callback({
   \   'items': lamp#feature#completion#convert(
   \     a:server.name,
@@ -128,6 +131,7 @@ function! s:on_response(server, args, complete_position, response) abort
   \   ),
   \   'incomplete': type(a:response) == type({}) ? get(a:response, 'isIncomplete', v:false) : v:false,
   \ })
+"  \   'start_offset': lamp#feature#completion#compute_start_offset(l:completion_items),
 endfunction
 
 

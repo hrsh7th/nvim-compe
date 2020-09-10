@@ -15,7 +15,7 @@ endfunction
 function! s:get_metadata() abort
   return {
   \   'priority': 50,
-  \   'menu': '[v]',
+  \   'menu': '[VSNIP]',
   \ }
 endfunction
 

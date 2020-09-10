@@ -95,6 +95,8 @@ function Source:trigger(context, callback)
       end
       Debug:log('> completed: ' .. self.id .. ': ' .. #result.items .. ', ms: ' .. Debug.time() - self.time)
 
+
+      self.keyword_pattern_offset = type(result.start_offset) == 'number' and result.start_offset or self.keyword_pattern_offset
       self.incomplete = result.incomplete or false
       self.items = self:normalize_items(context, result.items or {})
       callback()
