@@ -18,14 +18,18 @@ augroup END
 " s:on_insert_char_pre
 "
 function! s:on_insert_char_pre() abort
-  call luaeval('require"compe":on_insert_char_pre()')
+  if g:compe_enabled
+    call luaeval('require"compe":on_insert_char_pre()')
+  endif
 endfunction
 
 "
 " s:on_text_changed
 "
 function! s:on_text_changed() abort
-  call luaeval('require"compe":on_text_changed()')
+  if g:compe_enabled
+    call luaeval('require"compe":on_text_changed()')
+  endif
 endfunction
 
 if g:compe_enabled

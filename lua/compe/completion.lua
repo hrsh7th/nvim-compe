@@ -10,7 +10,7 @@ function Completion:new()
   local this = setmetatable({}, { __index = self })
   this.insert_char_pre = 0
   this.sources = {}
-  this.context = Context:new(this.insert_char_pre - 1, false)
+  this.context = Context:new(this.insert_char_pre - 1, {})
   return this
 end
 
@@ -44,7 +44,7 @@ end
 
 --- on_text_changed
 function Completion:on_text_changed()
-  local context = Context:new(self.insert_char_pre, false)
+  local context = Context:new(self.insert_char_pre, {})
   if self.context.changedtick == context.changedtick then
     return
   end
@@ -58,7 +58,9 @@ end
 
 --- on_manual_complete
 function Completion:on_manual_complete()
-  local context = Context:new(self.insert_char_pre, true)
+  local context = Context:new(self.insert_char_pre, {
+    manual = true;
+  })
 
   Debug:log(' ')
   Debug:log('>>> on_manual_complete <<<: ' .. context.before_line)
@@ -86,7 +88,7 @@ function Completion:trigger(context)
   for _, source in ipairs(self.sources) do
     local status, value = pcall(function()
       source:trigger(context, function()
-        self:display(Context:new(self.insert_char_pre, true))
+        self:display(Context:new(self.insert_char_pre, { manual = true } ))
       end)
     end)
     if not(status) then
@@ -176,7 +178,7 @@ function Completion:display(context)
           end
 
           if vim.g.compe_auto_preselect then
-            if #filtered_items <= 1 then
+            if #filtered_items == 1 then
               vim.api.nvim_select_popupmenu_item(0, false, false, {})
               return
             end

@@ -1,9 +1,9 @@
 local Context = {}
 
-function Context:new(changedtick, manual)
+function Context:new(changedtick, option)
   local this = setmetatable({}, { __index = self })
   this.changedtick = changedtick
-  this.manual = manual
+  this.manual = option.manual or false
   this.lnum = vim.fn.line('.')
   this.col = vim.fn.col('.')
   this.bufnr = vim.fn.bufnr('%')
