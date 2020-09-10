@@ -8,9 +8,10 @@ function Matcher.match(context, start_offset, source)
 
   local matches = {}
   for _, item in ipairs(source:get_items()) do
+    local word = item.filter_text or item.word
     local score = 0
     if #item.word >= #input then
-      score = Matcher.score(input, input_lower, item)
+      score = Matcher.score(input, input_lower, word)
     end
 
     if score > 1 or #input == 0 then
@@ -32,9 +33,8 @@ function Matcher.match(context, start_offset, source)
 end
 
 --- score
-function Matcher.score(input, input_lower, item)
-  local word = item.word
-  local word_lower = string.lower(item.word)
+function Matcher.score(input, input_lower, word)
+  local word_lower = string.lower(word)
 
   local score = 0
   local i = 1

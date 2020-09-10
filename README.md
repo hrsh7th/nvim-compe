@@ -25,5 +25,17 @@ if s:lexima
 endif
 ```
 
+# development
+
+### special attributes
+
+- preselect
+  - Specify the item should be preselect
+- filter_text
+  - Specify text that will be used only filter
+- sort_text
+  - Specify text that will be used only sort
+
 # todo
 - Split sources
+
