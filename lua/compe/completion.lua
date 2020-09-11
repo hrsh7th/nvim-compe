@@ -178,10 +178,8 @@ function Completion:display(context)
           end
 
           if vim.g.compe_auto_preselect then
-            if #filtered_items == 1 then
-              vim.api.nvim_select_popupmenu_item(0, false, false, {})
-              return
-            end
+            vim.api.nvim_select_popupmenu_item(0, false, false, {})
+            return
           end
         end)()
       end
