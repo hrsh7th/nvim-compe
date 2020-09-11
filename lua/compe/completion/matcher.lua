@@ -4,18 +4,17 @@ local Matcher = {}
 -- match
 function Matcher.match(context, start_offset, source)
   local input = string.sub(context.before_line, start_offset)
-  local input_lower = string.lower(input)
 
   local matches = {}
   for _, item in ipairs(source:get_items()) do
     local word = item.filter_text or item.word
-    local score = 0
+    item.score = 0
     if #item.word >= #input then
-      score = Matcher.score(input, input_lower, word)
+      item.score = Matcher.score(input, word)
+      item.exact = word == input
     end
 
-    if score > 1 or #input == 0 then
-      item.score = score
+    if item.score >= 1 or #input == 0 then
       table.insert(matches, item)
     end
   end
@@ -33,59 +32,42 @@ function Matcher.match(context, start_offset, source)
 end
 
 --- score
-function Matcher.score(input, input_lower, word)
-  local word_lower = string.lower(word)
-
+function Matcher.score(input, word)
   local score = 0
-  local i = 1
-  local j = 1
-  local sequential = 0
-  while i <= #input and j <= #word do
-    local is_semantic_index = Matcher.is_semantic_index(word, j)
 
-    -- match.
-    if string.byte(input_lower, i) == string.byte(word_lower, j) then
-      sequential = sequential + 1
+  local prev_s = 0
+  local prev_e = #input
+  local words = Matcher.split(word)
+  for i, w in ipairs(words) do
+    w = string.lower(w)
 
-      -- first char bonus
-      if i == 1 and j == 1 then
-        score = score + 5
-      elseif is_semantic_index then
-        score = score + 4
+    local j = #w
+    while j >= 1 do
+      local s, e = string.find(string.lower(input), string.sub(w, 1, j), 1, true)
+      if s ~= nil then
+        score = score + (e - s) + 1 -- match length score
+        score = score - math.max(0, s - (prev_e + 1)) * 4 -- ignore chars penalty
+        score = score - math.max(0, prev_s - s) -- reuse charas penalty
+        prev_s = s
+        prev_e = e
+        break
       end
-
-      -- strict match bonus
-      if string.byte(input, i) == string.byte(word, j) then
-        score = score + 1
-      else
-        score = score + 0.75
-      end
-
-      -- sequencial match bonus
-      score = score + ((sequential * 0.2) * (sequential * 0.2))
-      i = i + 1
-
-      -- does not match.
-    else
-      if i == 1 and j == 1 then
-        score = score - 7
-      elseif is_semantic_index then
-        score = score - 6
-      elseif sequential > 0 then
-        score = score - ((sequential * 0.2) * (sequential * 0.2) + 3)
-      else
-        score = score - 3
-      end
-      sequential = 0
+      j = j - 1
     end
-    j = j + 1
+    if i == 1 and prev_s ~= 1 then
+      score = score - 8 -- first prefix unmatch penalty
+    end
   end
 
-  return score
+  return score - (#input - prev_e) * 4 -- remaining chars penalty
 end
 
 --- sort
 function Matcher.sort(item1, item2)
+  if item1.exact ~= item2.exact then
+    return item1.exact
+  end
+
   if item1.priority ~= item2.priority then
     if item1.priority == nil then
       return false
@@ -99,7 +81,7 @@ function Matcher.sort(item1, item2)
     return item2.asis
   end
 
-  if math.abs(item1.score - item2.score) > 15 then
+  if math.abs(item1.score - item2.score) > 2 then
     return item1.score > item2.score
   end
 
@@ -110,6 +92,19 @@ function Matcher.sort(item1, item2)
   end
 
   return #item1.word < #item2.word
+end
+
+-- split
+function Matcher.split(word)
+  local words = {}
+  local i = 1
+  while i <= #word do
+    if Matcher.is_semantic_index(word, i) then
+      table.insert(words, string.sub(word, i))
+    end
+    i = i + 1
+  end
+  return words
 end
 
 -- is_semantic_index
@@ -134,13 +129,19 @@ function Matcher.is_semantic_index(word, index)
   elseif prev == '_' and Character.is_alpha(curr) then
     return true
 
-  -- boundaly
-  elseif Character.is_alpha(curr) and Character.is_alpha(curr) ~= true then
+  -- file ext
+  elseif prev == '.' and Character.is_alpha(curr) then
     return true
+
+  -- file path
+  elseif prev == '/' and Character.is_alpha(curr) then
+    return true
+
   end
   return false
 end
 
 
 return Matcher
+
 

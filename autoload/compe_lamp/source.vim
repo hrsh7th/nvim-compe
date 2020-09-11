@@ -29,7 +29,7 @@ function! s:source() abort
   let l:servers = lamp#server#registry#all()
   let l:servers = filter(l:servers, { _, server -> server.supports('capabilities.completionProvider') })
   let s:state.ids = map(copy(l:servers), { _, server ->
-  \   compe#source#vim_bridge#register(server.name, {
+  \   compe#source#vim_bridge#register('lamp:' . server.name, {
   \     'get_metadata': function('s:get_metadata'),
   \     'datermine': function('s:datermine', [server]),
   \     'complete': function('s:complete', [server]),

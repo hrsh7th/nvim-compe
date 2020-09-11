@@ -130,6 +130,7 @@ function Completion:display(context)
 
     -- Gather items
     local use_trigger_character = false
+    local words = {}
     local items = {}
     for _, source in ipairs(self.sources) do
       if source.status == 'completed' then
@@ -138,7 +139,10 @@ function Completion:display(context)
         if #source_items > 0 and (is_triggered_by_character or is_triggered_by_character == use_trigger_character) then
             use_trigger_character = is_triggered_by_character
             for _, item in ipairs(source_items) do
-              table.insert(items, item)
+              if words[item.word] == nil or item.dup ~= true then
+                words[item.word] = true
+                table.insert(items, item)
+              end
             end
         end
       end
@@ -151,33 +155,24 @@ function Completion:display(context)
         return
       end
 
-      local words = {}
-      local filtered_items = {}
-      for _, item in ipairs(items) do
-        if words[item.word] ~= true then
-          table.insert(filtered_items, item)
-          words[item.word] = true
-        end
-      end
-
-      if string.sub(vim.fn.mode(), 1, 1) == 'i' and #filtered_items > 0 and start_offset > 0 then
+      if string.sub(vim.fn.mode(), 1, 1) == 'i' and start_offset > 0 then
         local completeopt = vim.fn.getbufvar('%', '&completeopt', '')
         vim.fn.setbufvar('%', 'completeopt', 'menu,menuone,noselect')
-        vim.fn.complete(start_offset, filtered_items)
+        vim.fn.complete(start_offset, items)
         vim.fn.setbufvar('%', 'completeopt', completeopt)
       end
 
       -- preselect
       if vim.fn.has('nvim') and vim.fn.pumvisible() then
         (function()
-          for i, item in ipairs(filtered_items) do
+          for i, item in ipairs(items) do
             if item.preselect == true then
               vim.api.nvim_select_popupmenu_item(i - 1, false, false, {})
               return
             end
           end
 
-          if vim.g.compe_auto_preselect then
+          if vim.g.compe_auto_preselect and start_offset < context.col then
             vim.api.nvim_select_popupmenu_item(0, false, false, {})
             return
           end
