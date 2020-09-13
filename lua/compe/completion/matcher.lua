@@ -64,33 +64,32 @@ function Matcher.score(input, word)
   end
 
   -- compute score
-  local score, prev = 0, matches[1]
+  local map = {}
+  local score = 0
   for i, match in ipairs(matches) do
     -- first prefix unmatch penalty
     if i == 1 and (match.i ~= 1 or match.s ~= 1) then
       score = score - 8
     end
 
-    score = score + match.l
-
-    -- prefer longuest match
-    if match.s < prev.s and prev.l < match.l then
-      score = score - prev.l
+    for j = match.s, match.e do
+      if map[j] == true then
+        score = score - 1
+      end
+      score = score + 1
+      map[j] = true
     end
-
-    prev = match
   end
 
-  if input == 'Vscss' and word == 'VideoCard.scss' then
-    print(vim.inspect({
-      input = input;
-      matches = matches;
-      score = score;
-      factor = #input - prev.e;
-    }))
+  local i = 1
+  while i <= #input do
+    if map[i] ~= true then
+      score = score - 4
+    end
+    i = i + 1
   end
 
-  return score - (#input - prev.e) * 4
+  return score
 end
 
 --- sort
