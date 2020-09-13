@@ -33,10 +33,9 @@ end
 
 --- score
 function Matcher.score(input, word)
-  local score = 0
+  local matches = {}
 
-  local prev_s = 0
-  local prev_e = #input
+  -- gather matches
   local words = Matcher.split(word)
   for i, w in ipairs(words) do
     w = string.lower(w)
@@ -45,21 +44,53 @@ function Matcher.score(input, word)
     while j >= 1 do
       local s, e = string.find(string.lower(input), string.sub(w, 1, j), 1, true)
       if s ~= nil then
-        score = score + (e - s) + 1 -- match length score
-        score = score - math.max(0, s - (prev_e + 1)) * 4 -- ignore chars penalty
-        score = score - math.max(0, prev_s - s) -- reuse charas penalty
-        prev_s = s
-        prev_e = e
+        table.insert(matches, {
+          input = input;
+          word = word;
+          i = i;
+          s = s;
+          e = e;
+          l = (e - s) + 1;
+          w = w;
+        })
         break
       end
       j = j - 1
     end
-    if i == 1 and prev_s ~= 1 then
-      score = score - 8 -- first prefix unmatch penalty
-    end
   end
 
-  return score - (#input - prev_e) * 4 -- remaining chars penalty
+  if #matches == 0 then
+    return 0
+  end
+
+  -- compute score
+  local score, prev = 0, matches[1]
+  for i, match in ipairs(matches) do
+    -- first prefix unmatch penalty
+    if i == 1 and (match.i ~= 1 or match.s ~= 1) then
+      score = score - 8
+    end
+
+    score = score + match.l
+
+    -- prefer longuest match
+    if match.s < prev.s and prev.l < match.l then
+      score = score - prev.l
+    end
+
+    prev = match
+  end
+
+  if input == 'Vscss' and word == 'VideoCard.scss' then
+    print(vim.inspect({
+      input = input;
+      matches = matches;
+      score = score;
+      factor = #input - prev.e;
+    }))
+  end
+
+  return score - (#input - prev.e) * 4
 end
 
 --- sort
