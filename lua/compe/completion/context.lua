@@ -8,15 +8,16 @@ function Context:new(changedtick, option)
   this.col = vim.fn.col('.')
   this.bufnr = vim.fn.bufnr('%')
   this.filetype = vim.fn.getbufvar('%', '&filetype', '')
-  this.before_line = string.sub(vim.fn.getline('.'), 1, this.col - 1)
+  this.line = vim.fn.getline('.')
+  this.before_line = string.sub(this.line, 1, this.col - 1)
   this.before_char = this:get_before_char(this.lnum, this.before_line)
-  this.after_line = string.sub(vim.fn.getline('.'), this.col, -1)
+  this.after_line = string.sub(this.line, this.col, -1)
   return this
 end
 
 --- get_input
 function Context:get_input(start)
-  return string.sub(self.before_line, start)
+  return string.sub(self.line, start, self.col - 1)
 end
 
 --- get_before_char

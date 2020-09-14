@@ -3,8 +3,8 @@ local Matcher = {}
 local Factor = 100 -- max word bound detection count
 
 -- match
-function Matcher.match(context, start_offset, source)
-  local input = string.sub(context.before_line, start_offset)
+function Matcher.match(context, source)
+  local input = context:get_input(source:get_start_offset())
 
   local matches = {}
   for _, item in ipairs(source:get_items()) do
@@ -87,7 +87,7 @@ function Matcher.score(input, word)
   local i = 1
   while i <= #input do
     if char_map[i] ~= true then
-      score = score - 4
+      score = score - 6
     end
     i = i + 1
   end

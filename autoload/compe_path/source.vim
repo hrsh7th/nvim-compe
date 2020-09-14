@@ -78,10 +78,10 @@ endfunction
 " sort
 "
 function! s:sort(item1, item2) abort
-  if a:item1.menu ==# '[d]' && a:item2.menu !=# '[d]'
+  if a:item1.menu ==# '[DIR]' && a:item2.menu !=# '[DIR]'
     return -1
   endif
-  if a:item1.menu !=# '[d]' && a:item2.menu ==# '[d]'
+  if a:item1.menu !=# '[DIR]' && a:item2.menu ==# '[DIR]'
     return 1
   endif
   return 0
