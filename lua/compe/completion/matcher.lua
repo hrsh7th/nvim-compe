@@ -1,5 +1,6 @@
 local Character = require'compe.completion.character'
 local Matcher = {}
+local Factor = 100 -- max word bound detection count
 
 -- match
 function Matcher.match(context, start_offset, source)
@@ -64,7 +65,7 @@ function Matcher.score(input, word)
   end
 
   -- compute score
-  local map = {}
+  local char_map = {}
   local score = 0
   for i, match in ipairs(matches) do
     -- first prefix unmatch penalty
@@ -72,18 +73,22 @@ function Matcher.score(input, word)
       score = score - 8
     end
 
+    -- add new used char score
+    local s = 0
     for j = match.s, match.e do
-      if map[j] == true then
-        score = score - 1
+      if char_map[j] == true then
+        s = s - 1
       end
-      score = score + 1
-      map[j] = true
+      s = s + 1
+      char_map[j] = true
     end
+    score = score + s * (1 + math.max(1, Factor - match.i) / Factor)
   end
 
+  -- no used char penalty
   local i = 1
   while i <= #input do
-    if map[i] ~= true then
+    if char_map[i] ~= true then
       score = score - 4
     end
     i = i + 1
@@ -111,7 +116,7 @@ function Matcher.sort(item1, item2)
     return item2.asis
   end
 
-  if math.abs(item1.score - item2.score) > 2 then
+  if math.abs(item1.score - item2.score) ~= 0 then
     return item1.score > item2.score
   end
 
@@ -128,7 +133,7 @@ end
 function Matcher.split(word)
   local words = {}
   local i = 1
-  while i <= #word do
+  while i <= #word and i <= Factor do
     if Matcher.is_semantic_index(word, i) then
       table.insert(words, string.sub(word, i))
     end
