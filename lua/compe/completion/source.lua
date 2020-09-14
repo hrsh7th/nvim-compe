@@ -1,4 +1,6 @@
 local Debug = require'compe.debug'
+local Time = require'compe.time'
+local Context = require'compe.completion.context'
 local Source =  {}
 
 --- new
@@ -6,7 +8,7 @@ function Source:new(id, source)
   local this = setmetatable({}, { __index = self })
   this.id = id
   this.source = source
-  this.context = {}
+  this.context = Context:new(0, {})
   this:clear()
   return this
 end
@@ -18,7 +20,6 @@ function Source:clear()
   self.keyword_pattern_offset = 0
   self.trigger_character_offset = 0
   self.incomplete = false
-  self.time = 0
 end
 
 -- trigger
@@ -74,7 +75,6 @@ function Source:trigger(context, callback)
   -- Completion
   self:log('completion', context, state)
   self.context = context
-  self.time = Debug:time()
   self.source:complete({
     context = self.context;
     keyword_pattern_offset = self.keyword_pattern_offset;
@@ -93,7 +93,7 @@ function Source:trigger(context, callback)
         self.status = 'completed'
         return
       end
-      Debug:log('> completed: ' .. self.id .. ': ' .. #result.items .. ', ms: ' .. Debug.time() - self.time)
+      Debug:log('> completed: ' .. self.id .. ': ' .. #result.items .. ', sec: ' .. Time:clock() - self.context.time)
 
       self.keyword_pattern_offset = type(result.start_offset) == 'number' and result.start_offset or self.keyword_pattern_offset
       self.incomplete = result.incomplete or false

@@ -47,7 +47,7 @@ function Compe:on_text_changed()
   end
 end
 
---- Compe:on_manual_complete()
+--- on_manual_complete
 function Compe:on_manual_complete()
   if vim.g.compe_enabled then
     local status, value = pcall(function() self.completion:on_manual_complete() end)
