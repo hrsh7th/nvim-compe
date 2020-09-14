@@ -105,7 +105,6 @@ function Completion:display(context)
 
   for _, source in ipairs(self.sources) do
     if source.status == 'processing' and (Time:clock() - source.context.time) < vim.g.compe_source_timeout then
-      print(vim.inspect({ source.id, Time:clock() - source.context.time }))
       return
     end
   end
