@@ -67,7 +67,7 @@ function Matcher.score(input, word)
   for i, match in ipairs(matches) do
     -- first prefix unmatch penalty
     if i == 1 and (match.i ~= 1 or match.s ~= 1) then
-      score = score - 8
+      score = score - 10
     end
 
     -- add new used char score
@@ -79,7 +79,7 @@ function Matcher.score(input, word)
       s = s + 1
       char_map[j] = true
     end
-    score = score + s * (1 + math.max(1, Factor - match.i) / Factor)
+    score = score + s * (1 + math.max(0, Factor - match.i) / Factor)
     score = score + (match.exact and 0.1 or 0)
   end
 
