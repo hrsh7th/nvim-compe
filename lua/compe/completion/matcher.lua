@@ -39,15 +39,12 @@ function Matcher.score(input, word)
   -- gather matches
   local words = Matcher.split(word)
   for i, w in ipairs(words) do
-    w = string.lower(w)
-
     local j = #w
     while j >= 1 do
-      local s, e = string.find(string.lower(input), string.sub(w, 1, j), 1, true)
+      local s, e = string.find(string.lower(input), string.sub(string.lower(w), 1, j), 1, true)
       if s ~= nil then
         table.insert(matches, {
-          input = input;
-          word = word;
+          exact = string.sub(input, s, e) == string.sub(w, 1, j);
           i = i;
           s = s;
           e = e;
@@ -83,6 +80,7 @@ function Matcher.score(input, word)
       char_map[j] = true
     end
     score = score + s * (1 + math.max(1, Factor - match.i) / Factor)
+    score = score + (match.exact and 0.1 or 0)
   end
 
   -- no used char penalty
