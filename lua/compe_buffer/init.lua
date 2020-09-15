@@ -32,10 +32,10 @@ function Source:_get_items(context)
   self.context = context
 
   local lines = {}
-  for _, line in ipairs(vim.api.nvim_call_function('getbufline', { '%', '^', context.lnum - 1 })) do
+  for _, line in ipairs(vim.fn.getbufline('%', '^', context.lnum - 1)) do
     table.insert(lines, 1, line)
   end
-  for _, line in ipairs(vim.api.nvim_call_function('getbufline', { '%', context.lnum, '$' })) do
+  for _, line in ipairs(vim.fn.getbufline('%', context.lnum, '$')) do
     table.insert(lines, line)
   end
 

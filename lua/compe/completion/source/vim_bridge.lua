@@ -28,12 +28,12 @@ end
 
 --- get_metadata
 function VimBridge:get_metadata()
-  return vim.api.nvim_call_function('compe#source#vim_bridge#get_metadata', { self.id })
+  return vim.call('compe#source#vim_bridge#get_metadata', self.id)
 end
 
 --- new
 function VimBridge:datermine(context)
-  return vim.api.nvim_call_function('compe#source#vim_bridge#datermine', { self.id, context })
+  return vim.call('compe#source#vim_bridge#datermine', self.id, context)
 end
 
 --- new
@@ -42,7 +42,7 @@ function VimBridge:complete(args)
   complete_aborts[self.id] = args.abort
   args.callback = nil
   args.abort = nil
-  return vim.api.nvim_call_function('compe#source#vim_bridge#complete', { self.id, args })
+  return vim.call('compe#source#vim_bridge#complete', self.id, args)
 end
 
 return VimBridge
