@@ -47,7 +47,7 @@ function Source:trigger(context, callback)
   local force = false
   force = force or context.manual
   force = force or state.trigger_character_offset > 0
-  force = force or self.incomplete
+  force = force or self.incomplete and (Time:clock() - self.context.time) > vim.g.compe_incomplete_delay
 
   local is_same_offset = self.context.lnum == context.lnum and self.keyword_pattern_offset == state.keyword_pattern_offset
   local is_less_input = #context:get_input(state.keyword_pattern_offset) < vim.g.compe_min_length

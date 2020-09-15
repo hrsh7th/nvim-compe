@@ -177,6 +177,10 @@ function Matcher.is_semantic_index(word, index)
   elseif prev == '/' and Character.is_alpha(curr) then
     return true
 
+  -- space separated
+  elseif prev == ' ' and Character.is_alpha(curr) then
+    return true
+
   end
   return false
 end
