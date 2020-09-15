@@ -82,6 +82,7 @@ function Matcher.score(input, word)
       s = s + 1
       char_map[j] = true
     end
+    s = s * 1.2 - 0.2
     score = score + s * (1 + math.max(0, Factor - match.i) / Factor)
     score = score + (match.exact and 0.1 or 0)
   end
@@ -90,7 +91,7 @@ function Matcher.score(input, word)
   local i = 1
   while i <= #input do
     if char_map[i] ~= true then
-      score = score - 6
+      score = score - 8
     end
     i = i + 1
   end
@@ -161,26 +162,9 @@ function Matcher.is_semantic_index(word, index)
   if Character.is_upper(prev) ~= true and Character.is_upper(curr) then
     return true
 
-  -- kebab-case
-  elseif prev == '-' and Character.is_alpha(curr) then
+  -- boundaly
+  elseif Character.is_alpha(prev) ~= true and Character.is_alpha(curr) then
     return true
-
-  -- snake-case
-  elseif prev == '_' and Character.is_alpha(curr) then
-    return true
-
-  -- file ext
-  elseif prev == '.' and Character.is_alpha(curr) then
-    return true
-
-  -- file path
-  elseif prev == '/' and Character.is_alpha(curr) then
-    return true
-
-  -- space separated
-  elseif prev == ' ' and Character.is_alpha(curr) then
-    return true
-
   end
   return false
 end
