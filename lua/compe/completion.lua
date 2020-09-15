@@ -164,16 +164,13 @@ function Completion:display(context)
     -- preselect
     if vim.fn.has('nvim') and vim.fn.pumvisible() then
       (function()
-        for i, item in ipairs(items) do
-          if item.preselect == true then
-            vim.api.nvim_select_popupmenu_item(i - 1, false, false, {})
-            return
-          end
+        local item = items[1]
+        if item == nil or item.exact or context.col <= start_offset then
+          return
         end
 
-        if vim.g.compe_auto_preselect and start_offset < context.col then
+        if item.preselect == true or vim.g.compe_auto_preselect then
           vim.api.nvim_select_popupmenu_item(0, false, false, {})
-          return
         end
       end)()
     end

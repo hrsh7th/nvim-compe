@@ -164,6 +164,9 @@ function Source:log(label, context, state)
 end
 
 --- normalize_items
+-- This method add special attributes for each items.
+-- * priority
+-- * asis
 function Source:normalize_items(context, items)
   local start_offset = self:get_start_offset()
   local metadata = self:get_metadata()
@@ -207,7 +210,6 @@ function Source:normalize_items(context, items)
 
     -- special properties
     item.priority = metadata.priority or 0
-    item.score = 0
     item.asis = string.find(item.abbr, item.word, 1, true) == 1
 
     table.insert(normalized, item)

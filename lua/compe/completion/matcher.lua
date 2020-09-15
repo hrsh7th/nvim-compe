@@ -2,7 +2,10 @@ local Character = require'compe.completion.character'
 local Matcher = {}
 local Factor = 100 -- max word bound detection count
 
--- match
+--- match
+-- This add special attributes for each items.
+-- * score
+-- * exact
 function Matcher.match(context, source)
   local input = context:get_input(source:get_start_offset())
 
@@ -97,10 +100,6 @@ end
 
 --- sort
 function Matcher.sort(item1, item2)
-  if item1.exact ~= item2.exact then
-    return item1.exact
-  end
-
   if item1.priority ~= item2.priority then
     if item1.priority == nil then
       return false
@@ -108,6 +107,14 @@ function Matcher.sort(item1, item2)
       return true
     end
     return item1.priority > item2.priority
+  end
+
+  if item1.preselect ~= item2.preselect then
+    return item1.preselect
+  end
+
+  if item1.exact ~= item2.exact then
+    return item1.exact
   end
 
   if item1.asis ~= item2.asis then
@@ -174,7 +181,5 @@ function Matcher.is_semantic_index(word, index)
   return false
 end
 
-
 return Matcher
-
 
