@@ -165,7 +165,7 @@ function Completion:display(context)
     if vim.fn.has('nvim') and vim.fn.pumvisible() then
       (function()
         local item = items[1]
-        if item == nil or item.exact or context.col <= start_offset then
+        if item == nil or context.col <= start_offset then
           return
         end
 
