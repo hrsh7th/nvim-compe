@@ -1,4 +1,4 @@
-if exists('g:loaded_compe') || !has('nvim')
+if exists('g:loaded_compe')
   finish
 endif
 let g:loaded_compe = v:true
