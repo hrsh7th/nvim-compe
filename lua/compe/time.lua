@@ -1,7 +1,7 @@
 local Time = {}
 
 function Time:clock()
-  return os.clock() * 10 * 1000
+  return vim.fn.reltimefloat(vim.fn.reltime()) * 1000
 end
 
 return Time
