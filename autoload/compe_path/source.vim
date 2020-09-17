@@ -1,5 +1,5 @@
-let s:accept_pattern = '\%([^/\:\*<[:blank:][:alnum:]]\{-1,}\)'
-let s:prefix_pattern = '\%(\~/\|\./\|\.\./\|/\)'
+let s:accept_pattern = '\%([^/\:\*<[:alnum:]\./]\{-1,}\)'
+let s:prefix_pattern = '\%(\~/\|\.\.\?/\|/\)'
 let s:name_pattern = '\%([^/\\:\*?<>\|[:blank:]]\|\\ \)'
 
 "
@@ -42,7 +42,7 @@ endfunction
 " s:complete
 "
 function! s:complete(args) abort
-  let l:input = matchstr(a:args.context.before_line, s:accept_pattern . '\zs' . s:prefix_pattern . '\%(\%(' . s:name_pattern . '\+/\)*\)' . s:name_pattern . '*$')
+  let l:input = matchstr(a:args.context.before_line, s:accept_pattern . '\zs' . s:prefix_pattern . '\%(' . s:name_pattern . '\|/\)*' . '$')
   let l:input = s:absolute(substitute(l:input, '[^/]*$', '', 'g'))
   let l:input = substitute(l:input, '\\ ', ' ', 'g')
 
