@@ -11,7 +11,10 @@ function Matcher.match(context, source)
 
   local matches = {}
   for _, item in ipairs(source:get_items()) do
-    local word = item.filter_text or item.word
+    local word = item.word
+    if item.filter_text and #input > 0 and (string.sub(item.filter_text, 1, 1) == string.sub(input, 1, 1)) then
+      word = item.filter_text
+    end
     item.score = 0
     if #item.word >= #input then
       item.score = Matcher.score(input, word)

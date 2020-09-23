@@ -131,7 +131,6 @@ function! s:on_response(server, args, complete_position, response) abort
   \   ),
   \   'incomplete': type(a:response) == type({}) ? get(a:response, 'isIncomplete', v:false) : v:false,
   \ })
-"  \   'start_offset': lamp#feature#completion#compute_start_offset(l:completion_items),
 endfunction
 
 
