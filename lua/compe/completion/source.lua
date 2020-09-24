@@ -1,5 +1,4 @@
 local Debug = require'compe.debug'
-local Time = require'compe.time'
 local Context = require'compe.completion.context'
 local Source =  {}
 
@@ -47,7 +46,7 @@ function Source:trigger(context, callback)
   local force = false
   force = force or context.manual
   force = force or state.trigger_character_offset > 0
-  force = force or self.incomplete and (Time:clock() - self.context.time) > vim.g.compe_incomplete_delay
+  force = force or self.incomplete and (vim.loop.now() - self.context.time) > vim.g.compe_incomplete_delay
 
   local is_same_offset = self.context.lnum == context.lnum and self.keyword_pattern_offset == state.keyword_pattern_offset
   local is_less_input = #(context:get_input(state.keyword_pattern_offset)) < vim.g.compe_min_length
@@ -93,7 +92,7 @@ function Source:trigger(context, callback)
         self.status = 'completed'
         return
       end
-      Debug:log('> completed: ' .. self.id .. ': ' .. #result.items .. ', sec: ' .. Time:clock() - self.context.time)
+      Debug:log('> completed: ' .. self.id .. ': ' .. #result.items .. ', sec: ' .. vim.loop.now() - self.context.time)
 
       self.keyword_pattern_offset = type(result.start_offset) == 'number' and result.start_offset or self.keyword_pattern_offset
       self.incomplete = result.incomplete or false

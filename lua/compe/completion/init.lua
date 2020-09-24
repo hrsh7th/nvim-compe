@@ -1,5 +1,4 @@
 local Debug = require'compe.debug'
-local Time = require'compe.time'
 local Context = require'compe.completion.context'
 local Matcher = require'compe.completion.matcher'
 
@@ -104,7 +103,7 @@ function Completion:display(context)
   end
 
   for _, source in ipairs(self.sources) do
-    if source.status == 'processing' and (Time:clock() - source.context.time) < vim.g.compe_source_timeout then
+    if source.status == 'processing' and (vim.loop.now() - source.context.time) < vim.g.compe_source_timeout then
       return
     end
   end

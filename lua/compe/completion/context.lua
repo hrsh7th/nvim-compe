@@ -1,10 +1,8 @@
-local Time = require'compe.time'
-
 local Context = {}
 
 function Context:new(changedtick, option)
   local this = setmetatable({}, { __index = self })
-  this.time = Time:clock()
+  this.time = vim.loop.now()
   this.changedtick = changedtick
   this.manual = option.manual or false
   this.lnum = vim.fn.line('.')
