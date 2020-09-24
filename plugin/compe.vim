@@ -34,11 +34,5 @@ function! s:on_text_changed() abort
   endif
 endfunction
 
-if g:compe_enabled
-  lua require'compe':register_lua_source('buffer', require'compe_buffer')
-  call compe_lamp#source#register()
-  call compe_vsnip#source#register()
-  call compe_path#source#register()
-  call compe#pattern#set_defaults()
-end
+call compe#pattern#set_defaults()
 

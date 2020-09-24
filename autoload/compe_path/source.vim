@@ -3,14 +3,14 @@ let s:prefix_pattern = '\%(\~/\|\.\.\?/\|/\)'
 let s:name_pattern = '\%([^/\\:\*?<>\|[:blank:]]\|\\ \)'
 
 "
-" compe_path#source#register
+" compe_path#source#create
 "
-function! compe_path#source#register() abort
-  call compe#source#vim_bridge#register('path', {
+function! compe_path#source#create() abort
+  return {
   \   'get_metadata': function('s:get_metadata'),
   \   'datermine': function('s:datermine'),
   \   'complete': function('s:complete')
-  \ })
+  \ }
 endfunction
 
 "

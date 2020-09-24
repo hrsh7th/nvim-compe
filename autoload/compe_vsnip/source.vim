@@ -1,12 +1,12 @@
 "
-" compe_vsnip#source#register
+" compe_vsnip#source#create
 "
-function! compe_vsnip#source#register() abort
-  call compe#source#vim_bridge#register('vsnip', {
+function! compe_vsnip#source#create() abort
+  return {
   \   'get_metadata': function('s:get_metadata'),
   \   'datermine': function('s:datermine'),
   \   'complete': function('s:complete'),
-  \ })
+  \ }
 endfunction
 
 "

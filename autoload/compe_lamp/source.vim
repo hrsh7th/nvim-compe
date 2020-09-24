@@ -6,9 +6,9 @@ let s:state = {
 \ }
 
 "
-" compe_lamp#source#register
+" compe_lamp#source#attach
 "
-function! compe_lamp#source#register() abort
+function! compe_lamp#source#attach() abort
   augroup compete#source#lamp#register
     autocmd!
     autocmd User lamp#server#initialized call s:source()
