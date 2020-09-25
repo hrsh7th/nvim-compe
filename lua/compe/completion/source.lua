@@ -69,7 +69,7 @@ function Source:trigger(context, callback)
   self.status = is_same_offset and self.status or 'processing'
   self.items = is_same_offset and self.items or {}
   self.keyword_pattern_offset = state.keyword_pattern_offset
-  self.trigger_character_offset = is_same_offset and self.trigger_character_offset or state.trigger_character_offset
+  self.trigger_character_offset = state.trigger_character_offset
 
   -- Completion
   self:log('completion', context, state)
@@ -94,7 +94,6 @@ function Source:trigger(context, callback)
       end
       Debug:log('> completed: ' .. self.id .. ': ' .. #result.items .. ', sec: ' .. vim.loop.now() - self.context.time)
 
-      self.keyword_pattern_offset = type(result.start_offset) == 'number' and result.start_offset or self.keyword_pattern_offset
       self.incomplete = result.incomplete or false
       self.items = self:normalize_items(context, result.items or {})
       callback()

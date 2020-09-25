@@ -19,8 +19,15 @@ function Pattern:get_keyword_pattern_offset(context)
   local default_regex = vim.regex(self:get_default_keyword_pattern() .. '$')
   local s1 = context_regex:match_str(context.before_line)
   local s2 = default_regex:match_str(context.before_line)
+
   if s1 == nil and s2 == nil then
-    return nil
+    return 0
+  end
+  if s2 == nil then
+    return s1 + 1
+  end
+  if s1 == nil then
+    return s2 + 1
   end
   return math.min(s1, s2) + 1
 end

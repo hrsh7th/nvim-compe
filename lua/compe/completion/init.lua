@@ -51,8 +51,9 @@ function Completion:on_text_changed()
   Debug:log(' ')
   Debug:log('>>> on_text_changed <<<: ' .. context.before_line)
 
-  self:trigger(context)
-  self:display(context)
+  if not self:trigger(context) then
+    self:display(context)
+  end
 end
 
 --- on_manual_complete
@@ -64,8 +65,9 @@ function Completion:on_manual_complete()
   Debug:log(' ')
   Debug:log('>>> on_manual_complete <<<: ' .. context.before_line)
 
-  self:trigger(context)
-  self:display(context)
+  if not self:trigger(context) then
+    self:display(context)
+  end
 end
 
 -- clear
@@ -80,20 +82,19 @@ function Completion:trigger(context)
   if #vim.v.completed_item ~= 0 then
     return
   end
-  if self.context.changedtick == context.changedtick and context.manual ~= true then
-    return
-  end
 
+  local trigger = false
   for _, source in ipairs(self.sources) do
     local status, value = pcall(function()
-      source:trigger(context, function()
+      trigger = source:trigger(context, function()
         self:display(Context:new(self.insert_char_pre, { manual = true } ))
-      end)
+      end) or trigger
     end)
     if not(status) then
       Debug:log(value)
     end
   end
+  return trigger
 end
 
 --- display
@@ -120,6 +121,7 @@ function Completion:display(context)
       local source_start_offset = source:get_start_offset()
       if type(source_start_offset) == 'number' then
         if start_offset == 0 or source_start_offset < start_offset then
+          Debug:log('!!! start_offset !!!: ' .. source.id .. ', ' .. source_start_offset)
           start_offset = source_start_offset
         end
       end
