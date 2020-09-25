@@ -16,8 +16,8 @@ return {
     end
 
     -- register
-    for _, client in pairs(vim.lsp.get_active_clients()) do
-      local id = 'nvim_lsp:' .. client.id
+    for id, client in pairs(vim.lsp.buf_get_clients(0)) do
+      local id = 'nvim_lsp:' .. id
       sources[id] = Source.new(client)
       compe:register_lua_source(id, sources[id])
     end
