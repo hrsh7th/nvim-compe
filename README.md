@@ -23,6 +23,10 @@ if s:lexima
   inoremap <expr><CR>  compe#confirm(lexima#expand('<LT>CR>', 'i'))
   inoremap <expr><C-e> compe#close('<C-e>')
 endif
+
+lua require'compe_nvim_lsp'.attach()
+lua require'compe':register_lua_source('buffer', require'compe_buffer')
+call compe#source#vim_bridge#register('path', compe_path#source#create())
 ```
 
 # Source
