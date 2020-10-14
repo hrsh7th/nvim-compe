@@ -12,6 +12,9 @@ Auto completion plugin
 ```viml
 let g:compe_enabled = v:true
 let g:compe_min_length = 1
+let g:compe_auto_preselect = v:true " or v:false
+let g:compe_source_timeout = 200
+let g:compe_incomplete_delay = 400
 
 if s:default
   inoremap <expr><CR>  compe#confirm('<CR>')
