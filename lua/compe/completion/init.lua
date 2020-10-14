@@ -158,20 +158,20 @@ function Completion:display(context)
       vim.fn.setbufvar('%', 'completeopt', 'menu,menuone,noselect')
       vim.fn.complete(start_offset, items)
       vim.fn.setbufvar('%', 'completeopt', completeopt)
-    end
 
-    -- preselect
-    if vim.fn.has('nvim') and vim.fn.pumvisible() then
-      (function()
-        local item = items[1]
-        if item == nil then
-          return
-        end
+      -- preselect
+      if vim.fn.has('nvim') and vim.fn.pumvisible() then
+        (function()
+            local item = items[1]
+            if item == nil then
+              return
+            end
 
-        if item.preselect == true or vim.g.compe_auto_preselect then
-          vim.api.nvim_select_popupmenu_item(0, false, false, {})
+            if item.preselect == true or vim.g.compe_auto_preselect then
+              vim.api.nvim_select_popupmenu_item(0, false, false, {})
+            end
+          end)()
         end
-      end)()
     end
   end)
 end
