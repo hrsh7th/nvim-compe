@@ -70,10 +70,10 @@ function Source:trigger(context, callback)
   self.items = is_same_offset and self.items or {}
   self.keyword_pattern_offset = state.keyword_pattern_offset
   self.trigger_character_offset = state.trigger_character_offset
+  self.context = context
 
   -- Completion
   self:log('completion', context, state)
-  self.context = context
   self.source:complete({
     context = self.context;
     keyword_pattern_offset = self.keyword_pattern_offset;
@@ -116,9 +116,9 @@ end
 --- get_metadata
 function Source:get_metadata()
   return vim.tbl_extend('keep', self.source:get_metadata(), {
-    sort = true;
-    priority = 0;
-  })
+      sort = true;
+      priority = 0;
+    })
 end
 
 --- get_status
@@ -152,12 +152,12 @@ function Source:log(label, context, state)
     force_type = 'incomplete'
   end
   Debug:log(string.format('<%s>	%s	k: %d	t: %d, f: %s',
-    label,
-    self.id,
-    self.keyword_pattern_offset,
-    self.trigger_character_offset,
-    force_type
-  ))
+      label,
+      self.id,
+      self.keyword_pattern_offset,
+      self.trigger_character_offset,
+      force_type
+    ))
 end
 
 --- normalize_items
@@ -185,11 +185,11 @@ function Source:normalize_items(context, items)
 
     if word ~= item.word then
       Debug:log(vim.inspect({
-        before = before;
-        after = after;
-        fixed_word = word;
-        item_word = item.word;
-      }))
+            before = before;
+            after = after;
+            fixed_word = word;
+            item_word = item.word;
+        }))
     end
 
     item.word = word

@@ -135,13 +135,13 @@ function Completion:display(context)
       local is_triggered_by_character = source:is_triggered_by_character()
       local source_items = Matcher.match(context, source)
       if #source_items > 0 and (is_triggered_by_character or is_triggered_by_character == use_trigger_character) then
-          use_trigger_character = is_triggered_by_character
-          for _, item in ipairs(source_items) do
-            if words[item.word] == nil or item.dup ~= true then
-              words[item.word] = true
-              table.insert(items, item)
-            end
+        use_trigger_character = is_triggered_by_character
+        for _, item in ipairs(source_items) do
+          if words[item.word] == nil or item.dup ~= true then
+            words[item.word] = true
+            table.insert(items, item)
           end
+        end
       end
     end
   end
@@ -153,7 +153,7 @@ function Completion:display(context)
       return
     end
 
-    if string.sub(vim.fn.mode(), 1, 1) == 'i' and start_offset > 0 then
+    if string.sub(vim.fn.mode(), 1, 1) == 'i' and vim.fn.getbufvar('%', '&buftype') ~= 'prompt' and start_offset > 0 then
       local completeopt = vim.fn.getbufvar('%', '&completeopt', '')
       vim.fn.setbufvar('%', 'completeopt', 'menu,menuone,noselect')
       vim.fn.complete(start_offset, items)
@@ -162,16 +162,16 @@ function Completion:display(context)
       -- preselect
       if vim.fn.has('nvim') and vim.fn.pumvisible() then
         (function()
-            local item = items[1]
-            if item == nil then
-              return
-            end
+          local item = items[1]
+          if item == nil then
+            return
+          end
 
-            if item.preselect == true or vim.g.compe_auto_preselect then
-              vim.api.nvim_select_popupmenu_item(0, false, false, {})
-            end
-          end)()
-        end
+          if item.preselect == true or vim.g.compe_auto_preselect then
+            vim.api.nvim_select_popupmenu_item(0, false, false, {})
+          end
+        end)()
+      end
     end
   end)
 end
