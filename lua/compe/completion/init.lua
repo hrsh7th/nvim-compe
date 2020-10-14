@@ -51,9 +51,8 @@ function Completion:on_text_changed()
   Debug:log(' ')
   Debug:log('>>> on_text_changed <<<: ' .. context.before_line)
 
-  if not self:trigger(context) then
-    self:display(context)
-  end
+  self:trigger(context)
+  self:display(context)
 end
 
 --- on_manual_complete
@@ -65,9 +64,8 @@ function Completion:on_manual_complete()
   Debug:log(' ')
   Debug:log('>>> on_manual_complete <<<: ' .. context.before_line)
 
-  if not self:trigger(context) then
-    self:display(context)
-  end
+  self:trigger(context)
+  self:display(context)
 end
 
 -- clear
@@ -166,7 +164,7 @@ function Completion:display(context)
     if vim.fn.has('nvim') and vim.fn.pumvisible() then
       (function()
         local item = items[1]
-        if item == nil or context.col <= start_offset then
+        if item == nil then
           return
         end
 
