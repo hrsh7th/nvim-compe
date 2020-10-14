@@ -47,14 +47,21 @@ end
 
 function Source:complete(args)
   local params = vim.lsp.util.make_position_params()
+
+  if vim.lsp.client_is_stopped(self.client.id) then
+    return args.abort()
+  end
+
   params.context = {
     triggerKind = (args.trigger_character_offset > 0 and 2 or (args.incomplete and 3 or 1))
   }
+
   if args.trigger_character_offset > 0 then
     params.context.triggerCharacter = args.context.before_char
   end
 
-  self.client.request('textDocument/completion', params, function(method, err, result)
+  self.client.request('textDocument/completion', params, function(err, _, result)
+    if err or not result then return args.abort() end
     args.callback({
       items = vim.lsp.util.text_document_completion_list_to_complete_items(result, '');
       incomplete = result.incomplete or false;
