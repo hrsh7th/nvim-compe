@@ -90,7 +90,6 @@ function Source:trigger(context, callback)
       if #result.items == 0 then
         Debug:log('> completed empty: ' .. self.id .. ': ' .. #result.items)
         self.status = 'completed'
-        return
       end
       Debug:log('> completed: ' .. self.id .. ': ' .. #result.items .. ', sec: ' .. vim.loop.now() - self.context.time)
 
