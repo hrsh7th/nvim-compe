@@ -95,6 +95,8 @@ function Source:trigger(context, callback)
 
       self.incomplete = result.incomplete or false
       self.items = self:normalize_items(context, result.items or {})
+      self.keyword_pattern_offset = result.keyword_pattern_offset or self.keyword_pattern_offset
+      self.trigger_character_offset = result.trigger_character_offset or self.trigger_character_offset
       callback()
     end;
     abort = function()

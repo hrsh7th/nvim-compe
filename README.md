@@ -57,8 +57,10 @@ You can enable vsnip completion via `call compe#source#vim_bridge#register('vsni
 
 - preselect
   - Specify the item should be preselect
+
 - filter_text
   - Specify text that will be used only filter
+
 - sort_text
   - Specify text that will be used only sort
 
