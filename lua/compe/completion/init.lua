@@ -153,7 +153,7 @@ function Completion:display(context)
       return
     end
 
-    if string.sub(vim.fn.mode(), 1, 1) == 'i' and vim.fn.getbufvar('%', '&buftype') ~= 'prompt' and start_offset > 0 then
+    if #items > 0 and string.sub(vim.fn.mode(), 1, 1) == 'i' and vim.fn.getbufvar('%', '&buftype') ~= 'prompt' and start_offset > 0 then
       local completeopt = vim.fn.getbufvar('%', '&completeopt', '')
       vim.fn.setbufvar('%', 'completeopt', 'menu,menuone,noselect')
       vim.fn.complete(start_offset, items)
