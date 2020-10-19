@@ -5,6 +5,7 @@ let g:loaded_compe = v:true
 
 let g:compe_enabled = get(g:, 'compe_enabled', v:false)
 let g:compe_debug = get(g:, 'compe_debug', v:false)
+let g:compe_throttle_time = get(g:, 'compe_throttle_time', 80)
 let g:compe_min_length = get(g:, 'compe_min_length', 1)
 let g:compe_auto_preselect = get(g:, 'compe_auto_preselect', v:false)
 let g:compe_source_timeout = get(g:, 'compe_source_timeout', 200)
