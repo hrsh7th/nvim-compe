@@ -99,7 +99,7 @@ end
 --- display
 function Completion:display(context)
   Async.throttle('display', vim.g.compe_throttle_time, vim.schedule_wrap(function()
-    if #vim.v.completed_item ~= 0 then
+    if #vim.v.completed_item ~= 0 or string.sub(vim.fn.mode(), 1, 1) ~= 'i' or vim.fn.getbufvar('%', '&buftype') == 'prompt' then
       return
     end
 
@@ -127,6 +127,9 @@ function Completion:display(context)
         end
       end
     end
+    if start_offset == 0 then
+      return
+    end
 
     -- Gather items
     local use_trigger_character = false
@@ -149,10 +152,9 @@ function Completion:display(context)
     end
     Debug:log('!!! filter !!!: ' .. context.before_line)
 
-    local pumvisible = vim.fn.pumvisible()
-
     -- Completion
-    if (#items > 0 or pumvisible) and string.sub(vim.fn.mode(), 1, 1) == 'i' and vim.fn.getbufvar('%', '&buftype') ~= 'prompt' and start_offset > 0 then
+    local pumvisible = vim.fn.pumvisible()
+    if (#items > 0 or pumvisible) then
       local completeopt = vim.fn.getbufvar('%', '&completeopt', '')
       vim.fn.setbufvar('%', 'completeopt', 'menu,menuone,noselect')
       vim.fn.complete(start_offset, items)
