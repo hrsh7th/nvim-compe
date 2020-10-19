@@ -31,7 +31,7 @@ function Source:complete(args)
         items = vim.tbl_keys(self.buffers[args.context.bufnr].words);
         incomplete = self.buffers[args.context.bufnr].processing;
       })
-    end, 200)
+    end, 100)
     return
   end
   args.callback({

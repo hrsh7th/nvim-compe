@@ -11,7 +11,7 @@ function Buffer.new(bufnr, pattern1, pattern2)
 
   local index = 1
   self.timer = vim.loop.new_timer()
-  self.timer:start(200, 200, vim.schedule_wrap(function()
+  self.timer:start(0, 200, vim.schedule_wrap(function()
     local text = ''
     local chunk = math.min(index + 2000, #self.lines)
     for i = index, chunk do
