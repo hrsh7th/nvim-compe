@@ -85,16 +85,11 @@ function Source:trigger(context, callback)
         return
       end
 
-      self.status = 'completed'
-
-      if #result.items == 0 then
-        Debug:log('> completed empty: ' .. self.id .. ': ' .. #result.items)
-        self.status = 'completed'
-      end
       Debug:log('> completed: ' .. self.id .. ': ' .. #result.items .. ', sec: ' .. vim.loop.now() - self.context.time)
 
+      self.status = 'completed'
+      self.items = self.incomplete and #result.items == 0 and self.items or self:normalize_items(context, result.items or {})
       self.incomplete = result.incomplete or false
-      self.items = self:normalize_items(context, result.items or {})
       self.keyword_pattern_offset = result.keyword_pattern_offset or self.keyword_pattern_offset
       self.trigger_character_offset = result.trigger_character_offset or self.trigger_character_offset
       callback()
