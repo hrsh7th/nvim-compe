@@ -137,10 +137,9 @@ function Completion:display(context)
     local items = {}
     for _, source in ipairs(self.sources) do
       if source.status == 'completed' then
-        local is_triggered_by_character = source:is_triggered_by_character()
         local source_items = Matcher.match(context, source)
-        if #source_items > 0 and (is_triggered_by_character or is_triggered_by_character == use_trigger_character) then
-          use_trigger_character = is_triggered_by_character
+        if #source_items > 0 and (source.is_triggered_by_character or source.is_triggered_by_character == use_trigger_character) then
+          use_trigger_character = source.is_triggered_by_character
           for _, item in ipairs(source_items) do
             if words[item.word] == nil or item.dup ~= true then
               words[item.word] = true

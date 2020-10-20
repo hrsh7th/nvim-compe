@@ -18,6 +18,7 @@ function Source:clear()
   self.items = {}
   self.keyword_pattern_offset = 0
   self.trigger_character_offset = 0
+  self.is_triggered_by_character = false
   self.incomplete = false
 end
 
@@ -68,6 +69,7 @@ function Source:trigger(context, callback)
   -- Completion request.
   self.status = is_same_offset and self.status or 'processing'
   self.items = is_same_offset and self.items or {}
+  self.is_triggered_by_character = is_same_offset and self.is_triggered_by_character or self.trigger_character_offset > 0
   self.keyword_pattern_offset = state.keyword_pattern_offset
   self.trigger_character_offset = state.trigger_character_offset
   self.context = context
@@ -126,11 +128,6 @@ end
 --- get_start_offset
 function Source:get_start_offset()
   return self.keyword_pattern_offset
-end
-
---- is_triggered_by_character
-function Source:is_triggered_by_character()
-  return self.trigger_character_offset > 0 and (self.context.before_char and (not not string.match(self.context.before_char, '%A')))
 end
 
 --- get_items
