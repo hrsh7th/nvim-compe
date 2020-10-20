@@ -41,6 +41,10 @@ end
 
 --- score
 function Matcher.score(input, word)
+  if string.lower(string.sub(input, 1, 1)) ~= string.lower(string.sub(word, 1, 1)) then
+    return 0
+  end
+
   local matches = {}
 
   -- gather matches
@@ -71,12 +75,7 @@ function Matcher.score(input, word)
   -- compute score
   local char_map = {}
   local score = 0
-  for i, match in ipairs(matches) do
-    -- first prefix unmatch penalty
-    if i == 1 and (match.i ~= 1 or match.s ~= 1) then
-      score = score - 10
-    end
-
+  for _, match in ipairs(matches) do
     -- add new used char score
     local s = 0
     for j = match.s, match.e do
