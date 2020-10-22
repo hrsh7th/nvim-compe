@@ -3,8 +3,8 @@ local Buffer = {}
 function Buffer.new(bufnr, pattern1, pattern2)
   local self = setmetatable({}, { __index = Buffer })
   self.bufnr = bufnr
-  self.pattern1 = pattern1
-  self.pattern2 = pattern2
+  self.regex1 = vim.regex(pattern1)
+  self.regex2 = vim.regex(pattern2)
   self.words = {}
   self.lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
   self.processing = true
@@ -17,10 +17,12 @@ function Buffer.new(bufnr, pattern1, pattern2)
     for i = index, chunk do
       text = text .. '\n' .. self.lines[i]
     end
-    self:add_words(self.pattern1, self.pattern2, text)
+    self:add_words(text)
     if chunk >= #self.lines then
-      self.timer:stop()
-      self.timer:close()
+      if self.timer then
+        self.timer:stop()
+        self.timer:close()
+      end
       self.timer = nil
       self.processing = false
     end
@@ -28,21 +30,24 @@ function Buffer.new(bufnr, pattern1, pattern2)
   return self
 end
 
-function Buffer.add_words(self, pattern1, pattern2, text)
+function Buffer.add_words(self, text)
   local buffer = text
-  local regex1 = vim.regex(pattern1)
-  local regex2 = vim.regex(pattern2)
   while true do
-    local s1, e1 = regex1:match_str(buffer)
-    local s2, e2 = regex2:match_str(buffer)
+    local s1, e1 = self.regex1:match_str(buffer)
+    local s2, e2 = self.regex2:match_str(buffer)
     if s1 == nil and s2 == nil then
       break
     end
 
-    s1 = s1 or -1
-    e1 = e1 or -1
-    s2 = s2 or -1
-    e2 = e2 or -1
+    if not s1 then
+      s1 = s2
+      e1 = e2
+    end
+
+    if not s2 then
+      s2 = s1
+      e2 = e1
+    end
 
     local s = s1
     local e = e1
