@@ -1,4 +1,5 @@
 local Pattern = require'compe.pattern'
+local protocol = require'vim.lsp.protocol'
 
 local Source = {}
 
@@ -63,13 +64,66 @@ function Source:complete(args)
   self.client.request('textDocument/completion', params, function(err, _, result)
     if err or not result then return args.abort() end
     args.callback({
-      items = vim.lsp.util.text_document_completion_list_to_complete_items(result, '');
+      items = self:convert(result);
       incomplete = result.incomplete or false;
     })
   end)
 end
 
-function Source:convert(response)
+function Source:convert(result)
+  local completion_items = vim.tbl_islist(result or {}) and result or result.items or {}
+
+  local complete_items = {}
+  for _, completion_item in pairs(completion_items) do
+    local label = string.gsub(completion_item.label, "^%s*(.-)%s*$", "%1")
+    local insert_text = completion_item.insertText and string.gsub(completion_item.insertText, "^%s*(.-)%s*$", "%1") or label
+
+    local word = ''
+    local abbr = ''
+    if completion_item.insertTextFormat == 2 then
+      word = label
+      abbr = label
+
+      local expandable = false
+      if completion_item.textEdit ~= nil and completion_item.textEdit.newText ~= nil then
+        expandable = word ~= completion_item.textEdit.newText
+      elseif completion_item.insertText ~= nil then
+        expandable = word ~= completion_item.insertText
+      end
+
+      if expandable then
+        abbr = abbr .. '~'
+      end
+    else
+      word = insert_text
+      abbr = label
+    end
+
+    local kind = protocol.CompletionItemKind[completion_item.kind] or ''
+    if type(completion_item.detail) == 'string' then
+      local match = string.match(string.gsub(completion_item.detail, "^%s*(.-)%s*$", "%1"), '^[^\n]+')
+      if match ~= nil then
+        kind = match
+      end
+    end
+
+    table.insert(complete_items, {
+      word = word;
+      abbr = abbr;
+      preselect = completion_item.preselect or false,
+      kind = kind;
+      user_data = {
+        nvim = {
+          lsp = {
+            completion_item = completion_item;
+          };
+        };
+      };
+      filter_text = completion_item.filterText or nil;
+      sort_text = completion_item.sortText or nil;
+    })
+  end
+  return complete_items
 end
 
 return Source
