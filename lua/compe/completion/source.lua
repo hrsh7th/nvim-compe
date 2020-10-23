@@ -67,9 +67,9 @@ function Source:trigger(context, callback)
   end
 
   -- Completion request.
-  self.status = is_same_offset and self.status or 'processing'
   self.items = is_same_offset and self.items or {}
   self.is_triggered_by_character = is_same_offset and self.is_triggered_by_character or (state.trigger_character_offset > 0 and string.match(context.before_char, '%w+') == nil)
+  self.status = 'processing'
   self.keyword_pattern_offset = state.keyword_pattern_offset
   self.trigger_character_offset = state.trigger_character_offset
   self.context = context
