@@ -6,28 +6,48 @@ function Buffer.new(bufnr, pattern1, pattern2)
   self.regex1 = vim.regex(pattern1)
   self.regex2 = vim.regex(pattern2)
   self.words = {}
-  self.lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
-  self.processing = true
+  self.processing = false
+  return self
+end
 
+function Buffer.index(self)
+  self.processing = true
   local index = 1
-  self.timer = vim.loop.new_timer()
-  self.timer:start(0, 200, vim.schedule_wrap(function()
+  local lines = vim.api.nvim_buf_get_lines(self.bufnr, 0, -1, false)
+  local timer = vim.loop.new_timer()
+  timer:start(0, 200, vim.schedule_wrap(function()
     local text = ''
-    local chunk = math.min(index + 2000, #self.lines)
+
+    local chunk = math.min(index + 1000, #lines)
     for i = index, chunk do
-      text = text .. '\n' .. self.lines[i]
+      text = text .. '\n' .. lines[i]
     end
+    index = chunk + 1
+
     self:add_words(text)
-    if chunk >= #self.lines then
-      if self.timer then
-        self.timer:stop()
-        self.timer:close()
+    if chunk >= #lines then
+      if timer then
+        timer:stop()
+        timer:close()
+        timer = nil
       end
-      self.timer = nil
       self.processing = false
     end
   end))
-  return self
+end
+
+function Buffer.watch(self)
+  local lnum = vim.fn.line('.')
+  vim.api.nvim_buf_attach(self.bufnr, false, {
+    on_lines = vim.schedule_wrap(function(_, _, _, firstline, _, new_lastline, _, _, _)
+      local new_lnum = vim.fn.line('.')
+      if lnum == new_lnum then
+        return
+      end
+      lnum = new_lnum
+      self:add_words(table.concat(vim.api.nvim_buf_get_lines(self.bufnr, firstline, new_lastline, true), '\n'))
+    end)
+  })
 end
 
 function Buffer.add_words(self, text)

@@ -21,11 +21,10 @@ end
 
 function Source:complete(args)
   if not self.buffers[args.context.bufnr] then
-    self.buffers[args.context.bufnr] = Buffer.new(
-      args.context.bufnr,
-      Pattern:get_keyword_pattern(args.context),
-      Pattern:get_default_keyword_pattern()
-    )
+    local buffer = Buffer.new(args.context.bufnr, Pattern:get_keyword_pattern(args.context), Pattern:get_default_keyword_pattern())
+    buffer:index()
+    buffer:watch()
+    self.buffers[args.context.bufnr] = buffer
     vim.defer_fn(function()
       args.callback({
         items = vim.tbl_keys(self.buffers[args.context.bufnr].words);
