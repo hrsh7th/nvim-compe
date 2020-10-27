@@ -11,7 +11,11 @@ function Pattern:get_default_keyword_pattern()
 end
 
 function Pattern:get_keyword_pattern(context)
-  return self.filetypes[context.filetype] and self.filetypes[context.filetype].keyword_pattern or self.get_default_keyword_pattern()
+  return self:get_keyword_pattern_by_filetype(context.filetype)
+end
+
+function Pattern:get_keyword_pattern_by_filetype(filetype)
+  return self.filetypes[filetype] and self.filetypes[filetype].keyword_pattern or self.get_default_keyword_pattern()
 end
 
 function Pattern:get_keyword_pattern_offset(context)
