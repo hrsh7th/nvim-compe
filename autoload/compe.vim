@@ -28,3 +28,10 @@ function! compe#close(...) abort
   return get(a:000, 0, '')
 endfunction
 
+"
+" compe#is_selected_manually
+"
+function! compe#is_selected_manually() abort
+  return pumvisible() && !empty(v:completed_item) ? v:true : v:false
+endfunction
+

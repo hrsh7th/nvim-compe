@@ -17,4 +17,8 @@ function Compat.safe(data)
   return safe
 end
 
+function Compat.is_nil(value)
+  return value == nil or value == vim.NIL
+end
+
 return Compat

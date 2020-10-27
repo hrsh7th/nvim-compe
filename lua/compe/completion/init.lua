@@ -48,6 +48,7 @@ function Completion:on_text_changed()
   if self.context.changedtick == context.changedtick then
     return
   end
+  self.context = context
 
   Debug:log(' ')
   Debug:log('>>> on_text_changed <<<: ' .. context.before_line)
@@ -78,7 +79,7 @@ end
 
 --- trigger
 function Completion:trigger(context)
-  if #vim.v.completed_item ~= 0 then
+  if vim.call('compe#is_selected_manually') then
     return
   end
 
@@ -99,7 +100,7 @@ end
 --- display
 function Completion:display(context)
   Async.throttle('display', vim.g.compe_throttle_time, vim.schedule_wrap(function()
-    if #vim.v.completed_item ~= 0 or string.sub(vim.fn.mode(), 1, 1) ~= 'i' or vim.fn.getbufvar('%', '&buftype') == 'prompt' then
+    if vim.call('compe#is_selected_manually') or string.sub(vim.fn.mode(), 1, 1) ~= 'i' or vim.fn.getbufvar('%', '&buftype') == 'prompt' then
       return
     end
 
@@ -108,11 +109,6 @@ function Completion:display(context)
         return
       end
     end
-
-    if self.context.changedtick == context.changedtick and context.manual ~= true then
-      return
-    end
-    self.context = context
 
     -- Datermine start_offset
     local start_offset = 0
