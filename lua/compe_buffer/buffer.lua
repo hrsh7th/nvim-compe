@@ -89,7 +89,7 @@ function Buffer.add_words(self, text)
     end
 
     local word = string.sub(buffer, s + 1, e)
-    if #word > 2 then
+    if #word > 2 and string.sub(word, #word, 1) == '-' then
       self.words[word] = true
     end
     buffer = string.sub(buffer, e + 1)
