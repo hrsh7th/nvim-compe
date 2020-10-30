@@ -1,5 +1,4 @@
 local Debug = require'compe.debug'
-local Async = require'compe.async'
 local Context = require'compe.completion.context'
 local Matcher = require'compe.completion.matcher'
 
@@ -8,9 +7,8 @@ local Completion = {}
 --- new
 function Completion:new()
   local this = setmetatable({}, { __index = self })
-  this.insert_char_pre = 0
   this.sources = {}
-  this.context = Context:new(this.insert_char_pre - 1, {})
+  this.context = Context:new({})
   return this
 end
 
@@ -37,14 +35,9 @@ function Completion:unregister_source(id)
   end
 end
 
---- on_insert_char_pre
-function Completion:on_insert_char_pre()
-  self.insert_char_pre = self.insert_char_pre + 1
-end
-
 --- on_text_changed
 function Completion:on_text_changed()
-  local context = Context:new(self.insert_char_pre, {})
+  local context = Context:new({})
   if self.context.changedtick == context.changedtick then
     return
   end
@@ -59,7 +52,7 @@ end
 
 --- on_manual_complete
 function Completion:on_manual_complete()
-  local context = Context:new(self.insert_char_pre, {
+  local context = Context:new({
     manual = true;
   })
 
@@ -87,7 +80,7 @@ function Completion:trigger(context)
   for _, source in ipairs(self.sources) do
     local status, value = pcall(function()
       trigger = source:trigger(context, function()
-        self:display(Context:new(self.insert_char_pre, { manual = true } ))
+        self:display(Context:new({ manual = true } ))
       end) or trigger
     end)
     if not(status) then
@@ -99,77 +92,75 @@ end
 
 --- display
 function Completion:display(context)
-  Async.throttle('display', vim.g.compe_throttle_time, vim.schedule_wrap(function()
-    if vim.call('compe#is_selected_manually') or string.sub(vim.fn.mode(), 1, 1) ~= 'i' or vim.fn.getbufvar('%', '&buftype') == 'prompt' then
+  if vim.call('compe#is_selected_manually') or string.sub(vim.fn.mode(), 1, 1) ~= 'i' or vim.fn.getbufvar('%', '&buftype') == 'prompt' then
+    return
+  end
+
+  for _, source in ipairs(self.sources) do
+    if source.status == 'processing' and (vim.loop.now() - source.context.time) < vim.g.compe_source_timeout then
       return
     end
+  end
 
-    for _, source in ipairs(self.sources) do
-      if source.status == 'processing' and (vim.loop.now() - source.context.time) < vim.g.compe_source_timeout then
-        return
+  -- Datermine start_offset
+  local start_offset = 0
+  for _, source in ipairs(self.sources) do
+    if source.status == 'processing' or source.status == 'completed' then
+      local source_start_offset = source:get_start_offset()
+      if type(source_start_offset) == 'number' then
+        if start_offset == 0 or source_start_offset < start_offset then
+          Debug:log('!!! start_offset !!!: ' .. source.id .. ', ' .. source_start_offset)
+          start_offset = source_start_offset
+        end
       end
     end
+  end
+  if start_offset == 0 then
+    return
+  end
 
-    -- Datermine start_offset
-    local start_offset = 0
-    for _, source in ipairs(self.sources) do
-      if source.status == 'processing' or source.status == 'completed' then
-        local source_start_offset = source:get_start_offset()
-        if type(source_start_offset) == 'number' then
-          if start_offset == 0 or source_start_offset < start_offset then
-            Debug:log('!!! start_offset !!!: ' .. source.id .. ', ' .. source_start_offset)
-            start_offset = source_start_offset
+  -- Gather items
+  local use_trigger_character = false
+  local words = {}
+  local items = {}
+  for _, source in ipairs(self.sources) do
+    if source.status == 'completed' then
+      local source_items = Matcher.match(context, source)
+      if #source_items > 0 and (source.is_triggered_by_character or source.is_triggered_by_character == use_trigger_character) then
+        use_trigger_character = source.is_triggered_by_character
+        for _, item in ipairs(source_items) do
+          if words[item.word] == nil or item.dup ~= true then
+            words[item.word] = true
+            table.insert(items, item)
           end
         end
       end
     end
-    if start_offset == 0 then
-      return
-    end
+  end
+  Debug:log('!!! filter !!!: ' .. context.before_line)
 
-    -- Gather items
-    local use_trigger_character = false
-    local words = {}
-    local items = {}
-    for _, source in ipairs(self.sources) do
-      if source.status == 'completed' then
-        local source_items = Matcher.match(context, source)
-        if #source_items > 0 and (source.is_triggered_by_character or source.is_triggered_by_character == use_trigger_character) then
-          use_trigger_character = source.is_triggered_by_character
-          for _, item in ipairs(source_items) do
-            if words[item.word] == nil or item.dup ~= true then
-              words[item.word] = true
-              table.insert(items, item)
-            end
-          end
+  -- Completion
+  local pumvisible = vim.fn.pumvisible()
+  if (#items > 0 or pumvisible) then
+    local completeopt = vim.fn.getbufvar('%', '&completeopt', '')
+    vim.fn.setbufvar('%', 'completeopt', 'menu,menuone,noselect')
+    vim.fn.complete(start_offset, items)
+    vim.fn.setbufvar('%', 'completeopt', completeopt)
+
+    -- preselect
+    if vim.fn.has('nvim') and pumvisible then
+      (function()
+        local item = items[1]
+        if item == nil then
+          return
         end
-      end
+
+        if item.preselect == true or vim.g.compe_auto_preselect then
+          vim.api.nvim_select_popupmenu_item(0, false, false, {})
+        end
+      end)()
     end
-    Debug:log('!!! filter !!!: ' .. context.before_line)
-
-    -- Completion
-    local pumvisible = vim.fn.pumvisible()
-    if (#items > 0 or pumvisible) then
-      local completeopt = vim.fn.getbufvar('%', '&completeopt', '')
-      vim.fn.setbufvar('%', 'completeopt', 'menu,menuone,noselect')
-      vim.fn.complete(start_offset, items)
-      vim.fn.setbufvar('%', 'completeopt', completeopt)
-
-      -- preselect
-      if vim.fn.has('nvim') and pumvisible then
-        (function()
-          local item = items[1]
-          if item == nil then
-            return
-          end
-
-          if item.preselect == true or vim.g.compe_auto_preselect then
-            vim.api.nvim_select_popupmenu_item(0, false, false, {})
-          end
-        end)()
-      end
-    end
-  end))
+  end
 end
 
 return Completion

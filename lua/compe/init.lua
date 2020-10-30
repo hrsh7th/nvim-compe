@@ -27,16 +27,6 @@ function Compe:unregister_source(id)
   self.completion:unregister_source(id)
 end
 
---- on_insert_char_pre
-function Compe:on_insert_char_pre()
-  if vim.g.compe_enabled then
-    local status, value = pcall(function() self.completion:on_insert_char_pre() end)
-    if not(status) then
-      Debug:log(value)
-    end
-  end
-end
-
 --- on_text_changed
 function Compe:on_text_changed()
   if vim.g.compe_enabled then
