@@ -9,6 +9,8 @@ local Completion = {}
 function Completion:new()
   local this = setmetatable({}, { __index = self })
   this.sources = {}
+  this.insert_char_pre_prev = -1
+  this.insert_char_pre = 0
   this.context = Context:new({})
   return this
 end
@@ -36,6 +38,11 @@ function Completion:unregister_source(id)
   end
 end
 
+--- on_insert_char_pre
+function Completion:on_insert_char_pre()
+  self.insert_char_pre = self.insert_char_pre + 1
+end
+
 --- on_text_changed
 function Completion:on_text_changed()
   local context = Context:new({})
@@ -47,7 +54,10 @@ function Completion:on_text_changed()
   Debug:log(' ')
   Debug:log('>>> on_text_changed <<<: ' .. context.before_line)
 
-  self:trigger(context)
+  if self.insert_char_pre ~= self.insert_char_pre_prev then
+    self.insert_char_pre_prev = self.insert_char_pre
+    self:trigger(context)
+  end
   self:display(context)
 end
 

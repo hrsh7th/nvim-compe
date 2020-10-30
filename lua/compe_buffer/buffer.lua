@@ -42,10 +42,11 @@ function Buffer.watch(self)
     on_lines = vim.schedule_wrap(function(_, _, _, firstline, _, new_lastline, _, _, _)
       local new_lnum = vim.fn.line('.')
       if lnum == new_lnum then
-        return
+        return false
       end
       lnum = new_lnum
       self:add_words(table.concat(vim.api.nvim_buf_get_lines(self.bufnr, firstline, new_lastline, true), '\n'))
+      return false
     end)
   })
 end
