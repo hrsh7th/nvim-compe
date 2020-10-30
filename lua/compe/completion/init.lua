@@ -1,4 +1,5 @@
 local Debug = require'compe.debug'
+local Async = require'compe.async'
 local Context = require'compe.completion.context'
 local Matcher = require'compe.completion.matcher'
 
@@ -98,6 +99,9 @@ function Completion:display(context)
 
   for _, source in ipairs(self.sources) do
     if source.status == 'processing' and (vim.loop.now() - source.context.time) < vim.g.compe_source_timeout then
+      Async.debounce('display:processing', vim.g.compe_source_timeout, vim.schedule_wrap(function()
+        self:display(context)
+      end))
       return
     end
   end
