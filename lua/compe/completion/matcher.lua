@@ -49,11 +49,21 @@ function Matcher.score(input, word)
 
   -- gather matches
   local words = Matcher.split(word)
+  local prev_match_end = 1
   for i, w in ipairs(words) do
     local j = #w
     while j >= 1 do
-      local s, e = string.find(string.lower(input), string.sub(string.lower(w), 1, j), 1, true)
+      local s, e
+      local curr_match_end = prev_match_end
+      while curr_match_end >= 1 do
+        s, e = string.find(string.lower(input), string.sub(string.lower(w), 1, j), curr_match_end, true)
+        if s ~= nil then
+          break
+        end
+        curr_match_end = curr_match_end - 1
+      end
       if s ~= nil then
+        prev_match_end = e + 1
         table.insert(matches, {
           exact = string.sub(input, s, e) == string.sub(w, 1, j);
           i = i;
