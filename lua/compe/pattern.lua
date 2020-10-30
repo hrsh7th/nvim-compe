@@ -7,7 +7,7 @@ function Pattern:set(filetype, config)
 end
 
 function Pattern:get_default_keyword_pattern()
-  return '\\h\\w*\\%(-\\w\\+\\)*'
+  return '\\h\\w*\\%(-\\w*\\)*'
 end
 
 function Pattern:get_keyword_pattern(context)
