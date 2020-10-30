@@ -43,8 +43,9 @@ function Source.complete(self, args)
     end
   end
   args.callback({
-      items = words;
-    })
+    items = words;
+    incomplete = processing;
+  })
 end
 
 function Source.get_bufs(_)
