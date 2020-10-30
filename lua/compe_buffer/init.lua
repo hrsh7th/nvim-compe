@@ -34,20 +34,17 @@ function Source.complete(self, args)
     end
   end
 
-  vim.defer_fn(function()
-    local processing = false
-    local words = {}
-    for _, buf in ipairs(bufs) do
-      processing = self.buffers[buf].processing or processing
-      for word in pairs(self.buffers[buf].words) do
-        table.insert(words, word)
-      end
+  local processing = false
+  local words = {}
+  for _, buf in ipairs(bufs) do
+    processing = self.buffers[buf].processing or processing
+    for word in pairs(self.buffers[buf].words) do
+      table.insert(words, word)
     end
-    args.callback({
+  end
+  args.callback({
       items = words;
-      incomplete = processing;
     })
-  end, 100)
 end
 
 function Source.get_bufs(_)
