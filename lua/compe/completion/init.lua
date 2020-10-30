@@ -93,6 +93,9 @@ end
 
 --- display
 function Completion:display(context)
+  -- Remove processing timer when display method called.
+  Async.throttle('display:processing', 0, function() end)
+
   if vim.call('compe#is_selected_manually') or string.sub(vim.fn.mode(), 1, 1) ~= 'i' or vim.fn.getbufvar('%', '&buftype') == 'prompt' then
     return
   end
