@@ -44,7 +44,10 @@ endfunction
 "
 function! s:on_insert_char_pre() abort
   if g:compe_enabled
-    call luaeval('require"compe":on_insert_char_pre()')
+    " Check one-alphabetical char inserted.
+    if strlen(v:char) == 1 && v:char =~# '[[:print:]]'
+      call luaeval('require"compe":on_insert_char_pre()')
+    endif
   endif
 endfunction
 
