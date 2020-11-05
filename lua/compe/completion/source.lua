@@ -158,13 +158,9 @@ end
 -- This method add special attributes for each items.
 -- * priority
 -- * asis
-function Source:normalize_items(context, items)
-  local start_offset = self:get_start_offset()
+function Source:normalize_items(_, items)
   local metadata = self:get_metadata()
   local normalized = {}
-
-  local _, _, before = string.find(string.sub(context.before_line, 1, start_offset - 1), '([^%s]*)$')
-  local _, _, after = string.find(context.after_line, '^([^%s]*)')
 
   for _, item in pairs(items) do
     -- string to completed_item
@@ -175,23 +171,9 @@ function Source:normalize_items(context, items)
       }
     end
 
-    local word = self:trim_word(before, after, item.word)
-
-    if word ~= item.word then
-      Debug:log(vim.inspect({
-        before = before;
-        after = after;
-        fixed_word = word;
-        item_word = item.word;
-      }))
-    end
-
-    item.word = word
-
-    -- add abbr if does not exists
-    if item.abbr == nil then
-      item.abbr = item.word
-    end
+    -- create word/abbr
+    item.word = item.word
+    item.abbr = item.abbr or item.word
 
     -- required properties
     item.dup = metadata.dup ~= nil and metadata.dup or 1
@@ -203,35 +185,13 @@ function Source:normalize_items(context, items)
     item.priority = metadata.priority or 0
     item.asis = string.find(item.abbr, item.word, 1, true) == 1
 
+    -- restore original word/abbr
+    item.original_word = item.word
+    item.original_abbr = item.abbr
+
     table.insert(normalized, item)
   end
   return normalized
-end
-
--- trim_word
-function Source:trim_word(before, after, word)
-  local word_len = #word
-
-  if before ~= nil then
-    for prefix_overlap = word_len, 1, -1 do
-      if string.sub(before, #before - prefix_overlap + 1) == string.sub(word, 1, prefix_overlap) then
-        word = string.sub(word, prefix_overlap + 1)
-        break
-      end
-    end
-  end
-
-  if after ~= nil then
-    for postfix_overlap = word_len, 1, -1 do
-      local word_index = word_len - postfix_overlap + 1
-      if string.sub(after, 1, postfix_overlap) == string.sub(word, word_index) then
-        word = string.sub(word, 1, word_index - 1)
-        break
-      end
-    end
-  end
-
-  return word
 end
 
 return Source
