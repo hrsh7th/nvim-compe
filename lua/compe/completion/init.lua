@@ -143,7 +143,7 @@ function Completion:display(context)
   for _, source in ipairs(self.sources) do
     if source.status == 'completed' then
       -- Must typed 1-chars when the source does not triggered by character.
-      if source:get_start_offset() < context.col or source.is_triggered_by_character then
+      if context.manual or source:get_start_offset() < context.col or source.is_triggered_by_character then
         local source_items = Matcher.match(context, source)
         if #source_items > 0 and (source.is_triggered_by_character or source.is_triggered_by_character == use_trigger_character) then
           use_trigger_character = use_trigger_character or source.is_triggered_by_character
