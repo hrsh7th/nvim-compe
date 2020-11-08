@@ -9,8 +9,6 @@ local Completion = {}
 function Completion:new()
   local this = setmetatable({}, { __index = self })
   this.sources = {}
-  this.insert_char_pre_prev = -1
-  this.insert_char_pre = 0
   this.context = Context:new({})
   return this
 end
@@ -38,15 +36,10 @@ function Completion:unregister_source(id)
   end
 end
 
---- on_insert_char_pre
-function Completion:on_insert_char_pre()
-  self.insert_char_pre = self.insert_char_pre + 1
-end
-
 --- on_text_changed
 function Completion:on_text_changed()
   local context = Context:new({})
-  if self.context.changedtick == context.changedtick then
+  if not self.context:should_auto_complete(context) then
     return
   end
   self.context = context
@@ -54,10 +47,7 @@ function Completion:on_text_changed()
   Debug:log(' ')
   Debug:log('>>> on_text_changed <<<: ' .. context.before_line)
 
-  if self.insert_char_pre ~= self.insert_char_pre_prev then
-    self.insert_char_pre_prev = self.insert_char_pre
-    self:trigger(context)
-  end
+  self:trigger(context)
   self:display(context)
 end
 
@@ -142,19 +132,17 @@ function Completion:display(context)
   local items = {}
   for _, source in ipairs(self.sources) do
     if source.status == 'completed' then
-      -- Must typed 1-chars when the source does not triggered by character.
-      if context.manual or source:get_start_offset() < context.col or source.is_triggered_by_character then
-        local source_items = Matcher.match(context, source)
-        if #source_items > 0 and (source.is_triggered_by_character or source.is_triggered_by_character == use_trigger_character) then
-          use_trigger_character = use_trigger_character or source.is_triggered_by_character
-          local gap = string.sub(context.before_line, start_offset, source:get_start_offset() - 1)
-          for _, item in ipairs(source_items) do
-            if words[item.original_word] == nil or item.dup ~= true then
-              words[item.original_word] = true
-              item.word = gap .. item.original_word
-              item.abbr = gap .. item.original_abbr
-              table.insert(items, item)
-            end
+      local source_items = Matcher.match(context, source)
+      if #source_items > 0 and (source.is_triggered_by_character or source.is_triggered_by_character == use_trigger_character) then
+        use_trigger_character = use_trigger_character or source.is_triggered_by_character
+
+        local gap = string.sub(context.before_line, start_offset, source:get_start_offset() - 1)
+        for _, item in ipairs(source_items) do
+          if words[item.original_word] == nil or item.dup ~= true then
+            words[item.original_word] = true
+            item.word = gap .. item.original_word
+            item.abbr = gap .. item.original_abbr
+            table.insert(items, item)
           end
         end
       end

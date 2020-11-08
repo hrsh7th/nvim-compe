@@ -16,6 +16,11 @@ function Context:new(option)
   return this
 end
 
+--- should_auto_complete
+function Context.should_auto_complete(self, context)
+  return self.changedtick ~= context.changedtick and self.col ~= context.col
+end
+
 --- get_input
 function Context:get_input(start)
   return string.sub(self.line, start, self.col - 1)
