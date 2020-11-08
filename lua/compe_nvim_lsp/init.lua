@@ -11,15 +11,15 @@ return {
   end;
   register = function()
     -- unregister
-    for id in pairs(sources) do
-      compe:unregister_source(id)
+    for source_id in pairs(sources) do
+      compe:unregister_source(source_id)
     end
 
     -- register
     for id, client in pairs(vim.lsp.buf_get_clients(0)) do
-      local id = 'nvim_lsp:' .. id
-      sources[id] = Source.new(client)
-      compe:register_lua_source(id, sources[id])
+      local source_id = 'nvim_lsp:' .. id
+      sources[source_id] = Source.new(client)
+      compe:register_lua_source(source_id, sources[source_id])
     end
   end;
 }

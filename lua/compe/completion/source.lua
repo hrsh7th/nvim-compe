@@ -87,6 +87,7 @@ function Source:trigger(context, callback)
   self:log('completion', context, state)
   self.source:complete({
     context = self.context;
+    input = self.context:get_input(self.keyword_pattern_offset);
     keyword_pattern_offset = self.keyword_pattern_offset;
     trigger_character_offset = self.trigger_character_offset;
     incomplete = self.incomplete;
