@@ -43,7 +43,7 @@ endfunction
 function! s:get_metadata() abort
   return {
   \   'priority': 1000,
-  \   'menu': '[LSP]'
+  \   'menu': '[LSP]',
   \ }
 endfunction
 

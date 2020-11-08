@@ -24,6 +24,15 @@ end
 
 -- trigger
 function Source:trigger(context, callback)
+  local metadata = self:get_metadata()
+
+  -- Check filetypes.
+  if metadata.filetypes and #metadata.filetypes then
+    if not vim.tbl_contains(metadata.filetypes or {}, context.filetype) then
+      return self:clear()
+    end
+  end
+
   -- Normalize trigger offsets
   local state = self.source:datermine(context)
   state.trigger_character_offset = state.trigger_character_offset == nil and 0 or state.trigger_character_offset
