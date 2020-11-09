@@ -24,3 +24,11 @@ function! compe#pattern#get_keyword_pattern_offset(context) abort
   return luaeval("require'compe.pattern':get_keyword_pattern_offset(_A[1])", [a:context])
 endfunction
 
+"
+" compe#pattern#get_offset
+"
+function! compe#pattern#get_offset(context, pattern) abort
+  let [l:_, l:offset, l:__] = matchstrpos(a:context.before_line, a:pattern)
+  return l:offset + 1
+endfunction
+
