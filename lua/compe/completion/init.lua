@@ -6,15 +6,16 @@ local Matcher = require'compe.completion.matcher'
 local Completion = {}
 
 --- new
-function Completion:new()
-  local this = setmetatable({}, { __index = self })
-  this.sources = {}
-  this.context = Context:new({})
-  return this
+function Completion.new()
+  local self = setmetatable({}, { __index = Completion })
+  self.sources = {}
+  self.context = Context:new({})
+  self.history = {}
+  return self
 end
 
 --- register_source
-function Completion:register_source(source)
+function Completion.register_source(self, source)
   table.insert(self.sources, source)
 
   table.sort(self.sources, function(a, b)
@@ -27,7 +28,7 @@ function Completion:register_source(source)
 end
 
 --- unregister_source
-function Completion:unregister_source(id)
+function Completion.unregister_source(self, id)
   for i, source in ipairs(self.sources) do
     if id == source:get_id() then
       table.remove(self.sources, i)
@@ -37,7 +38,7 @@ function Completion:unregister_source(id)
 end
 
 --- on_text_changed
-function Completion:on_text_changed()
+function Completion.on_text_changed(self)
   local context = Context:new({})
   if not self.context:should_auto_complete(context) then
     return
@@ -52,7 +53,7 @@ function Completion:on_text_changed()
 end
 
 --- on_manual_complete
-function Completion:on_manual_complete()
+function Completion.on_manual_complete(self)
   local context = Context:new({
     manual = true;
   })
@@ -64,15 +65,21 @@ function Completion:on_manual_complete()
   self:display(context)
 end
 
--- clear
-function Completion:clear()
+--- add_history
+function Completion.add_history(self, word)
+  self.history[word] = self.history[word] or 0
+  self.history[word] = self.history[word] + 1
+end
+
+--- clear
+function Completion.clear(self)
   for _, source in ipairs(self.sources) do
     source:clear()
   end
 end
 
 --- trigger
-function Completion:trigger(context)
+function Completion.trigger(self, context)
   if vim.call('compe#is_selected_manually') then
     return
   end
@@ -92,7 +99,7 @@ function Completion:trigger(context)
 end
 
 --- display
-function Completion:display(context)
+function Completion.display(self, context)
   -- Remove processing timer when display method called.
   Async.throttle('display:processing', 0, function() end)
 
@@ -132,7 +139,7 @@ function Completion:display(context)
   local items = {}
   for _, source in ipairs(self.sources) do
     if source.status == 'completed' then
-      local source_items = Matcher.match(context, source)
+      local source_items = Matcher.match(context, source, self.history)
       if #source_items > 0 and (source.is_triggered_by_character or source.is_triggered_by_character == use_trigger_character) then
         use_trigger_character = use_trigger_character or source.is_triggered_by_character
 

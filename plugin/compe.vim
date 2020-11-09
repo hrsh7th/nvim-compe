@@ -23,7 +23,8 @@ augroup END
 "
 function! s:on_complete_done() abort
   if g:compe_enabled
-    if compe#is_selected_manually()
+    if !empty(v:completed_item) && !empty(v:completed_item.word)
+      call luaeval('require"compe":add_history(_A[1])', [v:completed_item.abbr])
       call luaeval('require"compe":clear()')
     endif
   endif

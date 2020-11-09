@@ -6,7 +6,7 @@ local Factor = 100 -- max word bound detection count
 -- This add special attributes for each items.
 -- * score
 -- * exact
-function Matcher.match(context, source)
+function Matcher.match(context, source, history)
   local input = context:get_input(source:get_start_offset())
 
   local matches = {}
@@ -28,7 +28,9 @@ function Matcher.match(context, source)
   end
 
   if source:get_metadata().sort then
-    table.sort(matches, Matcher.sort)
+    table.sort(matches, function(item1, item2)
+      return Matcher.compare(item1, item2, history)
+    end)
   end
 
   local limited = {}
@@ -112,8 +114,8 @@ function Matcher.score(input, word)
   return score
 end
 
---- sort
-function Matcher.sort(item1, item2)
+--- compare
+function Matcher.compare(item1, item2, history)
   if item1.priority ~= item2.priority then
     if item1.priority == nil then
       return false
@@ -137,6 +139,12 @@ function Matcher.sort(item1, item2)
 
   if math.abs(item1.score - item2.score) ~= 0 then
     return item1.score > item2.score
+  end
+
+  local history_score1 = history[item1.abbr] or 0
+  local history_score2 = history[item2.abbr] or 0
+  if history_score1 ~= history_score2 then
+    return history_score1 > history_score2
   end
 
   if item1.sort_text ~= nil and item2.sort_text ~= nil then
