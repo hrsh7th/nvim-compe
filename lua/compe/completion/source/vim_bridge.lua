@@ -26,24 +26,24 @@ function VimBridge.on_abort(id)
 end
 
 --- new
-function VimBridge:new(id)
-  local this = setmetatable({}, { __index = self })
-  this.id = id
-  return this
+function VimBridge.new(id)
+  local self = setmetatable({}, { __index = VimBridge })
+  self.id = id
+  return self
 end
 
 --- get_metadata
-function VimBridge:get_metadata()
+function VimBridge.get_metadata(self)
   return Compat.safe(vim.call('compe#source#vim_bridge#get_metadata', self.id))
 end
 
 --- new
-function VimBridge:datermine(context)
+function VimBridge.datermine(self, context)
   return Compat.safe(vim.call('compe#source#vim_bridge#datermine', self.id, context))
 end
 
 --- new
-function VimBridge:complete(args)
+function VimBridge.complete(self, args)
   complete_callbacks[self.id] = args.callback
   complete_aborts[self.id] = args.abort
   args.callback = nil

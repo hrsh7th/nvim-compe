@@ -3,17 +3,17 @@ local Context = require'compe.completion.context'
 local Source =  {}
 
 --- new
-function Source:new(id, source)
-  local this = setmetatable({}, { __index = self })
-  this.id = id
-  this.source = source
-  this.context = Context:new({})
-  this:clear()
-  return this
+function Source.new(id, source)
+  local self = setmetatable({}, { __index = Source })
+  self.id = id
+  self.source = source
+  self.context = Context.new({})
+  self:clear()
+  return self
 end
 
 -- clear
-function Source:clear()
+function Source.clear(self)
   self.status = 'waiting'
   self.items = {}
   self.keyword_pattern_offset = 0
@@ -23,7 +23,7 @@ function Source:clear()
 end
 
 -- trigger
-function Source:trigger(context, callback)
+function Source.trigger(self, context, callback)
   local metadata = self:get_metadata()
 
   -- Check filetypes.
@@ -118,12 +118,12 @@ function Source:trigger(context, callback)
 end
 
 --- get_id
-function Source:get_id()
+function Source.get_id(self)
   return self.id
 end
 
 --- get_metadata
-function Source:get_metadata()
+function Source.get_metadata(self)
   return vim.tbl_extend('keep', self.source:get_metadata(), {
     sort = true;
     priority = 0;
@@ -131,22 +131,22 @@ function Source:get_metadata()
 end
 
 --- get_status
-function Source:get_status()
+function Source.get_status(self)
   return self.status
 end
 
 --- get_start_offset
-function Source:get_start_offset()
+function Source.get_start_offset(self)
   return self.keyword_pattern_offset
 end
 
 --- get_items
-function Source:get_items()
+function Source.get_items(self)
   return self.items or {}
 end
 
 -- log
-function Source:log(label, context, state)
+function Source.log(self, label, context, state)
   local force_type = ''
   if context.manual then
     force_type = 'manual'
@@ -168,7 +168,7 @@ end
 -- This method add special attributes for each items.
 -- * priority
 -- * asis
-function Source:normalize_items(_, items)
+function Source.normalize_items(self, _, items)
   local metadata = self:get_metadata()
   local normalized = {}
 

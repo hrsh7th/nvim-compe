@@ -1,19 +1,19 @@
 local Context = {}
 
-function Context:new(option)
-  local this = setmetatable({}, { __index = self })
-  this.time = vim.loop.now()
-  this.changedtick = vim.fn.getbufvar('%', 'changedtick', 0)
-  this.manual = option.manual or false
-  this.lnum = vim.fn.line('.')
-  this.col = vim.fn.col('.')
-  this.bufnr = vim.fn.bufnr('%')
-  this.filetype = vim.fn.getbufvar('%', '&filetype', '')
-  this.line = vim.fn.getline('.')
-  this.before_line = string.sub(this.line, 1, this.col - 1)
-  this.before_char = this:get_before_char(this.lnum, this.before_line)
-  this.after_line = string.sub(this.line, this.col, -1)
-  return this
+function Context.new(option)
+  local self = setmetatable({}, { __index = Context })
+  self.time = vim.loop.now()
+  self.changedtick = vim.fn.getbufvar('%', 'changedtick', 0)
+  self.manual = option.manual or false
+  self.lnum = vim.fn.line('.')
+  self.col = vim.fn.col('.')
+  self.bufnr = vim.fn.bufnr('%')
+  self.filetype = vim.fn.getbufvar('%', '&filetype', '')
+  self.line = vim.fn.getline('.')
+  self.before_line = string.sub(self.line, 1, self.col - 1)
+  self.before_char = self:get_before_char(self.lnum, self.before_line)
+  self.after_line = string.sub(self.line, self.col, -1)
+  return self
 end
 
 --- should_auto_complete
@@ -22,12 +22,12 @@ function Context.should_auto_complete(self, context)
 end
 
 --- get_input
-function Context:get_input(start)
+function Context.get_input(self, start)
   return string.sub(self.line, start, self.col - 1)
 end
 
 --- get_before_char
-function Context:get_before_char(lnum, before_line)
+function Context.get_before_char(_, lnum, before_line)
   local current_lnum = lnum
   while current_lnum > 0 do
     local line = current_lnum == lnum and before_line or vim.fn.getline(current_lnum)

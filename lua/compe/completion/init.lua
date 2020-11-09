@@ -9,7 +9,7 @@ local Completion = {}
 function Completion.new()
   local self = setmetatable({}, { __index = Completion })
   self.sources = {}
-  self.context = Context:new({})
+  self.context = Context.new({})
   self.history = {}
   return self
 end
@@ -39,7 +39,7 @@ end
 
 --- on_text_changed
 function Completion.on_text_changed(self)
-  local context = Context:new({})
+  local context = Context.new({})
   if not self.context:should_auto_complete(context) then
     return
   end
@@ -54,7 +54,7 @@ end
 
 --- on_manual_complete
 function Completion.on_manual_complete(self)
-  local context = Context:new({
+  local context = Context.new({
     manual = true;
   })
 
@@ -76,6 +76,7 @@ function Completion.clear(self)
   for _, source in ipairs(self.sources) do
     source:clear()
   end
+  self.context = Context.new({})
 end
 
 --- trigger
@@ -88,7 +89,7 @@ function Completion.trigger(self, context)
   for _, source in ipairs(self.sources) do
     local status, value = pcall(function()
       trigger = source:trigger(context, function()
-        self:display(Context:new({ manual = true } ))
+        self:display(Context.new({ manual = true } ))
       end) or trigger
     end)
     if not(status) then
