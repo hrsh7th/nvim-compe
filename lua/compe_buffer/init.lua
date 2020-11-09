@@ -10,6 +10,7 @@ function Source.get_metadata(_)
     priority = 10;
     dup = 0;
     menu = '[BUFFER]';
+    sort = false;
   }
 end
 
@@ -35,13 +36,16 @@ function Source.complete(self, args)
   end
 
   local processing = false
+
+  -- gatcher words by reverse order
   local words = {}
-  for _, buf in ipairs(bufs) do
-    processing = self.buffers[buf].processing or processing
-    for word in pairs(self.buffers[buf].words) do
-      table.insert(words, word)
+  for i = #bufs, 1, -1 do
+    processing = self.buffers[bufs[i]].processing or processing
+    for j = #self.buffers[bufs[i]].words, 1, -1 do
+      table.insert(words, self.buffers[bufs[i]].words[j])
     end
   end
+
   args.callback({
     items = words;
     incomplete = processing;

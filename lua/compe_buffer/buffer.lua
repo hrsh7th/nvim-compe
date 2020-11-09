@@ -1,15 +1,18 @@
 local Buffer = {}
 
+--- new
 function Buffer.new(bufnr, pattern1, pattern2)
   local self = setmetatable({}, { __index = Buffer })
   self.bufnr = bufnr
   self.regex1 = vim.regex(pattern1)
   self.regex2 = vim.regex(pattern2)
+  self.word_map = {}
   self.words = {}
   self.processing = false
   return self
 end
 
+--- index
 function Buffer.index(self)
   self.processing = true
   local index = 1
@@ -36,6 +39,7 @@ function Buffer.index(self)
   end))
 end
 
+--- watch
 function Buffer.watch(self)
   vim.api.nvim_buf_attach(self.bufnr, false, {
     on_lines = vim.schedule_wrap(function(_, _, _, firstline, _, new_lastline, _, _, _)
@@ -53,16 +57,17 @@ function Buffer.trim_ending_word(self, text)
   local target_s = nil
   local target_e = nil
   while true do
-    if buffer == '' then
-      break
-    end
-
     local s, e = self:matchstrpos(buffer)
     if s then
       target_s = s + #text - #buffer
       target_e = e + #text - #buffer
     end
-    buffer = string.sub(buffer, e and (e + 1) or 2)
+
+    local new_buffer = string.sub(buffer, e and (e + 1) or 2)
+    if buffer == new_buffer then
+      break
+    end
+    buffer = new_buffer
   end
 
   -- does not match any words
@@ -83,19 +88,28 @@ end
 function Buffer.add_words(self, text)
   local buffer = text
   while true do
-    if buffer == '' then
-      break
-    end
-
     local s, e = self:matchstrpos(buffer)
     if s then
       local word = string.sub(buffer, s + 1, e)
       if #word > 2 and string.sub(word, #word, 1) ~= '-' then
-        self.words[word] = true
+        self:add_word(word)
       end
     end
-    buffer = string.sub(buffer, e and (e + 1) or 2)
+    local new_buffer = string.sub(buffer, e and (e + 1) or 2)
+    if buffer == new_buffer then
+      break
+    end
+    buffer = new_buffer
   end
+end
+
+--- add_word
+function Buffer.add_word(self, word)
+  if self.word_map[word] then
+    table.remove(self.words, self.word_map[word])
+  end
+  table.insert(self.words, word)
+  self.word_map[word] = #self.words
 end
 
 --- matchstrpos
