@@ -149,7 +149,7 @@ function Completion.display(self, context)
           if words[item.original_word] == nil or item.dup ~= true then
             words[item.original_word] = true
             item.word = gap .. item.original_word
-            item.abbr = gap .. item.original_abbr
+            item.abbr = string.rep(' ', #gap) .. item.original_abbr
             table.insert(items, item)
           end
         end
