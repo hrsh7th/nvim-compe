@@ -42,9 +42,11 @@ end
 function Buffer.watch(self)
   vim.api.nvim_buf_attach(self.bufnr, false, {
     on_lines = vim.schedule_wrap(function(_, _, _, firstline, _, new_lastline, _, _, _)
-      local text
-      text = table.concat(vim.api.nvim_buf_get_lines(self.bufnr, firstline, new_lastline, false), '\n')
-      text = self:trim_ending_word(text)
+      local text = table.concat(vim.api.nvim_buf_get_lines(self.bufnr, firstline, new_lastline, false), '\n')
+      if string.sub(vim.fn.mode(), 1, 1) == 'i' then
+        text = string.sub(text, 1, vim.fn.col('.') - 1)
+        text = self:trim_ending_word(text)
+      end
       self:add_words(text)
     end)
   })
