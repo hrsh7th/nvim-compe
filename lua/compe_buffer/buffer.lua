@@ -6,7 +6,6 @@ function Buffer.new(bufnr, pattern1, pattern2)
   self.bufnr = bufnr
   self.regex1 = vim.regex(pattern1)
   self.regex2 = vim.regex(pattern2)
-  self.word_map = {}
   self.words = {}
   self.processing = false
   return self
@@ -91,7 +90,7 @@ function Buffer.add_words(self, text)
     local s, e = self:matchstrpos(buffer)
     if s then
       local word = string.sub(buffer, s + 1, e)
-      if #word > 2 and string.sub(word, #word, 1) ~= '-' then
+      if #word > 3 and string.sub(word, #word, 1) ~= '-' then
         self:add_word(word)
       end
     end
@@ -105,11 +104,13 @@ end
 
 --- add_word
 function Buffer.add_word(self, word)
-  if self.word_map[word] then
-    table.remove(self.words, self.word_map[word])
+  for i, word_ in ipairs(self.words) do
+    if word_ == word then
+      table.remove(self.words, i)
+      break
+    end
   end
   table.insert(self.words, word)
-  self.word_map[word] = #self.words
 end
 
 --- matchstrpos
