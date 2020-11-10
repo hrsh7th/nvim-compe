@@ -44,7 +44,7 @@ function Buffer.watch(self)
   vim.api.nvim_buf_attach(self.bufnr, false, {
     on_lines = vim.schedule_wrap(function(_, _, _, firstline, _, new_lastline, _, _, _)
       local text
-      text = table.concat(vim.api.nvim_buf_get_lines(self.bufnr, firstline, new_lastline, true), '\n')
+      text = table.concat(vim.api.nvim_buf_get_lines(self.bufnr, firstline, new_lastline, false), '\n')
       text = self:trim_ending_word(text)
       self:add_words(text)
     end)
