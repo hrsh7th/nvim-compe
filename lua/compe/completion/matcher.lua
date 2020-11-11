@@ -8,6 +8,7 @@ local Factor = 100 -- max word bound detection count
 -- * exact
 function Matcher.match(context, source, history)
   local input = context:get_input(source:get_start_offset())
+  local input_lower = string.lower(input)
 
   local matches = {}
   for _, item in ipairs(source:get_items()) do
@@ -18,7 +19,7 @@ function Matcher.match(context, source, history)
 
     item.score = 0
     if #word >= #input then
-      item.score = Matcher.score(input, word)
+      item.score = Matcher.score(input, input_lower, word)
       item.exact = word == input
     end
 
@@ -42,7 +43,7 @@ function Matcher.match(context, source, history)
 end
 
 --- score
-function Matcher.score(input, word)
+function Matcher.score(input, input_lower, word)
   if string.lower(string.sub(input, 1, 1)) ~= string.lower(string.sub(word, 1, 1)) then
     return 0
   end
@@ -53,12 +54,14 @@ function Matcher.score(input, word)
   local words = Matcher.split(word)
   local prev_match_end = 1
   for i, w in ipairs(words) do
+    local w_lower = string.lower(w)
+
     local j = #w
     while j >= 1 do
       local s, e
       local curr_match_end = prev_match_end
       while curr_match_end >= 1 do
-        s, e = string.find(string.lower(input), string.sub(string.lower(w), 1, j), curr_match_end, true)
+        s, e = string.find(input_lower, string.sub(w_lower, 1, j), curr_match_end, true)
         if s ~= nil then
           break
         end

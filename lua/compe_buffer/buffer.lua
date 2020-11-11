@@ -43,7 +43,7 @@ function Buffer.watch(self)
   vim.api.nvim_buf_attach(self.bufnr, false, {
     on_lines = vim.schedule_wrap(function(_, _, _, firstline, _, new_lastline, _, _, _)
       local lines = vim.api.nvim_buf_get_lines(self.bufnr, firstline, new_lastline, false)
-      if string.sub(vim.fn.mode(), 1, 1) == 'i' then
+      if string.sub(vim.fn.mode(), 1, 1) == 'i' and lines[#lines] then
         lines[#lines] = string.sub(lines[#lines], 1, vim.fn.col('.') - 1)
         lines[#lines] = self:trim_ending_word(lines[#lines])
       end

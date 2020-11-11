@@ -10,7 +10,6 @@ function Source.get_metadata(_)
     priority = 10;
     dup = 0;
     menu = '[BUFFER]';
-    sort = false;
   }
 end
 

@@ -18,3 +18,4 @@ return {
   is_alpha = is_alpha;
   is_alnum = is_alnum;
 }
+
