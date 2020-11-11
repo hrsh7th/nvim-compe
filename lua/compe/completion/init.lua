@@ -159,27 +159,29 @@ function Completion.display(self, context)
   Debug:log('!!! filter !!!: ' .. context.before_line)
 
   -- Completion
-  local pumvisible = vim.fn.pumvisible()
-  if (#items > 0 or pumvisible) then
-    local completeopt = vim.fn.getbufvar('%', '&completeopt', '')
-    vim.fn.setbufvar('%', 'completeopt', 'menu,menuone,noselect')
-    vim.fn.complete(start_offset, items)
-    vim.fn.setbufvar('%', 'completeopt', completeopt)
+  vim.schedule(function()
+    local pumvisible = vim.fn.pumvisible()
+    if (#items > 0 or pumvisible) then
+      local completeopt = vim.fn.getbufvar('%', '&completeopt', '')
+      vim.fn.setbufvar('%', 'completeopt', 'menu,menuone,noselect')
+      vim.fn.complete(start_offset, items)
+      vim.fn.setbufvar('%', 'completeopt', completeopt)
 
-    -- preselect
-    if vim.fn.has('nvim') and pumvisible then
-      (function()
-        local item = items[1]
-        if item == nil then
-          return
-        end
+      -- preselect
+      if vim.fn.has('nvim') and pumvisible then
+        (function()
+          local item = items[1]
+          if item == nil then
+            return
+          end
 
-        if item.preselect == true or vim.g.compe_auto_preselect then
-          vim.api.nvim_select_popupmenu_item(0, false, false, {})
-        end
-      end)()
+          if item.preselect == true or vim.g.compe_auto_preselect then
+            vim.api.nvim_select_popupmenu_item(0, false, false, {})
+          end
+        end)()
+      end
     end
-  end
+  end)
 end
 
 return Completion
