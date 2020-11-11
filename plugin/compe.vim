@@ -10,6 +10,7 @@ let g:compe_min_length = get(g:, 'compe_min_length', 1)
 let g:compe_auto_preselect = get(g:, 'compe_auto_preselect', v:false)
 let g:compe_source_timeout = get(g:, 'compe_source_timeout', 200)
 let g:compe_incomplete_delay = get(g:, 'compe_incomplete_delay', 100)
+let g:compe_prefer_exact_item = get(g:, 'compe_prefer_exact_item', v:true)
 
 augroup compe
   autocmd!

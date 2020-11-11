@@ -57,7 +57,7 @@ function! s:datermine(server, context) abort
 
   let l:keyword_pattern_offset = compe#pattern#get_keyword_pattern_offset(a:context)
 
-  let l:trigger_chars = a:server.capability.get_completion_trigger_characters()
+  let l:trigger_chars = a:server.capabilities.get_completion_trigger_characters()
   if index(l:trigger_chars, a:context.before_char) >= 0 && a:context.before_char !=# ' '
     return {
     \   'keyword_pattern_offset': l:keyword_pattern_offset,

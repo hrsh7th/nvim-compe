@@ -132,8 +132,10 @@ function Matcher.compare(item1, item2, history)
     return item1.preselect
   end
 
-  if item1.exact ~= item2.exact then
-    return item1.exact
+  if vim.g.compe_prefer_exact_item then
+    if item1.exact ~= item2.exact then
+      return item1.exact
+    end
   end
 
   if item1.asis ~= item2.asis then
