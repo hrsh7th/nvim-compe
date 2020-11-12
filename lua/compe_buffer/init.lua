@@ -38,10 +38,10 @@ function Source.complete(self, args)
 
   -- gatcher words by reverse order
   local words = {}
-  for i = #bufs, 1, -1 do
-    processing = self.buffers[bufs[i]].processing or processing
-    for j = #self.buffers[bufs[i]].words, 1, -1 do
-      table.insert(words, self.buffers[bufs[i]].words[j])
+  for _, buf in ipairs(bufs) do
+    processing = processing or self.buffers[buf].processing
+    for _, word in ipairs(self.buffers[buf]:get_words(args.context.lnum)) do
+      table.insert(words, word)
     end
   end
 

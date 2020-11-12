@@ -18,15 +18,12 @@ function Buffer.index(self)
   local lines = vim.api.nvim_buf_get_lines(self.bufnr, 0, -1, false)
   local timer = vim.loop.new_timer()
   timer:start(0, 200, vim.schedule_wrap(function()
-    local text = ''
-
     local chunk = math.min(index + 1000, #lines)
     for i = index, chunk do
-      text = text .. '\n' .. lines[i]
+      self:index_line(i, lines[i] or '')
     end
     index = chunk + 1
 
-    self:add_words(text)
     if chunk >= #lines then
       if timer then
         timer:stop()
@@ -43,57 +40,24 @@ function Buffer.watch(self)
   vim.api.nvim_buf_attach(self.bufnr, false, {
     on_lines = vim.schedule_wrap(function(_, _, _, firstline, _, new_lastline, _, _, _)
       local lines = vim.api.nvim_buf_get_lines(self.bufnr, firstline, new_lastline, false)
-      if string.sub(vim.fn.mode(), 1, 1) == 'i' and lines[#lines] then
-        lines[#lines] = string.sub(lines[#lines], 1, vim.fn.col('.') - 1)
-        lines[#lines] = self:trim_ending_word(lines[#lines])
+      for i, line in ipairs(lines) do
+        self:index_line(firstline + i, line or '')
       end
-      self:add_words(table.concat(lines, '\n'))
     end)
   })
 end
 
---- trim_ending_word
-function Buffer.trim_ending_word(self, text)
-  local buffer = text
-  local target_s = nil
-  local target_e = nil
-  while true do
-    local s, e = self:matchstrpos(buffer)
-    if s then
-      target_s = s + #text - #buffer
-      target_e = e + #text - #buffer
-    end
-
-    local new_buffer = string.sub(buffer, e and (e + 1) or 2)
-    if buffer == new_buffer then
-      break
-    end
-    buffer = new_buffer
-  end
-
-  -- does not match any words
-  if not target_s then
-    return ''
-  end
-
-  -- the end of buffer is not a word
-  if #text ~= target_e then
-    return text
-  end
-
-  -- remove ending word
-  return string.sub(text, 1, target_s)
-end
-
 --- add_words
-function Buffer.add_words(self, text)
-  local buffer = text
+function Buffer.index_line(self, i, line)
+  local words = {}
+
+  local buffer = line
   while true do
     local s, e = self:matchstrpos(buffer)
     if s then
       local word = string.sub(buffer, s + 1, e)
       if #word > 3 and string.sub(word, #word, 1) ~= '-' then
-        self:add_word(word)
+        table.insert(words, word)
       end
     end
     local new_buffer = string.sub(buffer, e and (e + 1) or 2)
@@ -102,18 +66,33 @@ function Buffer.add_words(self, text)
     end
     buffer = new_buffer
   end
+  self.words[i] = words
 end
 
---- add_word
-function Buffer.add_word(self, word)
-  for i, word_ in ipairs(self.words) do
-    if word_ == word then
-      table.remove(self.words, i)
+--- get_words
+function Buffer.get_words(self, lnum)
+  local words = {}
+  local offset = 0
+  while true do
+    local below = lnum - offset
+    local above = lnum + offset + 1
+    if not self.words[below] and not self.words[above] then
       break
     end
+    if self.words[below] then
+      for _, word in ipairs(self.words[below]) do
+        table.insert(words, word)
+      end
+    end
+    if self.words[above] then
+      for _, word in ipairs(self.words[above]) do
+        table.insert(words, word)
+      end
+    end
+    offset = offset + 1
   end
-  table.insert(self.words, word)
-end
+  return words
+ end
 
 --- matchstrpos
 function Buffer.matchstrpos(self, text)

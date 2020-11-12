@@ -158,7 +158,7 @@ function Matcher.compare(item1, item2, history)
     end
   end
 
-  return #item1.word < #item2.word
+  return nil
 end
 
 -- split
