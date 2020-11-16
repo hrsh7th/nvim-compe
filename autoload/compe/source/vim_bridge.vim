@@ -43,15 +43,27 @@ function! compe#source#vim_bridge#datermine(id, context) abort
 endfunction
 
 "
+" compe#source#vim_bridge#documentation
+"
+function! compe#source#vim_bridge#documentation(id, args) abort
+  if has_key(s:sources, a:id) && has_key(s:sources[a:id], 'documentation')
+    let a:args.callback = { document ->
+    \   luaeval('require"compe.completion.source.vim_bridge".on_document(_A[1], _A[2])', [a:id, document])
+    \ }
+    call s:sources[a:id].documentation(a:args)
+  endif
+endfunction
+
+"
 " compe#source#vim_bridge#complete
 "
 function! compe#source#vim_bridge#complete(id, args) abort
   if has_key(s:sources, a:id) && has_key(s:sources[a:id], 'complete')
     let a:args.callback = { result ->
-    \   luaeval('require"compe.completion.source.vim_bridge".on_callback(_A[1], _A[2])', [a:id, result])
+    \   luaeval('require"compe.completion.source.vim_bridge".complete_on_callback(_A[1], _A[2])', [a:id, result])
     \ }
     let a:args.abort = { ->
-    \   luaeval('require"compe.completion.source.vim_bridge".on_abort(_A[1])', [a:id])
+    \   luaeval('require"compe.completion.source.vim_bridge".complete_on_abort(_A[1])', [a:id])
     \ }
     call s:sources[a:id].complete(a:args)
   endif

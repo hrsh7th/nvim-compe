@@ -10,6 +10,26 @@ function! compe_vsnip#source#create() abort
 endfunction
 
 "
+" documentation
+"
+function! s:documentation(args) abort
+  let l:completed_item = a:args.completed_item
+  if empty(get(l:completed_item, 'user_data', ''))
+    return
+  endif
+  if type(l:completed_item.user_data) == type('')
+    let l:user_data = json_decode(l:completed_item.user_data)
+  else
+    let l:user_data = l:completed_item.user_data
+  endif
+  if !has_key(l:user_data, 'vsnip')
+    return
+  endif
+
+  call a:args.callback(l:user_data.vsnip.snippet)
+endfunction
+
+"
 " s:get_metadata
 "
 function! s:get_metadata() abort
