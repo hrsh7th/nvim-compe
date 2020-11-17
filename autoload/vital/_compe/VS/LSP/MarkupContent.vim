@@ -40,13 +40,12 @@ endfunction
 
 let s:_compact_fenced_start = '\%(^\|' . "\n" . '\)\s*'
 let s:_compact_fenced_end = '\s*\%($\|' . "\n" . '\)'
-let s:_compact_fenced_empty = '\%(\s\|' . "\n" . '\)*'
+let s:_compact_fenced_empty = '\s*\%(\s\|' . "\n" . '\)\s*'
 
 "
 " _compact
 "
 function! s:_compact(string) abort
-
   " normalize eol.
   let l:string = s:Text.normalize_eol(a:string)
 
