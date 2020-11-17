@@ -5,6 +5,7 @@ function! compe_vsnip#source#create() abort
   return {
   \   'get_metadata': function('s:get_metadata'),
   \   'datermine': function('s:datermine'),
+  \   'documentation': function('s:documentation'),
   \   'complete': function('s:complete'),
   \ }
 endfunction

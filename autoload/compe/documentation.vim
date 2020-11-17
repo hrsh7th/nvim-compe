@@ -6,6 +6,10 @@ let s:window = s:FloatingWindow.new()
 " compe#documentation#show
 "
 function! compe#documentation#open(event, document) abort
+  if !compe#is_selected_manually()
+    return
+  endif
+
   let l:pos = s:get_screenpos(a:event, a:document)
   if empty(l:pos)
     return s:window.close()

@@ -10,6 +10,7 @@ function Completion.new()
   local self = setmetatable({}, { __index = Completion })
   self.sources = {}
   self.context = Context.new({})
+  self.items = {}
   self.history = {}
   return self
 end
@@ -34,6 +35,32 @@ function Completion.unregister_source(self, id)
       table.remove(self.sources, i)
       break
     end
+  end
+end
+
+--- on_complete_changed
+function Completion.on_complete_changed(self)
+  if vim.call('compe#is_selected_manually') then
+    local selected = vim.call('complete_info', { 'selected' }).selected or -1
+    local completed_item = self.items[selected + 1]
+    if completed_item then
+      for _, source in ipairs(self.sources) do
+        if source.id == completed_item.source_id then
+          source:documentation(vim.v.event, completed_item)
+          break
+        end
+      end
+    end
+  end
+end
+
+--- on_complete_done
+function Completion.on_complete_done(self)
+  self:clear()
+  vim.call('compe#documentation#close')
+  if vim.call('compe#is_selected_manually') then
+    local completed_item = vim.v.completed_item
+    self:add_history(completed_item)
   end
 end
 
@@ -66,9 +93,11 @@ function Completion.on_manual_complete(self)
 end
 
 --- add_history
-function Completion.add_history(self, word)
-  self.history[word] = self.history[word] or 0
-  self.history[word] = self.history[word] + 1
+function Completion.add_history(self, completed_item)
+  if completed_item and completed_item.abbr then
+    self.history[completed_item.abbr] = self.history[completed_item.abbr] or 0
+    self.history[completed_item.abbr] = self.history[completed_item.abbr] + 1
+  end
 end
 
 --- clear
@@ -76,6 +105,7 @@ function Completion.clear(self)
   for _, source in ipairs(self.sources) do
     source:clear()
   end
+  self.items = {}
   self.context = Context.new({})
 end
 
@@ -166,6 +196,7 @@ function Completion.display(self, context)
       vim.fn.setbufvar('%', 'completeopt', 'menu,menuone,noselect')
       vim.fn.complete(start_offset, items)
       vim.fn.setbufvar('%', 'completeopt', completeopt)
+      self.items = items
 
       -- preselect
       if vim.fn.has('nvim') and pumvisible then

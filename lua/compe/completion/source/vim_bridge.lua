@@ -26,12 +26,12 @@ function VimBridge.complete_on_abort(id)
   end
 end
 
---- documentation_callback
-function VimBridge.documentation_callback(id, document)
+--- documentation_on_callback
+function VimBridge.documentation_on_callback(id, document)
   id = Compat.safe(id)
   if documentation_callbacks[id] ~= nil then
-    documentation_callbacks[id]()
-    documentation_callbacks = nil
+    documentation_callbacks[id](document)
+    documentation_callbacks[id] = nil
   end
 end
 

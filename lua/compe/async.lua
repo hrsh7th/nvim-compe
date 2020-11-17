@@ -33,7 +33,18 @@ local function throttle(id, timeout, callback)
   end)
 end
 
+local function next(callback)
+  local timer = vim.loop.new_timer()
+  timer:start(0, 0, vim.schedule_wrap(function()
+    callback()
+    timer:stop()
+    timer:close()
+    timer = nil
+  end))
+end
+
 return {
   throttle = throttle;
   debounce = debounce;
+  next = next;
 }

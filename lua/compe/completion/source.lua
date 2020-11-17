@@ -1,4 +1,5 @@
 local Debug = require'compe.debug'
+local Async = require'compe.async'
 local Context = require'compe.completion.context'
 local Source =  {}
 
@@ -20,6 +21,26 @@ function Source.clear(self)
   self.trigger_character_offset = 0
   self.is_triggered_by_character = false
   self.incomplete = false
+  self.documentation_id = 0
+end
+
+--- documentation
+function Source.documentation(self, event, completed_item)
+  self.documentation_id = self.documentation_id + 1
+
+  local documentation_id = self.documentation_id
+  if self.source.documentation then
+    Async.next(function()
+      self.source:documentation({
+        completed_item = completed_item;
+        callback = function(document)
+          if self.documentation_id == documentation_id then
+            vim.fn.call('compe#documentation#open', { event, document })
+          end
+        end
+      })
+    end)
+  end
 end
 
 -- trigger
@@ -194,6 +215,7 @@ function Source.normalize_items(self, _, items)
     -- special properties
     item.priority = metadata.priority or 0
     item.asis = string.find(item.abbr, item.word, 1, true) == 1
+    item.source_id = self.id
 
     -- restore original word/abbr
     item.original_word = item.word

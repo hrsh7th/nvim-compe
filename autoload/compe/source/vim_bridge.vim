@@ -48,7 +48,7 @@ endfunction
 function! compe#source#vim_bridge#documentation(id, args) abort
   if has_key(s:sources, a:id) && has_key(s:sources[a:id], 'documentation')
     let a:args.callback = { document ->
-    \   luaeval('require"compe.completion.source.vim_bridge".on_document(_A[1], _A[2])', [a:id, document])
+    \   luaeval('require"compe.completion.source.vim_bridge".documentation_on_callback(_A[1], _A[2])', [a:id, document])
     \ }
     call s:sources[a:id].documentation(a:args)
   endif

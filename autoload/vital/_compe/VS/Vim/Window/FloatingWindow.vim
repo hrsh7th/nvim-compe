@@ -64,6 +64,10 @@ endfunction
 " @param {number?} args.minheight
 "
 function! s:FloatingWindow.open(args) abort
+  if type(a:args.contents) ==# type('')
+    let a:args.contents = split(a:args.contents, "\n")
+  endif
+
   let l:size = self.get_size(a:args)
   let l:style = {
     \   'row': a:args.row,
@@ -147,7 +151,7 @@ function! s:FloatingWindow.set_contents(filetype, contents) abort
   call setbufline(self.buf, 1, a:contents)
 
   if a:filetype ==# 'markdown'
-    call s:Window.do(self.win, { -> s:Markdown.apply(join(a:contents, "\n")) })
+    " call s:Window.do(self.win, { -> s:Markdown.apply(join(a:contents, "\n")) })
   else
     call setbufvar(self.buf, '&filetype', a:filetype)
   endif
