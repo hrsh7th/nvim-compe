@@ -1,5 +1,6 @@
 local Pattern = require'compe.pattern'
 local protocol = require'vim.lsp.protocol'
+local util = require'vim.lsp.util'
 
 local Source = {}
 
@@ -9,7 +10,7 @@ function Source.new(client)
   return self
 end
 
-function Source:get_metadata()
+function Source.get_metadata(self)
   return {
     priority = 1000;
     dup = 0;
@@ -17,23 +18,35 @@ function Source:get_metadata()
   }
 end
 
-function Source:datermine(context)
-  local trigger_chars = (function()
-    if not self.client.server_capabilities then
-      return {}
-    end
-    if not self.client.server_capabilities then
-      return {}
-    end
-    if not self.client.server_capabilities.completionProvider then
-      return {}
-    end
-    if not self.client.server_capabilities.completionProvider.triggerCharacters then
-      return {}
-    end
-    return self.client.server_capabilities.completionProvider.triggerCharacters
-  end)()
+function Source.documentation(self, args)
+  local completion_item = self:get_paths(args, { 'completed_item', 'user_data', 'nvim', 'lsp', 'completion_item' })
+  if not completion_item then
+    return
+  end
 
+  local function documentation(completion_item)
+    args.callback(util.convert_input_to_markdown_lines(completion_item.documentation))
+  end
+
+  local has_resolve = self:get_paths(self.client.server_capabilities, { 'completionProvider', 'resolveProvider' })
+
+  --- send `completionItem/resolve` if supported.
+  if has_resolve then
+    self.client.request('completionItem/resolve', completion_item, function(err, _, result)
+      if err or not result then
+        return
+      end
+      documentation(result)
+    end)
+
+  --- use current completion_item
+  else
+    documentation(completion_item)
+  end
+end
+
+function Source.datermine(self, context)
+  local trigger_chars = self:get_paths(self.client.server_capabilities, { 'completionProvider', 'triggerCharacters' }) or {}
   if vim.tbl_contains(trigger_chars, context.before_char) and context.before_char ~= ' ' then
     return {
       keyword_pattern_offset = Pattern:get_keyword_pattern_offset(context);
@@ -46,7 +59,7 @@ function Source:datermine(context)
   }
 end
 
-function Source:complete(args)
+function Source.complete(self, args)
   local params = vim.lsp.util.make_position_params()
 
   if vim.lsp.client_is_stopped(self.client.id) then
@@ -70,7 +83,7 @@ function Source:complete(args)
   end)
 end
 
-function Source:convert(result)
+function Source.convert(_, result)
   local completion_items = vim.tbl_islist(result or {}) and result or result.items or {}
 
   local complete_items = {}
@@ -124,6 +137,17 @@ function Source:convert(result)
     })
   end
   return complete_items
+end
+
+function Source.get_paths(self, root, paths)
+  local c = root
+  for _, path in ipairs(paths) do
+    c = c[path]
+    if not c then
+      return nil
+    end
+  end
+  return c
 end
 
 return Source

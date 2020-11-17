@@ -151,7 +151,7 @@ function! s:FloatingWindow.set_contents(filetype, contents) abort
   call setbufline(self.buf, 1, a:contents)
 
   if a:filetype ==# 'markdown'
-    " call s:Window.do(self.win, { -> s:Markdown.apply(join(a:contents, "\n")) })
+    call s:Window.do(self.win, { -> s:Markdown.apply(join(a:contents, "\n")) })
   else
     call setbufvar(self.buf, '&filetype', a:filetype)
   endif

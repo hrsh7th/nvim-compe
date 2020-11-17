@@ -1,3 +1,4 @@
+let s:MarkupContent = vital#compe#import('VS.LSP.MarkupContent')
 let s:FloatingWindow = vital#compe#import('VS.Vim.Window.FloatingWindow')
 
 let s:window = s:FloatingWindow.new()
@@ -19,9 +20,9 @@ function! compe#documentation#open(event, document) abort
   \   'row': l:pos[0],
   \   'col': l:pos[1],
   \   'maxwidth': float2nr(&columns * 0.4),
-  \   'maxheight': float2nr(&columns * 0.4),
+  \   'maxheight': float2nr(&lines * 0.4),
   \   'filetype': 'markdown',
-  \   'contents': a:document,
+  \   'contents': s:MarkupContent.normalize(a:document),
   \ })
 endfunction
 
