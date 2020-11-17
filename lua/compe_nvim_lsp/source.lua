@@ -25,7 +25,9 @@ function Source.documentation(self, args)
   end
 
   local function documentation(completion_item)
-    args.callback(util.convert_input_to_markdown_lines(completion_item.documentation))
+    if completion_item.documentation then
+      args.callback(util.convert_input_to_markdown_lines(completion_item.documentation))
+    end
   end
 
   local has_resolve = self:get_paths(self.client.server_capabilities, { 'completionProvider', 'resolveProvider' })
