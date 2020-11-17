@@ -40,6 +40,8 @@ function Source.documentation(self, event, completed_item)
         end
       })
     end)
+  else
+    vmi.fn.call('compe#documentation#close')
   end
 end
 
