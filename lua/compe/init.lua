@@ -27,40 +27,56 @@ function Compe.unregister_source(self, id)
   self.completion:unregister_source(id)
 end
 
+--- on_complete_changed
+function Compe.on_complete_changed(self)
+  local status, value = pcall(function() self.completion:on_complete_changed() end)
+  if not(status) then
+    Debug:log(value)
+  end
+end
+
+--- on_complete_done
+function Compe.on_complete_done(self)
+  local status, value = pcall(function() self.completion:on_complete_done() end)
+  if not(status) then
+    Debug:log(value)
+  end
+end
+
 --- on_text_changed
 function Compe.on_text_changed(self)
-  if vim.g.compe_enabled then
-    local status, value = pcall(function() self.completion:on_text_changed() end)
-    if not(status) then
-      Debug:log(value)
-    end
+  local status, value = pcall(function() self.completion:on_text_changed() end)
+  if not(status) then
+    Debug:log(value)
+  end
+end
+
+--- on_insert_leave
+function Compe.on_insert_leave(self)
+  local status, value = pcall(function() self.completion:on_insert_leave() end)
+  if not(status) then
+    Debug:log(value)
   end
 end
 
 --- on_manual_complete
 function Compe.on_manual_complete(self)
-  if vim.g.compe_enabled then
-    local status, value = pcall(function() self.completion:on_manual_complete() end)
-    if not(status) then
-      Debug:log(value)
-    end
+  local status, value = pcall(function() self.completion:on_manual_complete() end)
+  if not(status) then
+    Debug:log(value)
   end
 end
 
 -- add_history
 function Compe.add_history(self, word)
-  if vim.g.compe_enabled then
-    self.completion:add_history(word)
-  end
+  self.completion:add_history(word)
 end
 
 --- clear
 function Compe.clear(self)
-  if vim.g.compe_enabled then
-    local status, value = pcall(function() self.completion:clear() end)
-    if not(status) then
-      Debug:log(value)
-    end
+  local status, value = pcall(function() self.completion:clear() end)
+  if not(status) then
+    Debug:log(value)
   end
 end
 

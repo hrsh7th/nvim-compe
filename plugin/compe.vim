@@ -15,19 +15,26 @@ let g:compe_prefer_exact_item = get(g:, 'compe_prefer_exact_item', v:true)
 augroup compe
   autocmd!
   autocmd CompleteDone * call s:on_complete_done()
+  autocmd CompleteChanged * call s:on_complete_changed()
   autocmd InsertLeave * call s:on_insert_leave()
   autocmd TextChangedI,TextChangedP * call s:on_text_changed()
 augroup END
+
+"
+" on_complete_changed
+"
+function! s:on_complete_changed() abort
+  if g:compe_enabled
+    call luaeval('require"compe":on_complete_changed()')
+  endif
+endfunction
 
 "
 " on_complete_done
 "
 function! s:on_complete_done() abort
   if g:compe_enabled
-    if !empty(v:completed_item) && !empty(v:completed_item.word)
-      call luaeval('require"compe":add_history(_A[1])', [v:completed_item.abbr])
-      call luaeval('require"compe":clear()')
-    endif
+    call luaeval('require"compe":on_complete_done()')
   endif
 endfunction
 
@@ -36,7 +43,7 @@ endfunction
 "
 function! s:on_insert_leave() abort
   if g:compe_enabled
-    call luaeval('require"compe":clear()')
+    call luaeval('require"compe":on_insert_leave()')
   endif
 endfunction
 
