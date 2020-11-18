@@ -5,6 +5,15 @@ local VimBridge =  {}
 local complete_callbacks = {}
 local complete_aborts = {}
 local documentation_callbacks = {}
+local documentation_aborts = {}
+
+--- clear
+function VimBridge.clear()
+  complete_callbacks = {}
+  complete_aborts = {}
+  documentation_callbacks = {}
+  documentation_aborts = {}
+end
 
 --- complete_on_callback
 function VimBridge.complete_on_callback(id, result)
@@ -32,6 +41,15 @@ function VimBridge.documentation_on_callback(id, document)
   if documentation_callbacks[id] ~= nil then
     documentation_callbacks[id](document)
     documentation_callbacks[id] = nil
+  end
+end
+
+--- documentation_on_abort
+function VimBridge.documentation_on_abort(id)
+  id = Compat.safe(id)
+  if documentation_aborts[id] ~= nil then
+    documentation_aborts[id]()
+    documentation_aborts[id] = nil
   end
 end
 
@@ -64,7 +82,9 @@ end
 --- documentation
 function VimBridge.documentation(self, args)
   documentation_callbacks[self.id] = args.callback
+  documentation_aborts[self.id] = args.abort
   args.callback = nil
+  args.abort = nil
   return Compat.safe(vim.call('compe#source#vim_bridge#documentation', self.id, args))
 end
 

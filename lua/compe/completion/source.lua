@@ -33,6 +33,9 @@ function Source.documentation(self, event, completed_item)
     Async.next(function()
       self.source:documentation({
         completed_item = completed_item;
+        abort = function()
+          vim.fn.call('compe#documentation#close')
+        end;
         callback = function(document)
           if self.documentation_id == documentation_id then
             vim.fn.call('compe#documentation#open', { event, document })
@@ -41,7 +44,7 @@ function Source.documentation(self, event, completed_item)
       })
     end)
   else
-    vmi.fn.call('compe#documentation#close')
+    vim.fn.call('compe#documentation#close', {})
   end
 end
 

@@ -51,6 +51,14 @@ function Compe.on_text_changed(self)
   end
 end
 
+--- on_insert_leave
+function Compe.on_insert_leave(self)
+  local status, value = pcall(function() self.completion:on_insert_leave() end)
+  if not(status) then
+    Debug:log(value)
+  end
+end
+
 --- on_manual_complete
 function Compe.on_manual_complete(self)
   local status, value = pcall(function() self.completion:on_manual_complete() end)

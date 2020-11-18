@@ -43,7 +43,7 @@ endfunction
 "
 function! s:on_insert_leave() abort
   if g:compe_enabled
-    call luaeval('require"compe":clear()')
+    call luaeval('require"compe":on_insert_leave()')
   endif
 endfunction
 

@@ -50,6 +50,9 @@ function! compe#source#vim_bridge#documentation(id, args) abort
     let a:args.callback = { document ->
     \   luaeval('require"compe.completion.source.vim_bridge".documentation_on_callback(_A[1], _A[2])', [a:id, document])
     \ }
+    let a:args.abort = { ->
+    \   luaeval('require"compe.completion.source.vim_bridge".documentation_on_abort(_A[1])', [a:id])
+    \ }
     call s:sources[a:id].documentation(a:args)
   endif
 endfunction

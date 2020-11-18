@@ -2,6 +2,7 @@ local Debug = require'compe.debug'
 local Async = require'compe.async'
 local Context = require'compe.completion.context'
 local Matcher = require'compe.completion.matcher'
+local VimBridge = require'compe.completion.source.vim_bridge'
 
 local Completion = {}
 
@@ -36,6 +37,12 @@ function Completion.unregister_source(self, id)
       break
     end
   end
+end
+
+--- on_insert_leave
+function Completion.on_insert_leave(self)
+  self:clear()
+  VimBridge.clear()
 end
 
 --- on_complete_changed
