@@ -86,14 +86,14 @@ function Completion.on_text_changed(self)
   self:display(context)
 end
 
---- on_manual_complete
-function Completion.on_manual_complete(self)
+--- manual_complete
+function Completion.manual_complete(self)
   local context = Context.new({
     manual = true;
   })
 
   Debug:log(' ')
-  Debug:log('>>> on_manual_complete <<<: ' .. context.before_line)
+  Debug:log('>>> manual_complete <<<: ' .. context.before_line)
 
   self:trigger(context)
   self:display(context)

@@ -3,7 +3,7 @@
 " compe#complete
 "
 function! compe#complete() abort
-  call luaeval('require"compe":on_manual_complete()')
+  call luaeval('require"compe":manual_complete()')
   return ''
 endfunction
 

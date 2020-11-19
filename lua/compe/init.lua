@@ -95,12 +95,12 @@ compe.on_insert_leave = function(self)
   end
 end
 
---- wraps `completion:on_manual_complete`
--- ???
+--- wraps `completion:manual_complete`
+-- Use to trigger completion manually.
 -- @param self
--- @function on_manual_complete
-compe.on_manual_complete = function(self)
-  local status, value = pcall(function() self.completion:on_manual_complete() end)
+-- @function manual_complete
+compe.manual_complete = function(self)
+  local status, value = pcall(function() self.completion:manual_complete() end)
   if not(status) then
     debug:log(value)
   end
