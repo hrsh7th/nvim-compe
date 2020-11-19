@@ -63,7 +63,8 @@ compe.on_complete_changed = function(self)
 end
 
 --- wraps `completion:on_complete_done`
--- ???
+--  internal private function.
+--  closes preview popup and completion menu
 -- @param self
 -- @function on_complete_done
 compe.on_complete_done = function(self)
@@ -74,7 +75,8 @@ compe.on_complete_done = function(self)
 end
 
 --- wraps `completion:on_text_changed`
--- Event that triggers on text change ???
+--  internal private function.
+--  triggers events on text change.
 -- @param self
 -- @function on_text_changed
 compe.on_text_changed = function(self)
@@ -84,8 +86,9 @@ compe.on_text_changed = function(self)
   end
 end
 
---- wraps `completion:on_text_changed`
--- Event that triggers on insert leave ???
+--- wraps `completion:on_insert_leave`
+--  internal private function.
+--  receives vim's InsertLeave autocmd
 -- @param self
 -- @function on_insert_leave
 compe.on_insert_leave = function(self)
@@ -107,7 +110,8 @@ compe.manual_complete = function(self)
 end
 
 --- wraps `completion:add_history`
--- ???
+-- Adds word to the confirmation history.
+-- Used for prioritizing items that are often selected by user.
 -- @param self
 -- @function add_history
 compe.add_history = function(self, word)
@@ -115,7 +119,8 @@ compe.add_history = function(self, word)
 end
 
 --- wraps `completion:clear`
--- ???
+-- clears all current completion status
+-- useful to realize vim's <C-e> mapping.
 -- @param self
 -- @function clear
 compe.clear = function(self)
