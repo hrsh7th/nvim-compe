@@ -13,16 +13,9 @@ local completion = require'compe.completion'
 local debug = require'compe.debug'
 local source = require'compe.completion.source'
 local vim_bridge = require'compe.completion.source.vim_bridge'
-
-local compe = {}
-
---- sets compe-nvim public interface object.
--- @return - A new compe object.
-compe.new = function()
-  local self = setmetatable({}, { __index = compe })
-  self.completion = completion.new()
-  return self
-end
+local compe = {
+  completion = completion.new()
+}
 
 --- registers a new lua source
 -- passes params using new func from `source` to `completion` register_source
@@ -130,4 +123,4 @@ compe.clear = function(self)
   end
 end
 
-return compe.new()
+return setmetatable({}, { __index = compe })
