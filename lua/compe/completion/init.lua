@@ -1,23 +1,17 @@
-local Debug = require'compe.debug'
-local Async = require'compe.async'
-local Context = require'compe.completion.context'
-local Matcher = require'compe.completion.matcher'
-local VimBridge = require'compe.completion.source.vim_bridge'
+local debug = require'compe.debug'
+local context = require'compe.completion.context'
+local M = {
+  sources = {},
+  context = context.new({}),
+  items = {},
+  history = {}
+}
 
-local Completion = {}
-
---- new
-function Completion.new()
-  local self = setmetatable({}, { __index = Completion })
-  self.sources = {}
-  self.context = Context.new({})
-  self.items = {}
-  self.history = {}
-  return self
-end
-
---- register_source
-function Completion.register_source(self, source)
+--- registers a source
+-- adds source to sources table and gets source metadata???
+-- @param source table representing nvim-compe source.
+-- @function register_source
+M.register_source = function(self, source)
   table.insert(self.sources, source)
 
   table.sort(self.sources, function(a, b)
@@ -29,8 +23,11 @@ function Completion.register_source(self, source)
   end)
 end
 
---- unregister_source
-function Completion.unregister_source(self, id)
+--- unregisters a source
+-- drops a source from sources table.
+-- @param id string representing the source name.
+-- @function unregister_source
+M.unregister_source = function(self, id)
   for i, source in ipairs(self.sources) do
     if id == source:get_id() then
       table.remove(self.sources, i)
@@ -39,14 +36,21 @@ function Completion.unregister_source(self, id)
   end
 end
 
---- on_insert_leave
-function Completion.on_insert_leave(self)
+--- on leaving insert
+-- internal private function.
+-- receives vim's InsertLeave autocmd
+-- @param self
+-- @function on_insert_leave
+M.on_insert_leave = function(self)
   self:clear()
-  VimBridge.clear()
+  require'compe.completion.source.vim_bridge'.clear()
 end
 
---- on_complete_changed
-function Completion.on_complete_changed(self)
+--- on complete change
+-- internal private function.
+-- @param self
+-- @function on_complete_changed
+M.on_complete_changed = function(self)
   if vim.call('compe#is_selected_manually') then
     local selected = vim.call('complete_info', { 'selected' }).selected or -1
     local completed_item = self.items[selected + 1]
@@ -61,8 +65,11 @@ function Completion.on_complete_changed(self)
   end
 end
 
---- on_complete_done
-function Completion.on_complete_done(self)
+--- when complete done
+-- internal private function.
+-- @param self
+-- @function on_complete_done
+M.on_complete_done = function(self)
   self:clear()
   vim.call('compe#documentation#close')
   if vim.call('compe#is_selected_manually') then
@@ -71,97 +78,119 @@ function Completion.on_complete_done(self)
   end
 end
 
---- on_text_changed
-function Completion.on_text_changed(self)
-  local context = Context.new({})
-  if not self.context:should_auto_complete(context) then
+--- on text changed
+--  internal private function.
+--  triggers events on text change.
+-- @param self
+-- @function on_text_changed
+M.on_text_changed = function(self)
+  local c = context.new({})
+  if not self.context:should_auto_complete(c) then
     return
   end
-  self.context = context
+  self.context = c
 
-  Debug:log(' ')
-  Debug:log('>>> on_text_changed <<<: ' .. context.before_line)
+  debug:log(' ')
+  debug:log('>>> on_text_changed <<<: ' .. context.before_line)
 
-  self:trigger(context)
-  self:display(context)
+  self:trigger(c)
+  self:display(c)
 end
 
 --- manual_complete
-function Completion.manual_complete(self)
-  local context = Context.new({
+-- Use to trigger completion manually.
+-- @param self
+-- @function manual_complete
+M.manual_complete = function(self)
+  local c = context.new({
     manual = true;
   })
 
-  Debug:log(' ')
-  Debug:log('>>> manual_complete <<<: ' .. context.before_line)
+  debug:log(' ')
+  debug:log('>>> manual_complete <<<: ' .. context.before_line)
 
-  self:trigger(context)
-  self:display(context)
+  self:trigger(c)
+  self:display(c)
 end
 
---- add_history
-function Completion.add_history(self, completed_item)
+-- Adds items to compe-nvim's history.
+-- Used for prioritizing items that are often selected by user.
+-- @param self
+-- @param completed_item item that has been confirmed
+-- @function add_history
+M.add_history = function(self, completed_item)
   if completed_item and completed_item.abbr then
     self.history[completed_item.abbr] = self.history[completed_item.abbr] or 0
     self.history[completed_item.abbr] = self.history[completed_item.abbr] + 1
   end
 end
 
---- clear
-function Completion.clear(self)
+--- clears compe-nvim's items and context
+-- public function that close nvim-compe menu.
+-- @param self
+-- @function clear
+M.clear = function(self)
   for _, source in ipairs(self.sources) do
     source:clear()
   end
   self.items = {}
-  self.context = Context.new({})
+  self.context = context.new({})
 end
 
---- trigger
-function Completion.trigger(self, context)
-  if vim.call('compe#is_selected_manually') then
-    return
-  end
-
+--- trigger completion?
+-- ???
+-- @param self
+-- @parm context ??
+-- @function trigger
+M.trigger = function(self, context)
+  if vim.call('compe#is_selected_manually') then return end
   local trigger = false
   for _, source in ipairs(self.sources) do
     local status, value = pcall(function()
       trigger = source:trigger(context, function()
-        self:display(Context.new({ manual = true } ))
+        self:display(context.new({ manual = true } ))
       end) or trigger
     end)
     if not(status) then
-      Debug:log(value)
+      debug:log(value)
     end
   end
   return trigger
 end
 
---- display
-function Completion.display(self, context)
+--- display results
+-- ???
+-- @param self
+-- @parm context ??
+-- @function display
+-- TODO(hrsh7th): refactor to a module of its own, like util/display.lua??
+M.display = function(self, context)
   -- Remove processing timer when display method called.
-  Async.throttle('display:processing', 0, function() end)
+  local async = require'compe.async'
+  async.throttle('display:processing', 0, function() end)
 
+  -- TODO(hrsh7th): this will get big, maybe new function should_display_menu?
   if vim.call('compe#is_selected_manually') or string.sub(vim.fn.mode(), 1, 1) ~= 'i' or vim.fn.getbufvar('%', '&buftype') == 'prompt' then
     return
   end
 
   for _, source in ipairs(self.sources) do
     if source.status == 'processing' and (vim.loop.now() - source.context.time) < vim.g.compe_source_timeout then
-      Async.throttle('display:processing', vim.g.compe_source_timeout, vim.schedule_wrap(function()
+      async.throttle('display:processing', vim.g.compe_source_timeout, vim.schedule_wrap(function()
         self:display(context)
       end))
       return
     end
   end
 
-  -- Datermine start_offset
+  -- Datermine start_offset > disply.determine_offset(source, status, id)
   local start_offset = 0
   for _, source in ipairs(self.sources) do
     if source.status == 'processing' or source.status == 'completed' then
       local source_start_offset = source:get_start_offset()
       if type(source_start_offset) == 'number' then
         if start_offset == 0 or source_start_offset < start_offset then
-          Debug:log('!!! start_offset !!!: ' .. source.id .. ', ' .. source_start_offset)
+          debug:log('!!! start_offset !!!: ' .. source.id .. ', ' .. source_start_offset)
           start_offset = source_start_offset
         end
       end
@@ -171,13 +200,13 @@ function Completion.display(self, context)
     return
   end
 
-  -- Gather items
+  -- Gather items >> display.collect_items(source, status, id)
   local use_trigger_character = false
   local words = {}
   local items = {}
   for _, source in ipairs(self.sources) do
     if source.status == 'completed' then
-      local source_items = Matcher.match(context, source, self.history)
+      local source_items = require'compe.completion.matcher'.match(context, source, self.history)
       if #source_items > 0 and (source.is_triggered_by_character or source.is_triggered_by_character == use_trigger_character) then
         use_trigger_character = use_trigger_character or source.is_triggered_by_character
 
@@ -193,7 +222,7 @@ function Completion.display(self, context)
       end
     end
   end
-  Debug:log('!!! filter !!!: ' .. context.before_line)
+  debug:log('!!! filter !!!: ' .. context.before_line)
 
   -- Completion
   vim.schedule(function()
@@ -222,5 +251,4 @@ function Completion.display(self, context)
   end)
 end
 
-return Completion
-
+return setmetatable({}, { __index = M })

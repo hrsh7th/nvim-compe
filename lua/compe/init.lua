@@ -9,12 +9,11 @@
 -- `compe.completion.source.vim_bridge`
 -- @module compe
 
-local completion = require'compe.completion'
 local debug = require'compe.debug'
 local source = require'compe.completion.source'
 local vim_bridge = require'compe.completion.source.vim_bridge'
 local compe = {
-  completion = completion.new()
+  completion = require'compe.completion'
 }
 
 --- registers a new lua source
