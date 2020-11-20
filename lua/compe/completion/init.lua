@@ -84,17 +84,17 @@ end
 -- @param self
 -- @function on_text_changed
 M.on_text_changed = function(self)
-  local c = context.new({})
-  if not self.context:should_auto_complete(c) then
+  local context = context.new({})
+  if not self.context:should_auto_complete(context) then
     return
   end
-  self.context = c
+  self.context = context
 
   debug:log(' ')
   debug:log('>>> on_text_changed <<<: ' .. context.before_line)
 
-  self:trigger(c)
-  self:display(c)
+  self:trigger(context)
+  self:display(context)
 end
 
 --- manual_complete
@@ -102,15 +102,15 @@ end
 -- @param self
 -- @function manual_complete
 M.manual_complete = function(self)
-  local c = context.new({
+  local context = context.new({
     manual = true;
   })
 
   debug:log(' ')
   debug:log('>>> manual_complete <<<: ' .. context.before_line)
 
-  self:trigger(c)
-  self:display(c)
+  self:trigger(context)
+  self:display(context)
 end
 
 -- Adds items to compe-nvim's history.
