@@ -30,6 +30,7 @@ endif
 lua require'compe_nvim_lsp'.attach()
 lua require'compe':register_lua_source('buffer', require'compe_buffer')
 call compe#source#vim_bridge#register('path', compe_path#source#create())
+call compe#source#vim_bridge#register('tags', compe_tags#source#create())
 ```
 
 # Source
@@ -45,6 +46,9 @@ You can enable buffer completion via `lua require'compe':register_lua_source('bu
 
 #### path
 You can enable path completion via `call compe#source#vim_bridge#register('path', compe_path#source#create())`.
+
+#### tags
+You can enable tags completion via `call compe#source#vim_bridge#register('tags', compe_tags#source#create())`.
 
 #### vsnip
 You can enable vsnip completion via `call compe#source#vim_bridge#register('vsnip', compe_vsnip#source#create())`.
