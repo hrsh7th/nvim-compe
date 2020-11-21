@@ -1,27 +1,9 @@
-local compe = require'compe'
-local Source = require'compe_nvim_lsp.source'
-
-local sources = {}
-
 return {
   attach = function()
-    vim.fn.execute('augroup compe_nvim_lsp')
-    vim.fn.execute('autocmd InsertEnter * lua require"compe_nvim_lsp".register()')
-    vim.fn.execute('augroup END')
-  end;
-  register = function()
-    -- unregister
-    for source_id in pairs(sources) do
-      compe:unregister_source(source_id)
-    end
-
-    -- register
-    for id, client in pairs(vim.lsp.buf_get_clients(0)) do
-      local source_id = 'nvim_lsp:' .. id
-      sources[source_id] = Source.new(client)
-      compe:register_lua_source(source_id, sources[source_id])
-    end
-  end;
+  if vim.g.compe_no_warnings ~= 1 and vim.g.compe_user_warned ~= 1 then
+    print([[warning: your current method of configuring "nvim-compe" will be depercated soon please checkout the "readme" to learn more. to skip warning, add let g:nvim_compe_silent = 1 to your config ]])
+    vim.g.compe_user_warned = 1
+  end
+  return require'compe.builtin'.nvim_lsp_source()
+end
 }
-
-
