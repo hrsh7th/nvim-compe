@@ -15,10 +15,7 @@ end
 
 local function throttle(id, timeout, callback)
   if throttle_timer[id] then
-    throttle_timer[id] = {
-      timer = throttle_timer[id].timer;
-      callback = callback;
-    }
+    throttle_timer[id].callback = callback
     return
   end
   throttle_timer[id] = {
@@ -51,9 +48,16 @@ local function fast_schedule(callback)
   end
 end
 
+local function fast_schedule_wrap(callback)
+  return function()
+    fast_schedule(callback)
+  end
+end
+
 return {
   throttle = throttle;
   debounce = debounce;
   next = next;
   fast_schedule = fast_schedule;
+  fast_schedule_wrap = fast_schedule_wrap;
 }

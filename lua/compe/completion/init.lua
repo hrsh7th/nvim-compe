@@ -79,12 +79,9 @@ function Completion.on_text_changed(self)
     return
   end
 
-  Debug:log(' ')
   Debug:log('>>> on_text_changed <<<: ' .. context.before_line)
-
   self:trigger(context)
   self:display(context)
-
   self.context = context
 end
 
@@ -94,9 +91,7 @@ function Completion.on_manual_complete(self)
     manual = true;
   })
 
-  Debug:log(' ')
   Debug:log('>>> on_manual_complete <<<: ' .. context.before_line)
-
   self:trigger(context)
   self:display(context)
 end
@@ -138,7 +133,7 @@ end
 
 --- display
 function Completion.display(self, context)
-  -- Remove processing timer when display method called.
+  -- Remove throttle timers when display method called.
   Async.throttle('display:processing', 0, function() end)
 
   -- Check for unexpected state
@@ -215,36 +210,26 @@ function Completion.display(self, context)
   Debug:log('!!! filter !!!: ' .. context.before_line)
 
   -- Completion
-  Async.fast_schedule(function()
-    local pumvisible = vim.fn.pumvisible()
-    if (#items > 0 or pumvisible) then
+  if #items > 0 or vim.fn.pumvisible() then
       self:complete(start_offset, items)
       self.current_offset = start_offset
       self.current_items = items
-
-      -- preselect
-      if vim.fn.has('nvim') and pumvisible then
-        (function()
-          local item = items[1]
-          if item == nil then
-            return
-          end
-
-          if item.preselect == true or vim.g.compe_auto_preselect then
-            vim.api.nvim_select_popupmenu_item(0, false, false, {})
-          end
-        end)()
-      end
-    end
-  end)
+  end
 end
 
 --- complete
 function Completion.complete(self, start_offset, items)
-  local completeopt = vim.fn.getbufvar('%', '&completeopt', '')
-  vim.fn.setbufvar('%', 'completeopt', 'menu,menuone,noselect')
-  vim.fn.complete(start_offset, items)
-  vim.fn.setbufvar('%', 'completeopt', completeopt)
+  Async.fast_schedule(function()
+    local completeopt = vim.fn.getbufvar('%', '&completeopt', '')
+    vim.fn.setbufvar('%', 'completeopt', 'menu,menuone,noselect')
+    vim.fn.complete(start_offset, items)
+    vim.fn.setbufvar('%', 'completeopt', completeopt)
+
+    -- preselect
+    if items[1] and items[1].preselect or vim.g.compe_auto_preselect then
+      vim.api.nvim_select_popupmenu_item(0, false, false, {})
+    end
+  end)
 end
 
 return Completion

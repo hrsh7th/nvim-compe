@@ -4,8 +4,9 @@ local Buffer = {}
 function Buffer.new(bufnr, pattern1, pattern2)
   local self = setmetatable({}, { __index = Buffer })
   self.bufnr = bufnr
-  self.regex1 = vim.regex(pattern1)
-  self.regex2 = vim.regex(pattern2)
+  self.regexes = {}
+  self.pattern1 = pattern1
+  self.pattern2 = pattern2
   self.words = {}
   self.processing = false
   return self
@@ -43,9 +44,16 @@ function Buffer.watch(self)
         return true
       end
 
+      local lnum = vim.fn.line('.')
+      local col = vim.fn.col('.')
       local lines = vim.api.nvim_buf_get_lines(self.bufnr, firstline, new_lastline, false)
       for i, line in ipairs(lines) do
-        self:index_line(firstline + i, line or '')
+        if line then
+          if lnum == firstline + i - 1 then
+            line = string.sub(line, 1, col - 1)
+          end
+          self:index_line(firstline + i, line or '')
+        end
       end
     end)
   })
@@ -100,8 +108,15 @@ function Buffer.get_words(self, lnum)
 
 --- matchstrpos
 function Buffer.matchstrpos(self, text)
-  local s1, e1 = self.regex1:match_str(text)
-  local s2, e2 = self.regex2:match_str(text)
+  local s1, e1, s2, e2
+
+  s1, e1 = self:regex(self.pattern1):match_str(text)
+  if self.pattern1 ~= self.pattern2 then
+    s2, e2 = self:regex(self.pattern2):match_str(text)
+  else
+    s2, e2 = s1, e1
+  end
+
   if s1 == nil and s2 == nil then
     return nil, nil
   end
@@ -134,6 +149,12 @@ function Buffer.matchstrpos(self, text)
     end
   end
   return s, e
+end
+
+--- regex
+function Buffer.regex(self, pattern)
+  self.regexes[pattern] = self.regexes[pattern] or vim.regex(pattern)
+  return self.regexes[pattern]
 end
 
 return Buffer

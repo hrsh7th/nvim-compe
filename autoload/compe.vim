@@ -12,7 +12,7 @@ endfunction
 "
 function! compe#confirm(...) abort
   if complete_info(['selected']).selected != -1
-    call luaeval('require"compe":clear()')
+    call timer_start(0, { -> luaeval('require"compe":clear()') })
     return "\<C-y>"
   endif
   return get(a:000, 0, '')
