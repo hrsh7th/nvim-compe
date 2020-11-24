@@ -39,6 +39,10 @@ end
 function Buffer.watch(self)
   vim.api.nvim_buf_attach(self.bufnr, false, {
     on_lines = vim.schedule_wrap(function(_, _, _, firstline, _, new_lastline, _, _, _)
+      if not vim.api.nvim_buf_is_valid(self.bufnr) then
+        return true
+      end
+
       local lines = vim.api.nvim_buf_get_lines(self.bufnr, firstline, new_lastline, false)
       for i, line in ipairs(lines) do
         self:index_line(firstline + i, line or '')
