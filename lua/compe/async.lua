@@ -43,8 +43,17 @@ local function next(callback)
   end))
 end
 
+local function fast_schedule(callback)
+  if not vim.in_fast_event() then
+    callback()
+  else
+    vim.schedule(callback)
+  end
+end
+
 return {
   throttle = throttle;
   debounce = debounce;
   next = next;
+  fast_schedule = fast_schedule;
 }

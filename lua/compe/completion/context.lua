@@ -17,8 +17,13 @@ function Context.new(option)
 end
 
 --- should_auto_complete
-function Context.should_auto_complete(self, context)
-  return self.changedtick ~= context.changedtick and self.col ~= context.col
+function Context.should_auto_complete(self, new_context)
+  return self.changedtick ~= new_context.changedtick and self.col ~= new_context.col
+end
+
+--- maybe_backspace
+function Context.maybe_backspace(self, new_context)
+  return self.lnum == new_context.lnum and self.col == new_context.col + 1 and string.find(self.before_line, new_context.before_line, 1, true) == 1
 end
 
 --- get_input

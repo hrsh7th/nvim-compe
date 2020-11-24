@@ -11,7 +11,8 @@ function Completion.new()
   local self = setmetatable({}, { __index = Completion })
   self.sources = {}
   self.context = Context.new({})
-  self.items = {}
+  self.current_offset = 0
+  self.current_items = {}
   self.history = {}
   return self
 end
@@ -49,7 +50,7 @@ end
 function Completion.on_complete_changed(self)
   if vim.call('compe#is_selected_manually') then
     local selected = vim.call('complete_info', { 'selected' }).selected or -1
-    local completed_item = self.items[selected + 1]
+    local completed_item = self.current_items[selected + 1]
     if completed_item then
       for _, source in ipairs(self.sources) do
         if source.id == completed_item.source_id then
@@ -77,13 +78,14 @@ function Completion.on_text_changed(self)
   if not self.context:should_auto_complete(context) then
     return
   end
-  self.context = context
 
   Debug:log(' ')
   Debug:log('>>> on_text_changed <<<: ' .. context.before_line)
 
   self:trigger(context)
   self:display(context)
+
+  self.context = context
 end
 
 --- on_manual_complete
@@ -112,8 +114,6 @@ function Completion.clear(self)
   for _, source in ipairs(self.sources) do
     source:clear()
   end
-  self.items = {}
-  self.context = Context.new({})
 end
 
 --- trigger
@@ -141,17 +141,13 @@ function Completion.display(self, context)
   -- Remove processing timer when display method called.
   Async.throttle('display:processing', 0, function() end)
 
-  if vim.call('compe#is_selected_manually') or string.sub(vim.fn.mode(), 1, 1) ~= 'i' or vim.fn.getbufvar('%', '&buftype') == 'prompt' then
+  -- Check for unexpected state
+  local should_ignore_display = false
+  should_ignore_display = should_ignore_display or vim.call('compe#is_selected_manually')
+  should_ignore_display = should_ignore_display or string.sub(vim.fn.mode(), 1, 1) ~= 'i'
+  should_ignore_display = should_ignore_display or vim.fn.getbufvar('%', '&buftype') == 'prompt'
+  if should_ignore_display then
     return
-  end
-
-  for _, source in ipairs(self.sources) do
-    if source.status == 'processing' and (vim.loop.now() - source.context.time) < vim.g.compe_source_timeout then
-      Async.throttle('display:processing', vim.g.compe_source_timeout, vim.schedule_wrap(function()
-        self:display(context)
-      end))
-      return
-    end
   end
 
   -- Datermine start_offset
@@ -167,8 +163,31 @@ function Completion.display(self, context)
       end
     end
   end
-  if start_offset == 0 then
+
+  -- All sources didn't trigger.
+  if start_offset <= 0 then
     return
+  end
+
+  -- Check for waiting processing source.
+  for _, source in ipairs(self.sources) do
+    local should_wait_processing = true
+    should_wait_processing = should_wait_processing and source.status == 'processing' -- source is processing
+    should_wait_processing = should_wait_processing and (vim.loop.now() - source.context.time) < vim.g.compe_source_timeout -- processing timeout
+    if should_wait_processing then
+      -- Reserve to call display after timeout.
+      Async.throttle('display:processing', vim.g.compe_source_timeout, vim.schedule_wrap(function()
+        self:display(context)
+      end))
+
+      -- The vim will hide pum when press backspace so we restore manually.
+      if self.context:maybe_backspace(context) then
+        if self.current_offset > 0 then
+          self:complete(self.current_offset, self.current_items)
+        end
+      end
+      return
+    end
   end
 
   -- Gather items
@@ -196,14 +215,12 @@ function Completion.display(self, context)
   Debug:log('!!! filter !!!: ' .. context.before_line)
 
   -- Completion
-  vim.schedule(function()
+  Async.fast_schedule(function()
     local pumvisible = vim.fn.pumvisible()
     if (#items > 0 or pumvisible) then
-      local completeopt = vim.fn.getbufvar('%', '&completeopt', '')
-      vim.fn.setbufvar('%', 'completeopt', 'menu,menuone,noselect')
-      vim.fn.complete(start_offset, items)
-      vim.fn.setbufvar('%', 'completeopt', completeopt)
-      self.items = items
+      self:complete(start_offset, items)
+      self.current_offset = start_offset
+      self.current_items = items
 
       -- preselect
       if vim.fn.has('nvim') and pumvisible then
@@ -220,6 +237,14 @@ function Completion.display(self, context)
       end
     end
   end)
+end
+
+--- complete
+function Completion.complete(self, start_offset, items)
+  local completeopt = vim.fn.getbufvar('%', '&completeopt', '')
+  vim.fn.setbufvar('%', 'completeopt', 'menu,menuone,noselect')
+  vim.fn.complete(start_offset, items)
+  vim.fn.setbufvar('%', 'completeopt', completeopt)
 end
 
 return Completion
