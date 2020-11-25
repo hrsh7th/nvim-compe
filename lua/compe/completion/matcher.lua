@@ -1,6 +1,8 @@
 local Character = require'compe.completion.character'
-local Matcher = {}
-local Factor = 100 -- max word bound detection count
+
+local Matcher = {
+  factor = 100;
+}
 
 --- match
 -- This add special attributes for each items.
@@ -52,6 +54,7 @@ function Matcher.score(input, input_lower, word)
 
   -- gather matches
   local words = Matcher.split(word)
+
   local prev_match_end = 1
   for i, w in ipairs(words) do
     local w_lower = string.lower(w)
@@ -101,7 +104,7 @@ function Matcher.score(input, input_lower, word)
       char_map[j] = true
     end
     s = s * 1.2 - 0.2
-    score = score + s * (1 + math.max(0, Factor - match.i) / Factor)
+    score = score + s * (1 + math.max(0, Matcher.factor - match.i) / Matcher.factor)
     score = score + (match.exact and 0.1 or 0)
   end
 
@@ -165,7 +168,7 @@ end
 function Matcher.split(word)
   local words = {}
   local i = 1
-  while i <= #word and i <= Factor do
+  while i <= #word and i <= Matcher.factor do
     if Matcher.is_semantic_index(word, i) then
       table.insert(words, string.sub(word, i))
     end

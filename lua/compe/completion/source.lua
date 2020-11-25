@@ -38,7 +38,7 @@ function Source.documentation(self, event, completed_item)
         end;
         callback = function(document)
           if self.documentation_id == documentation_id then
-            vim.call('compe#documentation#open', { event, document })
+            vim.call('compe#documentation#open', event, document)
           end
         end
       })
