@@ -38,10 +38,14 @@ function Source.complete(self, args)
 
   -- gatcher words by reverse order
   local words = {}
+  local uniq = {}
   for _, buf in ipairs(bufs) do
     processing = processing or self.buffers[buf].processing
     for _, word in ipairs(self.buffers[buf]:get_words(args.context.lnum)) do
-      table.insert(words, word)
+      if not uniq[word] then
+        uniq[word] = true
+        table.insert(words, word)
+      end
     end
   end
 

@@ -34,17 +34,17 @@ function Source.documentation(self, event, completed_item)
       self.source:documentation({
         completed_item = completed_item;
         abort = function()
-          vim.fn.call('compe#documentation#close')
+          vim.call('compe#documentation#close')
         end;
         callback = function(document)
           if self.documentation_id == documentation_id then
-            vim.fn.call('compe#documentation#open', { event, document })
+            vim.call('compe#documentation#open', { event, document })
           end
         end
       })
     end)
   else
-    vim.fn.call('compe#documentation#close', {})
+    vim.call('compe#documentation#close')
   end
 end
 

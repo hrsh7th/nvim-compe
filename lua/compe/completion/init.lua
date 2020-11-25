@@ -46,6 +46,14 @@ function Completion.on_insert_leave(self)
   VimBridge.clear()
 end
 
+--- on_complete_done
+function Completion.on_complete_done(self)
+  self:clear()
+  if vim.call('compe#is_selected_manually') then
+    self:add_history(vim.v.completed_item)
+  end
+end
+
 --- on_complete_changed
 function Completion.on_complete_changed(self)
   if vim.call('compe#is_selected_manually') then
@@ -62,16 +70,6 @@ function Completion.on_complete_changed(self)
   end
 end
 
---- on_complete_done
-function Completion.on_complete_done(self)
-  self:clear()
-  vim.call('compe#documentation#close')
-  if vim.call('compe#is_selected_manually') then
-    local completed_item = vim.v.completed_item
-    self:add_history(completed_item)
-  end
-end
-
 --- on_text_changed
 function Completion.on_text_changed(self)
   local context = Context.new({})
@@ -83,6 +81,7 @@ function Completion.on_text_changed(self)
   self:trigger(context)
   self:display(context)
   self.context = context
+  Debug:log(' ')
 end
 
 --- on_manual_complete
@@ -106,9 +105,11 @@ end
 
 --- clear
 function Completion.clear(self)
+  vim.call('compe#documentation#close')
   for _, source in ipairs(self.sources) do
     source:clear()
   end
+  self.context = Context.new({})
 end
 
 --- trigger
@@ -145,25 +146,6 @@ function Completion.display(self, context)
     return
   end
 
-  -- Datermine start_offset
-  local start_offset = 0
-  for _, source in ipairs(self.sources) do
-    if source.status == 'processing' or source.status == 'completed' then
-      local source_start_offset = source:get_start_offset()
-      if type(source_start_offset) == 'number' then
-        if start_offset == 0 or source_start_offset < start_offset then
-          Debug:log('!!! start_offset !!!: ' .. source.id .. ', ' .. source_start_offset)
-          start_offset = source_start_offset
-        end
-      end
-    end
-  end
-
-  -- All sources didn't trigger.
-  if start_offset <= 0 then
-    return
-  end
-
   -- Check for waiting processing source.
   for _, source in ipairs(self.sources) do
     local should_wait_processing = true
@@ -183,6 +165,28 @@ function Completion.display(self, context)
       end
       return
     end
+  end
+
+  -- Datermine start_offset
+  local start_offset = 0
+  for _, source in ipairs(self.sources) do
+    if source.status == 'processing' or source.status == 'completed' then
+      local source_start_offset = source:get_start_offset()
+      if type(source_start_offset) == 'number' then
+        if start_offset == 0 or source_start_offset < start_offset then
+          Debug:log('!!! start_offset !!!: ' .. source.id .. ', ' .. source_start_offset)
+          start_offset = source_start_offset
+        end
+      end
+    end
+  end
+
+  -- All sources didn't trigger.
+  -- Clear current completion state.
+  if start_offset <= 0 then
+    self.current_offset = 0
+    self.current_items = {}
+    return
   end
 
   -- Gather items
@@ -211,9 +215,9 @@ function Completion.display(self, context)
 
   -- Completion
   if #items > 0 or vim.fn.pumvisible() then
-      self:complete(start_offset, items)
-      self.current_offset = start_offset
-      self.current_items = items
+    self:complete(start_offset, items)
+    self.current_offset = start_offset
+    self.current_items = items
   end
 end
 
