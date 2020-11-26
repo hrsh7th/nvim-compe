@@ -48,8 +48,8 @@ end
 
 --- on_complete_done
 function Completion.on_complete_done(self)
-  self:clear()
-  if vim.call('compe#is_selected_manually') then
+  if vim.call('compe#has_completed_item') then
+    self:clear()
     self:add_history(vim.v.completed_item)
   end
 end
@@ -167,15 +167,35 @@ function Completion.display(self, context)
     end
   end
 
-  -- Datermine start_offset
+  -- Gather items and datermine start_offset
+  local use_trigger_character = false
   local start_offset = 0
+  local items = {}
+  local items_uniq = {}
   for _, source in ipairs(self.sources) do
-    if source.status == 'processing' or source.status == 'completed' then
-      local source_start_offset = source:get_start_offset()
-      if type(source_start_offset) == 'number' then
-        if start_offset == 0 or source_start_offset < start_offset then
-          Debug:log('!!! start_offset !!!: ' .. source.id .. ', ' .. source_start_offset)
-          start_offset = source_start_offset
+    local source_start_offset = source:get_start_offset()
+    if source_start_offset > 0 then
+      -- Prefer prior source's trigger character
+      if source.is_triggered_by_character or not use_trigger_character then
+        if source.status == 'processing' then
+          start_offset = (start_offset == 0 or start_offset > source_start_offset) and source_start_offset or start_offset
+        elseif source.status == 'completed' then
+          local source_items = Matcher.match(context, source, self.history)
+          if #source_items > 0 then
+            start_offset = (start_offset == 0 or start_offset > source_start_offset) and source_start_offset or start_offset
+            use_trigger_character = use_trigger_character or source.is_triggered_by_character
+
+            -- Fix start_offset gap.
+            local gap = string.sub(context.before_line, start_offset, source_start_offset - 1)
+            for _, item in ipairs(source_items) do
+              if items_uniq[item.original_word] == nil or item.dup ~= true then
+                items_uniq[item.original_word] = true
+                item.word = gap .. item.original_word
+                item.abbr = string.rep(' ', #gap) .. item.original_abbr
+                table.insert(items, item)
+              end
+            end
+          end
         end
       end
     end
@@ -183,34 +203,13 @@ function Completion.display(self, context)
 
   -- All sources didn't trigger.
   -- Clear current completion state.
-  if start_offset <= 0 then
+  if #items == 0 or start_offset <= 0 then
     self.current_offset = 0
     self.current_items = {}
+    self:complete(1, {})
     return
   end
 
-  -- Gather items
-  local use_trigger_character = false
-  local words = {}
-  local items = {}
-  for _, source in ipairs(self.sources) do
-    if source.status == 'completed' then
-      local source_items = Matcher.match(context, source, self.history)
-      if #source_items > 0 and (source.is_triggered_by_character or source.is_triggered_by_character == use_trigger_character) then
-        use_trigger_character = use_trigger_character or source.is_triggered_by_character
-
-        local gap = string.sub(context.before_line, start_offset, source:get_start_offset() - 1)
-        for _, item in ipairs(source_items) do
-          if words[item.original_word] == nil or item.dup ~= true then
-            words[item.original_word] = true
-            item.word = gap .. item.original_word
-            item.abbr = string.rep(' ', #gap) .. item.original_abbr
-            table.insert(items, item)
-          end
-        end
-      end
-    end
-  end
   Debug:log('!!! filter !!!: ' .. context.before_line)
 
   -- Completion

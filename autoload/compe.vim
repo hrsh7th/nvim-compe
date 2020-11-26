@@ -34,3 +34,10 @@ function! compe#is_selected_manually() abort
   return pumvisible() && !empty(v:completed_item) ? v:true : v:false
 endfunction
 
+"
+" compe#has_completed_item
+"
+function! compe#has_completed_item() abort
+  return !empty(v:completed_item) ? v:true : v:false
+endfunction
+

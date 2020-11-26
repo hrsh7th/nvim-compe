@@ -103,8 +103,8 @@ function Source.trigger(self, context, callback)
 
   -- Completion request.
   self.items = is_same_offset and self.items or {}
-  self.is_triggered_by_character = is_same_offset and self.is_triggered_by_character or (state.trigger_character_offset > 0 and string.match(context.before_char, '%w+') == nil)
-  self.status = 'processing'
+  self.is_triggered_by_character = is_same_offset and self.is_triggered_by_character or (state.trigger_character_offset > 0 and not string.match(context.before_char, '%w+'))
+  self.status = self.incomplete and self.status or 'processing'
   self.keyword_pattern_offset = state.keyword_pattern_offset
   self.trigger_character_offset = state.trigger_character_offset
   self.context = context
@@ -163,7 +163,7 @@ end
 
 --- get_start_offset
 function Source.get_start_offset(self)
-  return self.keyword_pattern_offset
+  return self.keyword_pattern_offset or 0
 end
 
 --- get_items

@@ -108,11 +108,11 @@ function Matcher.score(input, input_lower, word)
     score = score + (match.exact and 0.1 or 0)
   end
 
-  -- no used char penalty
+  -- Ignore when item has no used char
   local i = 1
   while i <= #input do
-    if char_map[i] ~= true then
-      score = score - 8
+    if not char_map[i] then
+      return 0
     end
     i = i + 1
   end
