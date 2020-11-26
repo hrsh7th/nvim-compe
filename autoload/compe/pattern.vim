@@ -8,6 +8,9 @@ function! compe#pattern#set_defaults() abort
   call compe#pattern#set('php', {
   \   'keyword_pattern': '\%(\$\w*\|\h\w*\)',
   \ })
+  call compe#pattern#set('html', {
+  \   'keyword_pattern': '\%(/\w*\|\w*\)',
+  \ })
 endfunction
 
 "
