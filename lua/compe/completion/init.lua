@@ -224,10 +224,10 @@ end
 --- complete
 function Completion.complete(self, start_offset, items)
   Async.fast_schedule(function()
-    local completeopt = vim.fn.getbufvar('%', '&completeopt', '')
-    vim.fn.setbufvar('%', 'completeopt', 'menu,menuone,noselect')
+    local completeopt = vim.o.completeopt
+    vim.cmd('set completeopt=menu,menuone,noselect')
     vim.fn.complete(start_offset, items)
-    vim.fn.setbufvar('%', 'completeopt', completeopt)
+    vim.cmd('set completeopt=' .. completeopt)
 
     -- preselect
     if items[1] and items[1].preselect or vim.g.compe_auto_preselect then
