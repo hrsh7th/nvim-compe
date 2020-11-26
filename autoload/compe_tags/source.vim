@@ -37,6 +37,7 @@ endfunction
 "
 function! s:complete(context) abort
   call a:context.callback({
-  \   'items': getcompletion(a:context.input, 'tag')
+  \   'items': getcompletion(a:context.input, 'tag'),
+  \   'incomplete': v:true
   \ })
 endfunction
