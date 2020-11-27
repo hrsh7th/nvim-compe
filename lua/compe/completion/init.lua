@@ -165,7 +165,8 @@ function Completion.display(self, context)
     end
   end
 
-  Async.throttle('display:filter', vim.fn.pumvisible() == 1 and 200 or 0, Async.fast_schedule_wrap(function()
+  local timeout = vim.fn.pumvisible() == 1 and vim.g.compe_throttle_time or 0
+  Async.throttle('display:filter', timeout, Async.fast_schedule_wrap(function()
     -- Check for unexpected state
     if self:should_ignore_display() then
       return
