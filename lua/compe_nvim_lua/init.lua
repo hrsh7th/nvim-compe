@@ -50,7 +50,17 @@ function Source.collect(self, paths)
       return {}
     end
   end
-  return target_keys
+
+  local candidates = {}
+  for _, key in ipairs(target_keys) do
+    if string.match(key, '^%w[%w_]*$') then
+      table.insert(candidates, {
+        word = '' .. key;
+        kind = type(target[key]);
+      })
+    end
+  end
+  return candidates
 end
 
 return Source.new()
