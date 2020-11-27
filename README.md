@@ -38,6 +38,9 @@ call compe#source#vim_bridge#register('tags', compe_tags#source#create())
 #### nvim-lsp
 You can enable nvim_lsp completion via `lua require'compe_nvim_lsp'.attach()`.
 
+#### nvim-lua
+You can enable nvim_lua completion via `lua require'compe_nvim_lua'.attach()`.
+
 #### vim-lamp
 You can enable vim-lamp completion via `call compe_lamp#source#attach()`.
 
