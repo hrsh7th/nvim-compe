@@ -39,19 +39,26 @@ end
 --- watch
 function Buffer.watch(self)
   vim.api.nvim_buf_attach(self.bufnr, false, {
-    on_lines = vim.schedule_wrap(function(_, _, _, firstline, _, new_lastline, _, _, _)
+    on_lines = vim.schedule_wrap(function(_, buf, _, firstline, old_lastline, new_lastline, _, _, _)
       if not vim.api.nvim_buf_is_valid(self.bufnr) then
         return true
       end
 
-      local lnum = vim.fn.line('.')
-      local col = vim.fn.col('.')
+      -- append or delete new lines
+      if new_lastline > old_lastline then
+        for i = 1, (new_lastline - old_lastline) do
+          table.insert(self.words, firstline + i, '')
+        end
+      elseif old_lastline > new_lastline then
+        for i = 1, (old_lastline - new_lastline) do
+          table.remove(self.words, old_lastline - i + 2)
+        end
+      end
+
+      -- replace lines
       local lines = vim.api.nvim_buf_get_lines(self.bufnr, firstline, new_lastline, false)
       for i, line in ipairs(lines) do
         if line then
-          if lnum == firstline + i - 1 then
-            line = string.sub(line, 1, col - 1)
-          end
           self:index_line(firstline + i, line or '')
         end
       end
@@ -78,7 +85,11 @@ function Buffer.index_line(self, i, line)
     end
     buffer = new_buffer
   end
-  self.words[i] = words
+  if append then
+    table.insert(self.words, i, words)
+  else
+    self.words[i] = words
+  end
 end
 
 --- get_words
@@ -86,8 +97,8 @@ function Buffer.get_words(self, lnum)
   local words = {}
   local offset = 0
   while true do
-    local below = lnum - offset
-    local above = lnum + offset + 1
+    local below = lnum - offset - 1
+    local above = lnum + offset
     if not self.words[below] and not self.words[above] then
       break
     end

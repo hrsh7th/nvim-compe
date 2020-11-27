@@ -78,8 +78,9 @@ function Completion.on_text_changed(self)
   end
 
   Debug:log('>>> on_text_changed <<<: ' .. context.before_line)
-  self:trigger(context)
-  self:display(context)
+  if not self:trigger(context) then
+    self:display(context)
+  end
   self.context = context
   Debug:log(' ')
 end
@@ -91,8 +92,9 @@ function Completion.on_manual_complete(self)
   })
 
   Debug:log('>>> on_manual_complete <<<: ' .. context.before_line)
-  self:trigger(context)
-  self:display(context)
+  if not self:trigger(context) then
+    self:display(context)
+  end
 end
 
 --- add_history
@@ -138,11 +140,7 @@ function Completion.display(self, context)
   Async.throttle('display:processing', 0, function() end)
 
   -- Check for unexpected state
-  local should_ignore_display = false
-  should_ignore_display = should_ignore_display or vim.call('compe#is_selected_manually')
-  should_ignore_display = should_ignore_display or string.sub(vim.fn.mode(), 1, 1) ~= 'i'
-  should_ignore_display = should_ignore_display or vim.fn.getbufvar('%', '&buftype') == 'prompt'
-  if should_ignore_display then
+  if self:should_ignore_display() then
     return
   end
 
@@ -153,7 +151,7 @@ function Completion.display(self, context)
     should_wait_processing = should_wait_processing and (vim.loop.now() - source.context.time) < vim.g.compe_source_timeout -- processing timeout
     if should_wait_processing then
       -- Reserve to call display after timeout.
-      Async.throttle('display:processing', vim.g.compe_source_timeout, vim.schedule_wrap(function()
+      Async.throttle('display:processing', vim.g.compe_source_timeout, vim.fast_schedule_wrap(function()
         self:display(context)
       end))
 
@@ -167,57 +165,65 @@ function Completion.display(self, context)
     end
   end
 
-  -- Gather items and datermine start_offset
-  local use_trigger_character = false
-  local start_offset = 0
-  local items = {}
-  local items_uniq = {}
-  for _, source in ipairs(self.sources) do
-    local source_start_offset = source:get_start_offset()
-    if source_start_offset > 0 then
-      -- Prefer prior source's trigger character
-      if source.is_triggered_by_character or not use_trigger_character then
-        if source.status == 'processing' then
-          start_offset = (start_offset == 0 or start_offset > source_start_offset) and source_start_offset or start_offset
-        elseif source.status == 'completed' then
-          local source_items = Matcher.match(context, source, self.history)
-          if #source_items > 0 then
-            start_offset = (start_offset == 0 or start_offset > source_start_offset) and source_start_offset or start_offset
-            use_trigger_character = use_trigger_character or source.is_triggered_by_character
+  Async.throttle('display:filter', vim.fn.pumvisible() == 1 and 200 or 0, Async.fast_schedule_wrap(function()
+    -- Check for unexpected state
+    if self:should_ignore_display() then
+      return
+    end
 
-            -- Fix start_offset gap.
-            local gap = string.sub(context.before_line, start_offset, source_start_offset - 1)
-            for _, item in ipairs(source_items) do
-              if items_uniq[item.original_word] == nil or item.dup ~= true then
-                items_uniq[item.original_word] = true
-                item.word = gap .. item.original_word
-                item.abbr = string.rep(' ', #gap) .. item.original_abbr
-                table.insert(items, item)
+    -- Gather items and datermine start_offset
+    local use_trigger_character = false
+    local start_offset = 0
+    local items = {}
+    local items_uniq = {}
+    for _, source in ipairs(self.sources) do
+      local source_start_offset = source:get_start_offset()
+      if source_start_offset > 0 then
+        -- Prefer prior source's trigger character
+        if source.is_triggered_by_character or not use_trigger_character then
+          if source.status == 'processing' then
+            start_offset = (start_offset == 0 or start_offset > source_start_offset) and source_start_offset or start_offset
+          elseif source.status == 'completed' then
+            -- If source status is completed but it does not provide any items, it will be ignored (don't use start_offset, trigger character).
+            local source_items = Matcher.match(context, source, self.history)
+            if #source_items > 0 then
+              start_offset = (start_offset == 0 or start_offset > source_start_offset) and source_start_offset or start_offset
+              use_trigger_character = use_trigger_character or source.is_triggered_by_character
+
+              -- Fix start_offset gap.
+              local gap = string.sub(context.before_line, start_offset, source_start_offset - 1)
+              for _, item in ipairs(source_items) do
+                if items_uniq[item.original_word] == nil or item.dup ~= true then
+                  items_uniq[item.original_word] = true
+                  item.word = gap .. item.original_word
+                  item.abbr = string.rep(' ', #gap) .. item.original_abbr
+                  table.insert(items, item)
+                end
               end
             end
           end
         end
       end
     end
-  end
 
-  -- All sources didn't trigger.
-  -- Clear current completion state.
-  if #items == 0 or start_offset <= 0 then
-    self.current_offset = 0
-    self.current_items = {}
-    self:complete(1, {})
-    return
-  end
+    -- All sources didn't trigger.
+    -- Clear current completion state.
+    if #items == 0 or start_offset <= 0 then
+      self.current_offset = 0
+      self.current_items = {}
+      self:complete(1, {})
+      return
+    end
 
-  Debug:log('!!! filter !!!: ' .. context.before_line)
+    Debug:log('!!! filter !!!: ' .. context.before_line)
 
-  -- Completion
-  if #items > 0 or vim.fn.pumvisible() then
-    self:complete(start_offset, items)
-    self.current_offset = start_offset
-    self.current_items = items
-  end
+    -- Completion
+    if #items > 0 or vim.fn.pumvisible() == 1 then
+      self:complete(start_offset, items)
+      self.current_offset = start_offset
+      self.current_items = items
+    end
+  end))
 end
 
 --- complete
@@ -235,5 +241,15 @@ function Completion.complete(self, start_offset, items)
   end)
 end
 
+--- should_ignore_display
+function Completion.should_ignore_display(self)
+  local should_ignore_display = false
+  should_ignore_display = should_ignore_display or vim.call('compe#is_selected_manually')
+  should_ignore_display = should_ignore_display or string.sub(vim.fn.mode(), 1, 1) ~= 'i'
+  should_ignore_display = should_ignore_display or vim.fn.getbufvar('%', '&buftype') == 'prompt'
+  return should_ignore_display
+end
+
+--- aiueo_aiueo
 return Completion
 

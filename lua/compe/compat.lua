@@ -1,4 +1,4 @@
-local is_nvim = vim.fn.has('nvim')
+local is_nvim = vim.fn.has('nvim') == 1
 
 local Compat = {}
 

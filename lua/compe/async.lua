@@ -15,12 +15,15 @@ end
 
 local function throttle(id, timeout, callback)
   if throttle_timer[id] then
-    throttle_timer[id].callback = callback
-    return
+    timeout = math.max(0, timeout - (vim.loop.now() - throttle_timer[id].now))
+    throttle_timer[id].timer:stop()
+    throttle_timer[id].timer:close()
+    throttle_timer[id] = nil
   end
   throttle_timer[id] = {
     timer = vim.loop.new_timer();
     callback = callback;
+    now = vim.loop.now();
   }
   throttle_timer[id].timer:start(timeout, 0, function()
     throttle_timer[id].callback()
