@@ -101,10 +101,12 @@ function Source.trigger(self, context, callback)
     end
   end
 
-  -- Completion request.
-  self.items = is_same_offset and self.items or {}
+  local should_update = not (is_same_offset and self.incomplete)
+  self.items = should_update and {} or self.items
+  self.status = should_update and 'processing' or self.status
+
   self.is_triggered_by_character = is_same_offset and self.is_triggered_by_character or (state.trigger_character_offset > 0 and not string.match(context.before_char, '%w+'))
-  self.status = self.incomplete and self.status or 'processing'
+
   self.keyword_pattern_offset = state.keyword_pattern_offset
   self.trigger_character_offset = state.trigger_character_offset
   self.context = context
@@ -125,8 +127,8 @@ function Source.trigger(self, context, callback)
 
       Debug:log('> completed: ' .. self.id .. ': ' .. #result.items .. ', sec: ' .. vim.loop.now() - self.context.time)
 
-      self.status = 'completed'
       self.items = self.incomplete and #result.items == 0 and self.items or self:normalize_items(context, result.items or {})
+      self.status = 'completed'
       self.incomplete = result.incomplete or false
       self.keyword_pattern_offset = result.keyword_pattern_offset or self.keyword_pattern_offset
       self.trigger_character_offset = result.trigger_character_offset or self.trigger_character_offset
@@ -134,9 +136,11 @@ function Source.trigger(self, context, callback)
     end;
     abort = function()
       Debug:log('> completed abort: ' .. self.id)
-      self.incomplete = false
       self.items = {}
       self.status = 'waiting'
+      self.incomplete = false
+      self.keyword_pattern_offset = 0
+      self.trigger_character_offset = 0
       callback()
     end;
   })
