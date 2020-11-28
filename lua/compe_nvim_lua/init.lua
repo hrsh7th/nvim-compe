@@ -13,7 +13,7 @@ function Source.get_metadata(self)
     priority = 100;
     dup = 0;
     menu = '[Lua]';
-    filetype = {'lua'}
+    filetypes = {'lua'}
   }
 end
 
