@@ -13,13 +13,13 @@ function Compe.new()
 end
 
 --- register_lua_source
-function Compe.register_lua_source(self, id, source)
-  self.completion:register_source(Source.new(id, source))
+function Compe.register_lua_source(self, id, source, opts)
+  self.completion:register_source(Source.new(id, source, opts))
 end
 
 --- register_vim_source
-function Compe.register_vim_source(self, id)
-  self.completion:register_source(Source.new(id, VimBridge.new(id)))
+function Compe.register_vim_source(self, id, opts)
+  self.completion:register_source(Source.new(id, VimBridge.new(id), opts))
 end
 
 --- unregister_source

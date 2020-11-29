@@ -4,11 +4,12 @@ let s:sources = {}
 "
 " compe#source#vim_bridge#register
 "
-function! compe#source#vim_bridge#register(id, source) abort
+function! compe#source#vim_bridge#register(id, source, ...) abort
   let s:source_id += 1
   let l:id = a:id . '_' . s:source_id
   let s:sources[l:id] = a:source
-  call luaeval('require"compe":register_vim_source(_A[1])', [l:id])
+  let l:opts = get(a:, 1, {})
+  call luaeval('require"compe":register_vim_source(_A[1], _A[2])', [l:id, l:opts])
   return l:id
 endfunction
 

@@ -4,11 +4,12 @@ local Context = require'compe.completion.context'
 local Source =  {}
 
 --- new
-function Source.new(id, source)
+function Source.new(id, source, opts)
   local self = setmetatable({}, { __index = Source })
   self.id = id
   self.source = source
   self.context = Context.new({})
+  self.opts = opts or {}
   self:clear()
   return self
 end
@@ -55,6 +56,12 @@ function Source.trigger(self, context, callback)
   -- Check filetypes.
   if metadata.filetypes and #metadata.filetypes then
     if not vim.tbl_contains(metadata.filetypes or {}, context.filetype) then
+      return self:clear()
+    end
+  end
+
+  if metadata.ignored_filetypes and #metadata.ignored_filetypes then
+    if vim.tbl_contains(metadata.ignored_filetypes or {}, context.filetype) then
       return self:clear()
     end
   end
@@ -154,7 +161,7 @@ end
 
 --- get_metadata
 function Source.get_metadata(self)
-  return vim.tbl_extend('keep', self.source:get_metadata(), {
+  return vim.tbl_extend('keep', self.opts, self.source:get_metadata(), {
     sort = true;
     priority = 0;
   })

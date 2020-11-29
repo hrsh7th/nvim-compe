@@ -51,16 +51,24 @@ You can enable nvim_lua completion via `lua require'compe_nvim_lua'.attach()`.
 You can enable vim-lamp completion via `call compe_lamp#source#attach()`.
 
 #### buffer
-You can enable buffer completion via `lua require'compe':register_lua_source('buffer', require'compe_buffer')`.
+You can enable buffer completion via `lua require'compe':register_lua_source('buffer', require'compe_buffer', opts)`.
+
+[opts](https://github.com/hrsh7th/nvim-compe/wiki#get_metadata)
 
 #### path
-You can enable path completion via `call compe#source#vim_bridge#register('path', compe_path#source#create())`.
+You can enable path completion via `call compe#source#vim_bridge#register('path', compe_path#source#create(), opts)`.
+
+[opts](https://github.com/hrsh7th/nvim-compe/wiki#get_metadata)
 
 #### tags
-You can enable tags completion via `call compe#source#vim_bridge#register('tags', compe_tags#source#create())`.
+You can enable tags completion via `call compe#source#vim_bridge#register('tags', compe_tags#source#create(), opts)`.
+
+[opts](https://github.com/hrsh7th/nvim-compe/wiki#get_metadata)
 
 #### vsnip
-You can enable vsnip completion via `call compe#source#vim_bridge#register('vsnip', compe_vsnip#source#create())`.
+You can enable vsnip completion via `call compe#source#vim_bridge#register('vsnip', compe_vsnip#source#create(), opts)`.
+
+[opts](https://github.com/hrsh7th/nvim-compe/wiki#get_metadata)
 
 
 # Development
