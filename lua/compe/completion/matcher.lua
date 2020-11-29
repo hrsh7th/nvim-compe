@@ -91,7 +91,7 @@ Matcher.score = function(input, word)
     return 1
   end
 
-  -- First char
+  -- Check first char matching (special check for completion)
   if not Character.match(input_bytes[1], word_bytes[1]) then
     return 0
   end
@@ -129,7 +129,7 @@ Matcher.score = function(input, word)
       end
     end
     if s > 0 then
-      score = score + (s * (math.max(1, Matcher.WORD_BOUNDALY_ORDER_FACTOR - i) / Matcher.WORD_BOUNDALY_ORDER_FACTOR))
+      score = score + (s * (1 + math.max(0, Matcher.WORD_BOUNDALY_ORDER_FACTOR - i) / Matcher.WORD_BOUNDALY_ORDER_FACTOR))
       score = score + (match.strict_match and 0.1 or 0)
     end
   end
@@ -283,6 +283,24 @@ Matcher.compare = function(item1, item2, history)
   end
 
   return nil
+end
+
+--- logger
+Matcher.logger = function(word, expected)
+  return function(value)
+    if word == expected then
+      print(vim.inspect(value))
+    end
+  end
+end
+
+--- bytes2string
+Matcher.bytes2string = function(bytes)
+  local s = ''
+  for i = 1, #bytes do
+    s = s .. string.char(bytes[i])
+  end
+  return s
 end
 
 return Matcher
