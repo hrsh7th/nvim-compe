@@ -1,86 +1,39 @@
-local alpha = {
-  a = true,
-  b = true,
-  c = true,
-  d = true,
-  e = true,
-  f = true,
-  g = true,
-  h = true,
-  i = true,
-  j = true,
-  k = true,
-  l = true,
-  m = true,
-  n = true,
-  o = true,
-  p = true,
-  q = true,
-  r = true,
-  s = true,
-  t = true,
-  u = true,
-  v = true,
-  w = true,
-  x = true,
-  y = true,
-  z = true,
-}
+local alpha = {}
+string.gsub('abcdefghijklmnopqrstuvwxyz', '.', function(char)
+  alpha[char] = string.byte(char)
+  alpha[string.byte(char)] = char
+end)
 
-local digit = {
-  ['1'] = true,
-  ['2'] = true,
-  ['3'] = true,
-  ['4'] = true,
-  ['5'] = true,
-  ['6'] = true,
-  ['7'] = true,
-  ['8'] = true,
-  ['9'] = true,
-  ['0'] = true,
-}
+local ALPHA = {}
+string.gsub('ABCDEFGHIJKLMNOPQRSTUVWXYZ', '.', function(char)
+  ALPHA[char] = string.byte(char)
+  ALPHA[string.byte(char)] = char
+end)
 
-local ALPHA = {
-  A = true,
-  B = true,
-  C = true,
-  D = true,
-  E = true,
-  F = true,
-  G = true,
-  H = true,
-  I = true,
-  J = true,
-  K = true,
-  L = true,
-  M = true,
-  N = true,
-  O = true,
-  P = true,
-  Q = true,
-  R = true,
-  S = true,
-  T = true,
-  U = true,
-  V = true,
-  W = true,
-  X = true,
-  Y = true,
-  Z = true,
-}
+local digit = {}
+string.gsub('1234567890', '.', function(char)
+  ALPHA[char] = string.byte(char)
+  ALPHA[string.byte(char)] = char
+end)
 
 local Character = {}
 
 Character.is_upper = function(char)
-  return ALPHA[char]
+  return ALPHA[char] ~= nil
 end
 
 Character.is_alpha = function(char)
-  return alpha[char] or ALPHA[char]
+  return alpha[char] ~= nil or ALPHA[char] ~= nil
 end
 
 Character.is_alnum = function(char)
-  return is_alpha(char) or digit[char]
+  return is_alpha(char) ~= nil or digit[char] ~= nil
+end
+
+Character.match = function(byte1, byte2)
+  local diff = byte1 - byte2
+  return diff == 0 or diff == 32 or diff == -32
 end
 
 return Character
+
