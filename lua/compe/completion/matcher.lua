@@ -83,18 +83,18 @@ end
 --      ^~~~~~~       ^    ~~~~~~
 --
 Matcher.score = function(input, word)
-  local input_bytes = { string.byte(input, 1, -1) }
-  local word_bytes = { string.byte(word, 1, -1) }
-
   -- Empty input
-  if #input_bytes == 0 then
+  if #input == 0 or #input > #word then
     return 1
   end
 
   -- Check first char matching (special check for completion)
-  if not Character.match(input_bytes[1], word_bytes[1]) then
+  if not Character.match(string.byte(input, 1), string.byte(word, 1)) then
     return 0
   end
+
+  local input_bytes = { string.byte(input, 1, -1) }
+  local word_bytes = { string.byte(word, 1, -1) }
 
   --- Gather matched regions
   local matches = {}
