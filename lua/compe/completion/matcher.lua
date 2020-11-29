@@ -2,6 +2,8 @@ local Character = require'compe.completion.character'
 
 local Matcher = {}
 
+Matcher.WORD_BOUNDALY_ORDER_FACTOR = 1000
+
 --- match
 Matcher.match = function(context, source, history)
   local input = context:get_input(source:get_start_offset())
@@ -75,9 +77,9 @@ end
 --     `buffer`   -> `Buffer`        # imaginary score: 6
 --      ^^^^^^        ^^^^^^
 --
---   5. Use remaining char as substring match (not implemented yet)
+--   5. Use remaining char as substring match
 --
---     `fmodify`  -> `fnamemodify`   # imaginary score: 1 ?
+--     `fmodify`  -> `fnamemodify`   # imaginary score: 1
 --      ^~~~~~~       ^    ~~~~~~
 --
 Matcher.score = function(input, word)
@@ -118,7 +120,7 @@ Matcher.score = function(input, word)
   -- Compute prefix match score
   local score = 0
   local input_char_map = {}
-  for _, match in ipairs(matches) do
+  for i, match in ipairs(matches) do
     local s = 0
     for i = match.input_match_start, match.input_match_end do
       if not input_char_map[i] then
@@ -127,16 +129,29 @@ Matcher.score = function(input, word)
       end
     end
     if s > 0 then
-      score = score + s
+      score = score + (s * (math.max(1, Matcher.WORD_BOUNDALY_ORDER_FACTOR - i) / Matcher.WORD_BOUNDALY_ORDER_FACTOR))
       score = score + (match.strict_match and 0.1 or 0)
     end
   end
 
-  -- If remaining chars exists, it would not be match (TODO: We should check it as substring matching)
-  for i = 1, #input_bytes do
-    if not input_char_map[i] then
-      return 0
+  -- Check the word contains the remaining input. if not, it does not match.
+  local last_match = matches[#matches]
+  if last_match.input_match_end < #input_bytes and last_match.word_match_end < #word_bytes then
+    for word_index = last_match.word_match_end + 1, #word_bytes do
+      local word_offset = 0
+      local input_index = last_match.input_match_end + 1
+      while word_offset + word_index <= #word_bytes and input_index <= #input_bytes do
+        if not Character.match(word_bytes[word_index + word_offset], input_bytes[input_index]) then
+          break
+        end
+        word_offset = word_offset + 1
+        input_index = input_index + 1
+      end
+      if word_offset == #input_bytes - last_match.input_match_end then
+        return score
+      end
     end
+    return 0
   end
 
   return score
