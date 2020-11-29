@@ -1,7 +1,7 @@
 local Debug = require'compe.debug'
 local Async = require'compe.async'
 local Context = require'compe.completion.context'
-local Matcher = require'compe.completion.matcher_new'
+local Matcher = require'compe.completion.matcher'
 local VimBridge = require'compe.completion.source.vim_bridge'
 
 local Completion = {}
