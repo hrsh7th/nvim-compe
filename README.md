@@ -1,11 +1,14 @@
 # nvim-compe
 
-Auto completion plugin
+Auto completion plugin for nvim.
+
 
 # Concept
 
-- Lua implementation
 - Lua source & Vim source
+- Better matching algorithm
+- Support LSP completion features (trigger character, isIncomplete)
+
 
 # Usage
 
@@ -35,6 +38,7 @@ call compe#source#vim_bridge#register('path', compe_path#source#create())
 call compe#source#vim_bridge#register('tags', compe_tags#source#create())
 ```
 
+
 # Source
 
 #### nvim-lsp
@@ -57,7 +61,6 @@ You can enable tags completion via `call compe#source#vim_bridge#register('tags'
 
 #### vsnip
 You can enable vsnip completion via `call compe#source#vim_bridge#register('vsnip', compe_vsnip#source#create())`.
-
 
 
 # Development
