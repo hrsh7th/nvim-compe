@@ -22,7 +22,7 @@ function! compe#documentation#open(event, document) abort
   \   'maxwidth': float2nr(&columns * 0.4),
   \   'maxheight': float2nr(&lines * 0.4),
   \   'filetype': 'markdown',
-  \   'contents': s:MarkupContent.normalize(a:document),
+  \   'contents': split(s:MarkupContent.normalize(a:document), "\n", v:true),
   \ })
 endfunction
 
