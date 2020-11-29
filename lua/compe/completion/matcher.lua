@@ -32,29 +32,53 @@ end
 
 --- score
 --
--- The score is `matched char count` (How we score remaining chars match?)
+-- ### The score
 --
--- 1. Prefix matching per word boundaly
+--   The `score` is `matched char count` generally.
 --
---   `bora`     -> `border-radius` # score: 4
---    ^^~~          ^^     ~~
+--   But compe will fix the score with some of the below points so the actual score is not `matched char count`.
 --
--- 2. Datermine the matched input index by recently match_end_index
+--   1. Word boundarly order
 --
---   `woroff`   -> `word_offset`   # score: 5
---    ^^^~~~        ^^^  ~~
+--     compe prefers the match that near by word-beggining.
 --
--- 3. Prefer strict match
+--   2. Strict case
 --
---   `Buffer`   -> `Buffer`       # score: 6.1
---    ^^^^^^        ^^^^^^
---   `buffer`   -> `Buffer`       # score: 6
---    ^^^^^^        ^^^^^^
+--     compe prefers strict match than ignorecase match.
 --
--- 3. Use remaining char as substring match
 --
---   `fmodify`  -> `fnamemodify`    # score: 1 ? (not implemented yet)
---    ^~~~~~~       ^    ~~~~~~
+-- ### Matching specs.
+--
+--   1. Prefix matching per word boundaly
+--
+--     `bora`     -> `border-radius` # imaginary score: 4
+--      ^^~~          ^^     ~~
+--
+--   2. Try sequencial match first
+--
+--     `woroff`   -> `word_offset`   # imaginary score: 6
+--      ^^^~~~        ^^^  ~~~
+--
+--     * The `woroff`'s second `o` should not match `word_offset`'s first `o`
+--
+--   3. Prefer early word boundaly
+--
+--     `call`     -> `call`          # imaginary score: 4.1
+--      ^^^^          ^^^^
+--     `call`     -> `condition_all` # imaginary score: 4
+--      ^~~~          ^         ~~~
+--
+--   4. Prefer strict match
+--
+--     `Buffer`   -> `Buffer`        # imaginary score: 6.1
+--      ^^^^^^        ^^^^^^
+--     `buffer`   -> `Buffer`        # imaginary score: 6
+--      ^^^^^^        ^^^^^^
+--
+--   5. Use remaining char as substring match (not implemented yet)
+--
+--     `fmodify`  -> `fnamemodify`   # imaginary score: 1 ?
+--      ^~~~~~~       ^    ~~~~~~
 --
 Matcher.score = function(input, word)
   local input_bytes = { string.byte(input, 1, -1) }
