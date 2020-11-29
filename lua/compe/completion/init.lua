@@ -48,7 +48,8 @@ end
 
 --- on_complete_done
 function Completion.on_complete_done(self)
-  if vim.call('compe#has_completed_item') then
+  local has_completed_item = vim.call('compe#has_completed_item')
+  if has_completed_item then
     self:clear()
     self:add_history(vim.v.completed_item)
   end
@@ -58,6 +59,8 @@ end
 function Completion.on_complete_changed(self)
   if vim.call('compe#is_selected_manually') then
     local selected = vim.call('complete_info', { 'selected' }).selected or -1
+    selected = selected == -2 and 0 or selected
+
     local completed_item = self.current_items[selected + 1]
     if completed_item then
       for _, source in ipairs(self.sources) do
@@ -151,7 +154,7 @@ function Completion.display(self, context)
     should_wait_processing = should_wait_processing and (vim.loop.now() - source.context.time) < vim.g.compe_source_timeout -- processing timeout
     if should_wait_processing then
       -- Reserve to call display after timeout.
-      Async.throttle('display:processing', vim.g.compe_source_timeout, vim.fast_schedule_wrap(function()
+      Async.throttle('display:processing', vim.g.compe_source_timeout, Async.fast_schedule_wrap(function()
         self:display(context)
       end))
 

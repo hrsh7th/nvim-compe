@@ -21,29 +21,30 @@ end
 function Source.documentation(self, args)
   local completion_item = self:get_paths(args, { 'completed_item', 'user_data', 'nvim', 'lsp', 'completion_item' })
   if not completion_item then
-    return
+    return args.abort()
   end
-
-  local function documentation(completion_item)
-    if completion_item.documentation then
-      args.callback(util.convert_input_to_markdown_lines(completion_item.documentation))
-    end
-  end
-
-  local has_resolve = self:get_paths(self.client.server_capabilities, { 'completionProvider', 'resolveProvider' })
 
   --- send `completionItem/resolve` if supported.
+  local has_resolve = self:get_paths(self.client.server_capabilities, { 'completionProvider', 'resolveProvider' })
   if has_resolve then
     self.client.request('completionItem/resolve', completion_item, function(err, _, result)
       if err or not result then
-        return
+        return args.abort()
       end
-      documentation(result)
+      if result.documentation then
+        args.callback(util.convert_input_to_markdown_lines(result.documentation))
+      else
+        args.abort()
+      end
     end)
 
   --- use current completion_item
   else
-    documentation(completion_item)
+    if completion_item.documentation then
+      args.callback(util.convert_input_to_markdown_lines(completion_item.documentation))
+    else
+      args.abort()
+    end
   end
 end
 
