@@ -11,20 +11,22 @@ Auto completion plugin
 
 ```viml
 let g:compe_enabled = v:true
+let g:compe_debug = v:false
 let g:compe_min_length = 1
-let g:compe_auto_preselect = v:true " or v:false
+let g:compe_auto_preselect = v:false
+let g:compe_throttle_time = 120
 let g:compe_source_timeout = 200
 let g:compe_incomplete_delay = 400
 
+inoremap <silent> <C-Space> <C-r>=compe#complete()<CR>
+inoremap <silent><expr> <C-e> compe#close('<C-e>')
+
 if s:default
-  inoremap <expr><CR>  compe#confirm('<CR>')
-  inoremap <expr><C-e> compe#close('<C-e>')
-  inoremap <silent><C-Space> <C-r>=compe#complete()<CR>
+  inoremap <silent><expr> <CR>  compe#confirm('<CR>')
 endif
 
 if s:lexima
-  inoremap <expr><CR>  compe#confirm(lexima#expand('<LT>CR>', 'i'))
-  inoremap <expr><C-e> compe#close('<C-e>')
+  inoremap <silent><expr> <CR>  compe#confirm(lexima#expand('<LT>CR>', 'i'))
 endif
 
 lua require'compe_nvim_lsp'.attach()
