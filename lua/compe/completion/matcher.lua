@@ -99,7 +99,7 @@ Matcher.score = function(input, word)
   --- Gather matched regions
   local matches = {}
   local input_start_index = 0
-  local input_end_index = #input_bytes
+  local input_end_index = 1
   local word_index = 1
   while input_end_index <= #input_bytes and word_index <= #word_bytes do
     local match = Matcher.find_match_region(input_bytes, input_start_index, input_end_index, word_bytes, word_index)
@@ -159,9 +159,6 @@ end
 
 --- find_match_region
 Matcher.find_match_region = function(input_bytes, input_start_index, input_end_index, word_bytes, word_index)
-  local input_match_start = -1
-  local strict_match_count = 0
-
   -- Datermine input position ( woroff -> word_offset )
   while input_start_index < input_end_index do
     if Character.match(input_bytes[input_end_index], word_bytes[word_index]) then
@@ -175,6 +172,8 @@ Matcher.find_match_region = function(input_bytes, input_start_index, input_end_i
     return nil
   end
 
+  local strict_match_count = 0
+  local input_match_start = -1
   local input_index = input_end_index
   local word_offset = 0
   while input_index <= #input_bytes and word_index + word_offset <= #word_bytes do
