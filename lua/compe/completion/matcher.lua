@@ -136,7 +136,13 @@ Matcher.score = function(input, word)
 
   -- Check the word contains the remaining input. if not, it does not match.
   local last_match = matches[#matches]
-  if last_match.input_match_end < #input_bytes and last_match.word_match_end < #word_bytes then
+  if last_match.input_match_end < #input_bytes then
+
+    -- If input is remaining but all word consumed, it does not match.
+    if last_match.word_match_end >= #word_bytes then
+      return 0
+    end
+
     for word_index = last_match.word_match_end + 1, #word_bytes do
       local word_offset = 0
       local input_index = last_match.input_match_end + 1
@@ -147,7 +153,7 @@ Matcher.score = function(input, word)
         word_offset = word_offset + 1
         input_index = input_index + 1
       end
-      if word_offset == #input_bytes - last_match.input_match_end then
+      if input_index - 1 == #input_bytes then
         return score
       end
     end
