@@ -77,10 +77,10 @@ end
 --     `buffer`   -> `Buffer`        # imaginary score: 6
 --      ^^^^^^        ^^^^^^
 --
---   5. Use remaining char as substring match
+--   5. Use remaining char for fuzzy match
 --
---     `fmodify`  -> `fnamemodify`   # imaginary score: 1
---      ^~~~~~~       ^    ~~~~~~
+--     `fmofy`    -> `fnamemodify`   # imaginary score: 1
+--      ^~~~~         ^    ~~  ~~
 --
 Matcher.score = function(input, word)
   -- Empty input
@@ -147,11 +147,10 @@ Matcher.score = function(input, word)
       local word_offset = 0
       local input_index = last_match.input_match_end + 1
       while word_offset + word_index <= #word_bytes and input_index <= #input_bytes do
-        if not Character.match(word_bytes[word_index + word_offset], input_bytes[input_index]) then
-          break
+        if Character.match(word_bytes[word_index + word_offset], input_bytes[input_index]) then
+          input_index = input_index + 1
         end
         word_offset = word_offset + 1
-        input_index = input_index + 1
       end
       if input_index - 1 == #input_bytes then
         return score
