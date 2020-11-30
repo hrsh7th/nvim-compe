@@ -36,9 +36,7 @@ endfunction
 " s:on_text_changed
 "
 function! s:on_text_changed() abort
-  if g:compe_enabled
-    call luaeval('require"compe":on_text_changed()')
-  endif
+  call luaeval('require"compe":on_text_changed()')
 endfunction
 
 call compe#pattern#set_defaults()
