@@ -33,6 +33,7 @@ function Source.documentation(self, event, completed_item)
     Async.next(function()
       self.source:documentation({
         completed_item = completed_item;
+        context = Context.new({});
         abort = function()
           vim.call('compe#documentation#close')
         end;

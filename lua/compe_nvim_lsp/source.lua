@@ -31,8 +31,9 @@ function Source.documentation(self, args)
       if err or not result then
         return args.abort()
       end
-      if result.documentation then
-        args.callback(util.convert_input_to_markdown_lines(result.documentation))
+      local document = self:create_document(args.context.filetype, result)
+      if #document > 0 then
+        args.callback(document)
       else
         args.abort()
       end
@@ -40,12 +41,32 @@ function Source.documentation(self, args)
 
   --- use current completion_item
   else
-    if completion_item.documentation then
-      args.callback(util.convert_input_to_markdown_lines(completion_item.documentation))
+    local document = self:create_document(args.context.filetype, completion_item)
+    if #document > 0 then
+      args.callback(document)
     else
       args.abort()
     end
   end
+end
+
+--- create_document
+function Source.create_document(self, filetype, completion_item)
+  local document = {}
+  if completion_item.detail then
+    table.insert(document, '```' .. filetype)
+    table.insert(document, completion_item.detail)
+    table.insert(document, '```')
+  end
+  if completion_item.documentation then
+    if completion_item.detail then
+      table.insert(document, ' ')
+    end
+    for _, line in ipairs(util.convert_input_to_markdown_lines(completion_item.documentation)) do
+      table.insert(document, line)
+    end
+  end
+  return document
 end
 
 function Source.datermine(self, context)

@@ -76,7 +76,8 @@ function! s:FloatingWindow.open(args) abort
     call s:_move(self.win, l:style)
   else
     let self.win = s:_open(self.buf, l:style)
-    call setwinvar(self.win, '&conceallevel', 3)
+    call setwinvar(self.win, '&conceallevel', 2)
+    call setwinvar(self.win, '&wrap', 0)
   endif
 
   call self.set_contents(a:args.filetype, a:args.contents)
