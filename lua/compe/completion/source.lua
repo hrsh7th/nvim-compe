@@ -1,12 +1,19 @@
 local Debug = require'compe.debug'
 local Async = require'compe.async'
+local Config = require'compe.config'
 local Context = require'compe.completion.context'
+
 local Source =  {}
 
+Source.base_id = 0
+
 --- new
-function Source.new(id, source)
+function Source.new(name, source)
+  Source.base_id = Source.base_id + 1
+
   local self = setmetatable({}, { __index = Source })
-  self.id = id
+  self.id = Source.base_id
+  self.name = name
   self.source = source
   self.context = Context.new({})
   self:clear()
@@ -83,10 +90,10 @@ function Source.trigger(self, context, callback)
   local force = false
   force = force or context.manual
   force = force or state.trigger_character_offset > 0
-  force = force or self.incomplete and (vim.loop.now() - self.context.time) > vim.g.compe_incomplete_delay
+  force = force or self.incomplete and (vim.loop.now() - self.context.time) > Config.get().incomplete_delay
 
   local is_same_offset = self.context.lnum == context.lnum and self.keyword_pattern_offset == state.keyword_pattern_offset
-  local is_less_input = #(context:get_input(state.keyword_pattern_offset)) < vim.g.compe_min_length
+  local is_less_input = #(context:get_input(state.keyword_pattern_offset)) < Config.get().min_length
 
   if force == false then
     -- Ignore when condition does not changed
@@ -122,11 +129,11 @@ function Source.trigger(self, context, callback)
     incomplete = self.incomplete;
     callback = function(result)
       if context ~= self.context then
-        Debug:log('> completed skip: ' .. self.id .. ': ' .. #result.items)
+        Debug.log('> completed skip: ' .. self.id .. ': ' .. #result.items)
         return
       end
 
-      Debug:log('> completed: ' .. self.id .. ': ' .. #result.items .. ', sec: ' .. vim.loop.now() - self.context.time)
+      Debug.log('> completed: ' .. self.id .. ': ' .. #result.items .. ', sec: ' .. vim.loop.now() - self.context.time)
 
       self.items = self.incomplete and #result.items == 0 and self.items or self:normalize_items(context, result.items or {})
       self.status = 'completed'
@@ -136,7 +143,7 @@ function Source.trigger(self, context, callback)
       callback()
     end;
     abort = function()
-      Debug:log('> completed abort: ' .. self.id)
+      Debug.log('> completed abort: ' .. self.id)
       self.items = {}
       self.status = 'waiting'
       self.incomplete = false
@@ -155,10 +162,11 @@ end
 
 --- get_metadata
 function Source.get_metadata(self)
-  return vim.tbl_extend('keep', self.source:get_metadata(), {
-    sort = true;
-    priority = 0;
-  })
+  local metadata = self.source:get_metadata()
+  for key, value in pairs(Config.get_metadata(self.name)) do
+    metadata[key] = value
+  end
+  return metadata
 end
 
 --- get_status
@@ -186,8 +194,9 @@ function Source.log(self, label, context, state)
   elseif self.incomplete then
     force_type = 'incomplete'
   end
-  Debug:log(string.format('<%s>	%s	k: %d	t: %d, f: %s',
+  Debug.log(string.format('<%s>	%s-%s	k: %d	t: %d, f: %s',
     label,
+    self.name,
     self.id,
     self.keyword_pattern_offset,
     self.trigger_character_offset,

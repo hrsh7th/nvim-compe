@@ -1,7 +1,7 @@
 local compe = require'compe'
 local Source = require'compe_nvim_lsp.source'
 
-local sources = {}
+local source_ids = {}
 
 return {
   attach = function()
@@ -11,17 +11,15 @@ return {
   end;
   register = function()
     -- unregister
-    for source_id in pairs(sources) do
+    for _, source_id in ipairs(source_ids) do
       compe:unregister_source(source_id)
     end
 
     -- register
+    local filetype = vim.fn.getbufvar('%', '&filetype')
     for id, client in pairs(vim.lsp.buf_get_clients(0)) do
-      local source_id = 'nvim_lsp:' .. id
-      sources[source_id] = Source.new(client)
-      compe:register_lua_source(source_id, sources[source_id])
+      table.insert(source_ids, compe:register_source('nvim_lsp', Source.new(client, filetype)))
     end
   end;
 }
-
 

@@ -4,9 +4,10 @@ local util = require'vim.lsp.util'
 
 local Source = {}
 
-function Source.new(client)
+function Source.new(client, filetype)
   local self = setmetatable({}, { __index = Source })
   self.client = client
+  self.filetype = filetype
   return self
 end
 
@@ -15,6 +16,7 @@ function Source.get_metadata(self)
     priority = 1000;
     dup = 0;
     menu = '[LSP]';
+    filetypes = { self.filetype };
   }
 end
 

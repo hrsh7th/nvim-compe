@@ -1,4 +1,3 @@
-
 "
 " compe#complete
 "
@@ -39,5 +38,22 @@ endfunction
 "
 function! compe#has_completed_item() abort
   return !empty(v:completed_item) ? v:true : v:false
+endfunction
+
+"
+" compe#setup
+"
+function! compe#setup(config) abort
+  call luaeval('require"compe".setup(_A[1])', [a:config])
+endfunction
+
+"
+" compe#register_source
+"
+function! compe#register_source(name, source) abort
+  if matchstr(a:name, '^\w\+$') ==# ''
+    throw "compe: the source's name must be \w\+"
+  endif
+  return compe#source#vim_bridge#register(a:name, a:source)
 endfunction
 

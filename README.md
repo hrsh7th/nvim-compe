@@ -13,13 +13,21 @@ Auto completion plugin for nvim.
 # Usage
 
 ```viml
-let g:compe_enabled = v:true
-let g:compe_debug = v:false
-let g:compe_min_length = 1
-let g:compe_auto_preselect = v:false
-let g:compe_throttle_time = 120
-let g:compe_source_timeout = 200
-let g:compe_incomplete_delay = 400
+let g:compe = {}
+let g:compe.enabled = v:true
+let g:compe.debug = v:false
+let g:compe.min_length = 1
+let g:compe.auto_preselect = v:true
+let g:compe.throttle_time = 120
+let g:compe.source_timeout = 200
+let g:compe.incomplete_delay = 400
+
+let g:compe.source = {}
+let g:compe.source.path = v:true
+let g:compe.source.buffer = v:true
+let g:compe.source.vsnip = v:true
+let g:compe.source.nvim_lsp = v:true
+let g:compe.source.nvim_lua = { 'filetype': ['lua', 'lua.pad'] }
 
 inoremap <silent> <C-Space> <C-r>=compe#complete()<CR>
 inoremap <silent><expr> <C-e> compe#close('<C-e>')
@@ -31,36 +39,17 @@ endif
 if s:lexima
   inoremap <silent><expr> <CR>  compe#confirm(lexima#expand('<LT>CR>', 'i'))
 endif
-
-lua require'compe_nvim_lsp'.attach()
-lua require'compe':register_lua_source('buffer', require'compe_buffer')
-call compe#source#vim_bridge#register('path', compe_path#source#create())
-call compe#source#vim_bridge#register('tags', compe_tags#source#create())
 ```
 
 
-# Source
+# Built-in sources
 
-#### nvim-lsp
-You can enable nvim_lsp completion via `lua require'compe_nvim_lsp'.attach()`.
-
-#### nvim-lua
-You can enable nvim_lua completion via `lua require'compe_nvim_lua'.attach()`.
-
-#### vim-lamp
-You can enable vim-lamp completion via `call compe_lamp#source#attach()`.
-
-#### buffer
-You can enable buffer completion via `lua require'compe':register_lua_source('buffer', require'compe_buffer')`.
-
-#### path
-You can enable path completion via `call compe#source#vim_bridge#register('path', compe_path#source#create())`.
-
-#### tags
-You can enable tags completion via `call compe#source#vim_bridge#register('tags', compe_tags#source#create())`.
-
-#### vsnip
-You can enable vsnip completion via `call compe#source#vim_bridge#register('vsnip', compe_vsnip#source#create())`.
+- nvim_lsp
+- nvim_lua
+- buffer
+- path
+- lamp
+- vsnip
 
 
 # Development

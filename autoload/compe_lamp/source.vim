@@ -1,7 +1,7 @@
 let s:Position = vital#lamp#import('VS.LSP.Position')
 
 let s:state = {
-\   'ids': [],
+\   'source_ids': [],
 \   'cancellation_token': lamp#cancellation_token(),
 \ }
 
@@ -21,16 +21,16 @@ endfunction
 " source
 "
 function! s:source() abort
-  for l:id in s:state.ids
-    call compe#source#vim_bridge#unregister(l:id)
+  for l:source_id in s:state.source_ids
+    call compe#source#vim_bridge#unregister(l:source_id)
   endfor
-  let s:state.ids = []
+  let s:state.source_ids = []
 
   let l:servers = lamp#server#registry#all()
   let l:servers = filter(l:servers, { _, server -> server.supports('capabilities.completionProvider') })
-  let s:state.ids = map(copy(l:servers), { _, server ->
-  \   compe#source#vim_bridge#register('lamp:' . server.name, {
-  \     'get_metadata': function('s:get_metadata'),
+  let s:state.source_ids = map(copy(l:servers), { _, server ->
+  \   compe#register_source('lamp', {
+  \     'get_metadata': function('s:get_metadata', [server.filetypes]),
   \     'datermine': function('s:datermine', [server]),
   \     'complete': function('s:complete', [server]),
   \   })
@@ -40,10 +40,11 @@ endfunction
 "
 " s:get_metadata
 "
-function! s:get_metadata() abort
+function! s:get_metadata(filetypes) abort
   return {
   \   'priority': 1000,
   \   'menu': '[LSP]',
+  \   'filetypes': a:filetypes
   \ }
 endfunction
 

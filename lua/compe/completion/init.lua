@@ -1,5 +1,6 @@
 local Debug = require'compe.debug'
 local Async = require'compe.async'
+local Config = require'compe.config'
 local Context = require'compe.completion.context'
 local Matcher = require'compe.completion.matcher'
 local VimBridge = require'compe.completion.source.vim_bridge'
@@ -19,25 +20,12 @@ end
 
 --- register_source
 function Completion.register_source(self, source)
-  table.insert(self.sources, source)
-
-  table.sort(self.sources, function(a, b)
-    local a_meta = a:get_metadata()
-    local b_meta = b:get_metadata()
-    if a_meta.priority ~= b_meta.priority then
-      return a_meta.priority > b_meta.priority
-    end
-  end)
+  self.sources[source.id] = source
 end
 
 --- unregister_source
 function Completion.unregister_source(self, id)
-  for i, source in ipairs(self.sources) do
-    if id == source:get_id() then
-      table.remove(self.sources, i)
-      break
-    end
-  end
+  self.sources[id] = nil
 end
 
 --- on_insert_leave
@@ -63,7 +51,7 @@ function Completion.on_complete_changed(self)
 
     local completed_item = self.current_items[selected + 1]
     if completed_item then
-      for _, source in ipairs(self.sources) do
+      for _, source in ipairs(self:get_sources()) do
         if source.id == completed_item.source_id then
           source:documentation(vim.v.event, completed_item)
           break
@@ -80,12 +68,12 @@ function Completion.on_text_changed(self)
     return
   end
 
-  Debug:log('>>> on_text_changed <<<: ' .. context.before_line)
+  Debug.log('>>> on_text_changed <<<: ' .. context.before_line)
   if not self:trigger(context) then
     self:display(context)
   end
   self.context = context
-  Debug:log(' ')
+  Debug.log(' ')
 end
 
 --- on_manual_complete
@@ -94,7 +82,7 @@ function Completion.on_manual_complete(self)
     manual = true;
   })
 
-  Debug:log('>>> on_manual_complete <<<: ' .. context.before_line)
+  Debug.log('>>> on_manual_complete <<<: ' .. context.before_line)
   if not self:trigger(context) then
     self:display(context)
   end
@@ -111,7 +99,7 @@ end
 --- clear
 function Completion.clear(self)
   vim.call('compe#documentation#close')
-  for _, source in ipairs(self.sources) do
+  for _, source in ipairs(self:get_sources()) do
     source:clear()
   end
   self.context = Context.new({})
@@ -124,14 +112,14 @@ function Completion.trigger(self, context)
   end
 
   local trigger = false
-  for _, source in ipairs(self.sources) do
+  for _, source in ipairs(self:get_sources()) do
     local status, value = pcall(function()
       trigger = source:trigger(context, function()
         self:display(Context.new({ manual = true } ))
       end) or trigger
     end)
     if not(status) then
-      Debug:log(value)
+      Debug.log(value)
     end
   end
   return trigger
@@ -148,13 +136,13 @@ function Completion.display(self, context)
   end
 
   -- Check for waiting processing source.
-  for _, source in ipairs(self.sources) do
+  for _, source in ipairs(self:get_sources()) do
     local should_wait_processing = true
     should_wait_processing = should_wait_processing and source.status == 'processing' -- source is processing
-    should_wait_processing = should_wait_processing and (vim.loop.now() - source.context.time) < vim.g.compe_source_timeout -- processing timeout
+    should_wait_processing = should_wait_processing and (vim.loop.now() - source.context.time) < Config.get().source_timeout -- processing timeout
     if should_wait_processing then
       -- Reserve to call display after timeout.
-      Async.throttle('display:processing', vim.g.compe_source_timeout, Async.fast_schedule_wrap(function()
+      Async.throttle('display:processing', Config.get().source_timeout, Async.fast_schedule_wrap(function()
         self:display(context)
       end))
 
@@ -168,7 +156,7 @@ function Completion.display(self, context)
     end
   end
 
-  local timeout = vim.fn.pumvisible() == 1 and vim.g.compe_throttle_time or 0
+  local timeout = vim.fn.pumvisible() == 1 and Config.get().throttle_time or 0
   Async.throttle('display:filter', timeout, Async.fast_schedule_wrap(function()
     -- Check for unexpected state
     if self:should_ignore_display() then
@@ -180,7 +168,7 @@ function Completion.display(self, context)
     local start_offset = 0
     local items = {}
     local items_uniq = {}
-    for _, source in ipairs(self.sources) do
+    for _, source in ipairs(self:get_sources()) do
       local source_start_offset = source:get_start_offset()
       if source_start_offset > 0 then
         -- Prefer prior source's trigger character
@@ -219,7 +207,7 @@ function Completion.display(self, context)
       return
     end
 
-    Debug:log('!!! filter !!!: ' .. context.before_line)
+    Debug.log('!!! filter !!!: ' .. context.before_line)
 
     -- Completion
     if #items > 0 or vim.fn.pumvisible() == 1 then
@@ -239,7 +227,7 @@ function Completion.complete(self, start_offset, items)
     vim.cmd('set completeopt=' .. completeopt)
 
     -- preselect
-    if items[1] and items[1].preselect or vim.g.compe_auto_preselect then
+    if items[1] and items[1].preselect or Config.get().auto_preselect then
       vim.api.nvim_select_popupmenu_item(0, false, false, {})
     end
   end)
@@ -254,6 +242,25 @@ function Completion.should_ignore_display(self)
   return should_ignore_display
 end
 
---- aiueo_aiueo
+--- get_sources
+function Completion.get_sources(self)
+  local sources = {}
+  for _, source in pairs(self.sources) do
+    if Config.is_source_enabled(source.name) then
+      table.insert(sources, source)
+    end
+  end
+
+  table.sort(sources, function(source1, source2)
+    local meta1 = source1:get_metadata()
+    local meta2 = source2:get_metadata()
+    if meta1.priority ~= meta2.priority then
+      return meta1.priority > meta2.priority
+    end
+  end)
+
+  return sources
+end
+
 return Completion
 

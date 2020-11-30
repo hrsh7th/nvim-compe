@@ -3,14 +3,6 @@ if exists('g:loaded_compe') || !has('nvim')
 endif
 let g:loaded_compe = v:true
 
-let g:compe_enabled = get(g:, 'compe_enabled', v:false)
-let g:compe_debug = get(g:, 'compe_debug', v:false)
-let g:compe_min_length = get(g:, 'compe_min_length', 1)
-let g:compe_auto_preselect = get(g:, 'compe_auto_preselect', v:false)
-let g:compe_throttle_time = get(g:, 'compe_throttle_time', 120)
-let g:compe_source_timeout = get(g:, 'compe_source_timeout', 200)
-let g:compe_incomplete_delay = get(g:, 'compe_incomplete_delay', 400)
-
 augroup compe
   autocmd!
   autocmd CompleteDone * call s:on_complete_done()
@@ -23,27 +15,21 @@ augroup END
 " on_complete_changed
 "
 function! s:on_complete_changed() abort
-  if g:compe_enabled
-    call luaeval('require"compe":on_complete_changed()')
-  endif
+  call luaeval('require"compe":on_complete_changed()')
 endfunction
 
 "
 " on_complete_done
 "
 function! s:on_complete_done() abort
-  if g:compe_enabled
-    call luaeval('require"compe":on_complete_done()')
-  endif
+  call luaeval('require"compe":on_complete_done()')
 endfunction
 
 "
 " on_insert_leave
 "
 function! s:on_insert_leave() abort
-  if g:compe_enabled
-    call luaeval('require"compe":on_insert_leave()')
-  endif
+  call luaeval('require"compe":on_insert_leave()')
 endfunction
 
 "
@@ -56,4 +42,18 @@ function! s:on_text_changed() abort
 endfunction
 
 call compe#pattern#set_defaults()
+
+call compe#register_source('path', compe_path#source#create())
+call compe#register_source('tags', compe_tags#source#create())
+call compe#register_source('vsnip', compe_vsnip#source#create())
+call compe_lamp#source#attach()
+
+lua require'compe':register_source('buffer', require'compe_buffer')
+lua require'compe':register_source('nvim_lua', require'compe_nvim_lua')
+lua require'compe_nvim_lsp'.attach()
+
+" setup
+if has_key(g:, 'compe')
+  call compe#setup(g:compe)
+endif
 

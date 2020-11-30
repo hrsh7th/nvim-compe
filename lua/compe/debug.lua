@@ -1,7 +1,9 @@
+local Config = require'compe.config'
+
 local Debug = {}
 
-function Debug:log(args)
-  if vim.g.compe_debug then
+Debug.log = function(args)
+  if Config.get().debug then
     if type(args) == 'string' then
       print(args)
     else
