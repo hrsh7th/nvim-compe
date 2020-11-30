@@ -200,8 +200,8 @@ end
 -- * asis
 function Source.normalize_items(self, _, items)
   local metadata = self:get_metadata()
-  local normalized = {}
 
+  local normalized = {}
   for _, item in pairs(items) do
     -- string to completed_item
     if type(item) == 'string' then

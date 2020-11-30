@@ -261,10 +261,6 @@ Matcher.compare = function(item1, item2, history)
     return item1.preselect
   end
 
-  if item1.exact ~= item2.exact then
-    return item1.exact
-  end
-
   if item1.asis ~= item2.asis then
     return item2.asis
   end
