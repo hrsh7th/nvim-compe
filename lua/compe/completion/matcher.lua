@@ -248,9 +248,9 @@ end
 --- compare
 Matcher.compare = function(item1, item2, history)
   if item1.priority ~= item2.priority then
-    if item1.priority == nil then
+    if not item1.priority then
       return false
-    elseif item2.priority == nil then
+    elseif not item2.priority then
       return true
     end
     return item1.priority > item2.priority
@@ -264,7 +264,7 @@ Matcher.compare = function(item1, item2, history)
     return item2.asis
   end
 
-  if math.abs(item1.score - item2.score) ~= 0 then
+  if item1.score ~= item2.score then
     return item1.score > item2.score
   end
 
@@ -274,7 +274,7 @@ Matcher.compare = function(item1, item2, history)
     return history_score1 > history_score2
   end
 
-  if item1.sort_text ~= nil and item2.sort_text ~= nil then
+  if item1.sort_text and item2.sort_text then
     if item1.sort_text ~= item2.sort_text then
       return item1.sort_text < item2.sort_text
     end
