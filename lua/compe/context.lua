@@ -16,8 +16,11 @@ function Context.new(option)
   return self
 end
 
---- should_auto_complete
-function Context.should_auto_complete(self, new_context)
+--- should_complete
+function Context.should_complete(self, new_context)
+  if new_context.manual then
+    return true
+  end
   return self.changedtick ~= new_context.changedtick and self.col ~= new_context.col
 end
 

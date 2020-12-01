@@ -64,6 +64,10 @@ endfunction
 " @param {number?} args.minheight
 "
 function! s:FloatingWindow.open(args) abort
+  let a:args.contents = type(a:args.contents) == type('')
+  \   ? split(a:args.contents, "\n", v:true)
+  \   : a:args.contents
+
   let l:size = self.get_size(a:args)
   let l:style = {
     \   'row': a:args.row,
@@ -110,6 +114,10 @@ endfunction
 " get_size
 "
 function! s:FloatingWindow.get_size(args) abort
+  let a:args.contents = type(a:args.contents) == type('')
+  \   ? split(a:args.contents, "\n", v:true)
+  \   : a:args.contents
+
   let l:maxwidth = get(a:args, 'maxwidth', -1)
   let l:minwidth = get(a:args, 'minwidth', -1)
   let l:maxheight = get(a:args, 'maxheight', -1)

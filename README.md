@@ -53,15 +53,16 @@ require'compe'.setup {
 EOF
 endif
 
-inoremap <silent> <C-Space> <C-r>=compe#complete()<CR>
-inoremap <silent><expr> <C-e> compe#close('<C-e>')
-
 if s:default
-  inoremap <silent><expr> <CR>  compe#confirm('<CR>')
+  inoremap <silent><expr> <C-Space> compe#complete()
+  inoremap <silent><expr> <CR>      compe#confirm('<CR>')
+  inoremap <silent><expr> <C-e>     compe#close('<C-e>')
 endif
 
 if s:lexima
-  inoremap <silent><expr> <CR>  compe#confirm(lexima#expand('<LT>CR>', 'i'))
+  inoremap <silent><expr> <C-Space> compe#complete()
+  inoremap <silent><expr> <CR>      compe#confirm(lexima#expand('<LT>CR>', 'i'))
+  inoremap <silent><expr> <C-e>     compe#close('<C-e>')
 endif
 ```
 

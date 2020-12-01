@@ -9,7 +9,7 @@ function! compe#source#vim_bridge#register(name, source) abort
 
   let l:bridge_id = a:name . '_' . s:base_bridge_id
   let s:sources[l:bridge_id] = a:source
-  let s:sources[l:bridge_id].id = luaeval('require"compe":register_vim_source(_A[1], _A[2])', [a:name, l:bridge_id])
+  let s:sources[l:bridge_id].id = luaeval('require"compe"._register_vim_source(_A[1], _A[2])', [a:name, l:bridge_id])
   return s:sources[l:bridge_id].id
 endfunction
 
@@ -24,7 +24,7 @@ function! compe#source#vim_bridge#unregister(id) abort
         break
       endif
     endfor
-    call luaeval('require"compe":unregister_source(_A[1])', [a:id])
+    call luaeval('require"compe".unregister_source(_A[1])', [a:id])
   endif
 endfunction
 
@@ -54,10 +54,10 @@ endfunction
 function! compe#source#vim_bridge#documentation(bridge_id, args) abort
   if has_key(s:sources, a:bridge_id) && has_key(s:sources[a:bridge_id], 'documentation')
     let a:args.callback = { document ->
-    \   luaeval('require"compe.completion.source.vim_bridge".documentation_on_callback(_A[1], _A[2])', [a:bridge_id, document])
+    \   luaeval('require"compe.vim_bridge".documentation_on_callback(_A[1], _A[2])', [a:bridge_id, document])
     \ }
     let a:args.abort = { ->
-    \   luaeval('require"compe.completion.source.vim_bridge".documentation_on_abort(_A[1])', [a:bridge_id])
+    \   luaeval('require"compe.vim_bridge".documentation_on_abort(_A[1])', [a:bridge_id])
     \ }
     call s:sources[a:bridge_id].documentation(a:args)
   endif
@@ -69,10 +69,10 @@ endfunction
 function! compe#source#vim_bridge#complete(bridge_id, args) abort
   if has_key(s:sources, a:bridge_id) && has_key(s:sources[a:bridge_id], 'complete')
     let a:args.callback = { result ->
-    \   luaeval('require"compe.completion.source.vim_bridge".complete_on_callback(_A[1], _A[2])', [a:bridge_id, result])
+    \   luaeval('require"compe.vim_bridge".complete_on_callback(_A[1], _A[2])', [a:bridge_id, result])
     \ }
     let a:args.abort = { ->
-    \   luaeval('require"compe.completion.source.vim_bridge".complete_on_abort(_A[1])', [a:bridge_id])
+    \   luaeval('require"compe.vim_bridge".complete_on_abort(_A[1])', [a:bridge_id])
     \ }
     call s:sources[a:bridge_id].complete(a:args)
   endif

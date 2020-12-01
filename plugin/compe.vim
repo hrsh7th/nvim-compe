@@ -7,7 +7,7 @@ augroup compe
   autocmd!
   autocmd CompleteDone * call s:on_complete_done()
   autocmd CompleteChanged * call s:on_complete_changed()
-  autocmd InsertLeave * call s:on_insert_leave()
+  autocmd InsertEnter * call s:on_insert_enter()
   autocmd TextChangedI,TextChangedP * call s:on_text_changed()
 augroup END
 
@@ -15,28 +15,28 @@ augroup END
 " on_complete_changed
 "
 function! s:on_complete_changed() abort
-  call luaeval('require"compe":on_complete_changed()')
+  call luaeval('require"compe"._on_complete_changed()')
 endfunction
 
 "
 " on_complete_done
 "
 function! s:on_complete_done() abort
-  call luaeval('require"compe":on_complete_done()')
+  call luaeval('require"compe"._on_complete_done()')
 endfunction
 
 "
-" on_insert_leave
+" on_insert_enter
 "
-function! s:on_insert_leave() abort
-  call luaeval('require"compe":on_insert_leave()')
+function! s:on_insert_enter() abort
+  call luaeval('require"compe"._on_insert_enter()')
 endfunction
 
 "
 " s:on_text_changed
 "
 function! s:on_text_changed() abort
-  call luaeval('require"compe":on_text_changed()')
+  call luaeval('require"compe"._on_text_changed()')
 endfunction
 
 call compe#pattern#set_defaults()
@@ -46,8 +46,8 @@ call compe#register_source('tags', compe_tags#source#create())
 call compe#register_source('vsnip', compe_vsnip#source#create())
 call compe_lamp#source#attach()
 
-lua require'compe':register_source('buffer', require'compe_buffer')
-lua require'compe':register_source('nvim_lua', require'compe_nvim_lua')
+lua require'compe'.register_source('buffer', require'compe_buffer')
+lua require'compe'.register_source('nvim_lua', require'compe_nvim_lua')
 lua require'compe_nvim_lsp'.attach()
 
 " setup

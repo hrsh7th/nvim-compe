@@ -75,13 +75,13 @@ function Source.datermine(self, context)
   local trigger_chars = self:get_paths(self.client.server_capabilities, { 'completionProvider', 'triggerCharacters' }) or {}
   if vim.tbl_contains(trigger_chars, context.before_char) and context.before_char ~= ' ' then
     return {
-      keyword_pattern_offset = Pattern:get_keyword_pattern_offset(context);
+      keyword_pattern_offset = Pattern.get_keyword_pattern_offset(context);
       trigger_character_offset = context.col;
     }
   end
 
   return {
-    keyword_pattern_offset = Pattern:get_keyword_pattern_offset(context)
+    keyword_pattern_offset = Pattern.get_keyword_pattern_offset(context)
   }
 end
 

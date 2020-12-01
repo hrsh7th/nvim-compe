@@ -1,7 +1,7 @@
-local Debug = require'compe.debug'
-local Async = require'compe.async'
+local Debug = require'compe.utils.debug'
+local Async = require'compe.utils.async'
 local Config = require'compe.config'
-local Context = require'compe.completion.context'
+local Context = require'compe.context'
 
 local Source =  {}
 
@@ -23,6 +23,7 @@ end
 -- clear
 function Source.clear(self)
   self.status = 'waiting'
+  self.metadata = nil
   self.items = {}
   self.keyword_pattern_offset = 0
   self.trigger_character_offset = 0
@@ -37,7 +38,7 @@ function Source.documentation(self, event, completed_item)
 
   local documentation_id = self.documentation_id
   if self.source.documentation then
-    Async.next(function()
+    Async.next('documentation', function()
       self.source:documentation({
         completed_item = completed_item;
         context = Context.new({});
@@ -162,10 +163,15 @@ end
 
 --- get_metadata
 function Source.get_metadata(self)
-  local metadata = self.source:get_metadata()
+  if not self.metadata then
+    self.metadata = self.source:get_metadata()
+  end
+
+  local metadata = self.metadata
   for key, value in pairs(Config.get_metadata(self.name)) do
     metadata[key] = value
   end
+  metadata.sort = metadata.sort or true
   return metadata
 end
 
