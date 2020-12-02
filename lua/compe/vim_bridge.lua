@@ -1,4 +1,4 @@
-local Compat = require'compe.compat'
+local Compat = require'compe.utils.compat'
 
 local VimBridge =  {}
 

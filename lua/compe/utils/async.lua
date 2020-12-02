@@ -1,5 +1,6 @@
 local throttle_timer = {}
 local debounce_timer = {}
+local next_callback = {}
 
 local function debounce(id, timeout, callback)
   if debounce_timer[id] then
@@ -33,16 +34,6 @@ local function throttle(id, timeout, callback)
   end)
 end
 
-local function next(callback)
-  local timer = vim.loop.new_timer()
-  timer:start(0, 0, vim.schedule_wrap(function()
-    callback()
-    timer:stop()
-    timer:close()
-    timer = nil
-  end))
-end
-
 local function fast_schedule(callback)
   if not vim.in_fast_event() then
     callback()
@@ -55,6 +46,16 @@ local function fast_schedule_wrap(callback)
   return function()
     fast_schedule(callback)
   end
+end
+
+local function next(id, callback)
+  next_callback[id] = callback
+  fast_schedule(function()
+    if next_callback[id] then
+      next_callback[id]()
+      next_callback[id] = nil
+    end
+  end)
 end
 
 return {

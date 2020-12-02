@@ -15,7 +15,7 @@ end
 
 function Source.datermine(_, context)
   return {
-    keyword_pattern_offset = Pattern:get_keyword_pattern_offset(context)
+    keyword_pattern_offset = Pattern.get_keyword_pattern_offset(context)
   }
 end
 
@@ -26,8 +26,8 @@ function Source.complete(self, args)
     if not self.buffers[buf] then
       local buffer = Buffer.new(
         buf,
-        Pattern:get_keyword_pattern_by_filetype(vim.fn.getbufvar(buf, '&filetype')),
-        Pattern:get_default_keyword_pattern()
+        Pattern.get_keyword_pattern_by_filetype(vim.fn.getbufvar(buf, '&filetype')),
+        Pattern.get_default_keyword_pattern()
       )
       buffer:index()
       buffer:watch()

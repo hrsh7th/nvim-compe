@@ -1,28 +1,36 @@
-local Pattern = {
-  filetypes = {};
-}
+local Pattern = {}
 
-function Pattern:set(filetype, config)
-  self.filetypes[filetype] = config
+Pattern.filetypes = {}
+Pattern.regexes = {}
+
+Pattern.set = function(filetype, config)
+  Pattern.filetypes[filetype] = config
 end
 
-function Pattern:get_default_keyword_pattern()
+Pattern.get_default_keyword_pattern = function()
   return '\\h\\w*\\%(-\\w*\\)*'
 end
 
-function Pattern:get_keyword_pattern(context)
-  return self:get_keyword_pattern_by_filetype(context.filetype)
+Pattern.get_keyword_pattern = function(context)
+  return Pattern.get_keyword_pattern_by_filetype(context.filetype)
 end
 
-function Pattern:get_keyword_pattern_by_filetype(filetype)
-  return self.filetypes[filetype] and self.filetypes[filetype].keyword_pattern or self.get_default_keyword_pattern()
+Pattern.get_keyword_pattern_by_filetype = function(filetype)
+  return Pattern.filetypes[filetype] and Pattern.filetypes[filetype].keyword_pattern or Pattern.get_default_keyword_pattern()
 end
 
-function Pattern:get_keyword_pattern_offset(context)
-  local context_regex = vim.regex(self:get_keyword_pattern(context) .. '$')
-  local default_regex = vim.regex(self:get_default_keyword_pattern() .. '$')
-  local s1 = context_regex:match_str(context.before_line)
-  local s2 = default_regex:match_str(context.before_line)
+Pattern.get_keyword_pattern_offset = function(context)
+  local keyword_pattern = Pattern.get_keyword_pattern(context) .. '$'
+  local default_pattern = Pattern.get_default_keyword_pattern() .. '$'
+
+  local s1, s2
+  if keyword_pattern == default_pattern then
+    s1 = Pattern.regex(keyword_pattern):match_str(context.before_line)
+    s2 = s1
+  else
+    s1 = Pattern.regex(keyword_pattern):match_str(context.before_line)
+    s2 = Pattern.regex(default_pattern):match_str(context.before_line)
+  end
 
   if s1 == nil and s2 == nil then
     return 0
@@ -36,8 +44,11 @@ function Pattern:get_keyword_pattern_offset(context)
   return math.min(s1, s2) + 1
 end
 
-function Pattern:get_property_accessors(context)
-  return self.filetypes[context.filetype] and self.filetypes[context.filetype].propery_accessors or {}
+Pattern.regex = function(pattern)
+  if not Pattern.regexes[pattern] then
+    Pattern.regexes[pattern] = vim.regex(pattern)
+  end
+  return Pattern.regexes[pattern]
 end
 
 return Pattern

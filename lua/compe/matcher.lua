@@ -1,4 +1,4 @@
-local Character = require'compe.completion.character'
+local Character = require'compe.utils.character'
 
 local Matcher = {}
 
@@ -84,8 +84,13 @@ end
 --
 Matcher.score = function(input, word)
   -- Empty input
-  if #input == 0 or #input > #word then
+  if #input == 0 then
     return 1
+  end
+
+  -- Ignore if input is long than word
+  if #input > #word then
+    return 0
   end
 
   -- Check first char matching (special check for completion)
