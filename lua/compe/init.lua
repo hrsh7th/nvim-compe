@@ -1,4 +1,5 @@
 local Debug = require'compe.utils.debug'
+local Pattern = require'compe.pattern'
 local Compat = require'compe.utils.compat'
 local Completion = require'compe.completion'
 local Source = require'compe.source'
@@ -32,7 +33,6 @@ end
 
 local compe = {}
 
-
 --- Public API
 
 --- helper
@@ -40,6 +40,15 @@ compe.helper = Helper
 
 --- setup
 compe.setup = function(config)
+  Pattern.set_filetype_config('vim', {
+    keyword_pattern = [[\%(\w:\w*\|\h\%(\w\|#\)*\)]];
+  })
+  Pattern.set_filetype_config('php', {
+    keyword_pattern = [[\%(\$\w*\|\h\w*\)]];
+  })
+  Pattern.set_filetype_config('html', {
+    keyword_pattern = [[\%(/\h?\w*\|\h\w*\)]];
+  })
   Config.set(config)
 end
 

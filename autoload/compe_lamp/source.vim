@@ -56,23 +56,9 @@ function! s:datermine(server, context) abort
     return {}
   endif
 
-  let l:keyword_pattern_offset = compe#pattern#get_keyword_pattern_offset(a:context)
-
-  let l:trigger_chars = a:server.capabilities.get_completion_trigger_characters()
-  if index(l:trigger_chars, a:context.before_char) >= 0 && a:context.before_char !=# ' '
-    return {
-    \   'keyword_pattern_offset': l:keyword_pattern_offset,
-    \   'trigger_character_offset': a:context.col,
-    \ }
-  endif
-
-  if l:keyword_pattern_offset > 0
-    return {
-    \   'keyword_pattern_offset': l:keyword_pattern_offset,
-    \ }
-  endif
-
-  return {}
+  return compe#helper#datermine(a:context, {
+  \   'trigger_characters': a:server.capabilities.get_completion_trigger_characters()
+  \ })
 endfunction
 
 "

@@ -39,26 +39,24 @@ function! s:on_text_changed() abort
   call luaeval('require"compe"._on_text_changed()')
 endfunction
 
-call compe#helper#set_filetype_config('vim', {
-\   'keyword_pattern': '\%(\w:\w*\|\h\%(\w\|#\)*\)',
-\ })
-call compe#helper#set_filetype_config('php', {
-\   'keyword_pattern': '\%(\$\w*\|\h\w*\)',
-\ })
-call compe#helper#set_filetype_config('html', {
-\   'keyword_pattern': '\%(/\h?\w*\|\h\w*\)',
-\ })
-
+"
+" setup vim sources.
+"
 call compe#register_source('path', compe_path#source#create())
 call compe#register_source('tags', compe_tags#source#create())
 call compe#register_source('vsnip', compe_vsnip#source#create())
 call compe_lamp#source#attach()
 
+"
+" setup lua sources.
+"
 lua require'compe'.register_source('buffer', require'compe_buffer')
 lua require'compe'.register_source('nvim_lua', require'compe_nvim_lua')
 lua require'compe_nvim_lsp'.attach()
 
+"
 " setup
+"
 if has_key(g:, 'compe')
   call compe#setup(g:compe)
 endif

@@ -6,13 +6,6 @@ function! compe#helper#datermine(context, ...) abort
 endfunction
 
 "
-" compe#helper#set_filetype_config
-"
-function! compe#helper#set_filetype_config(filetype, config) abort
-  call luaeval('require"compe".helper.set_filetype_config(_A[1], _A[2])', [a:filetype, a:config])
-endfunction
-
-"
 " compe#helper#get_keyword_pattern
 "
 function! compe#helper#get_keyword_pattern(filetype) abort
@@ -22,7 +15,7 @@ endfunction
 "
 " compe#helper#get_default_pattern
 "
-function! compe#helper#get_default_pattern(filetype) abort
+function! compe#helper#get_default_pattern() abort
   return luaeval('require"compe".helper.get_default_pattern()')
 endfunction
 

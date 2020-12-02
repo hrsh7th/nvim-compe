@@ -5,7 +5,7 @@ local Helper = {}
 --- datermine
 Helper.datermine = function(context, option)
   local trigger_character_offset = 0
-  if option and option and option.trigger_characters then
+  if option and option and option.trigger_characters and context.before_char ~= ' ' then
     if vim.tbl_contains(option.trigger_characters, context.before_char) then
       trigger_character_offset = context.col
     end
@@ -15,11 +15,6 @@ Helper.datermine = function(context, option)
     keyword_pattern_offset = Pattern.get_keyword_offset(context);
     trigger_character_offset = trigger_character_offset;
   }
-end
-
---- set_filetype_config
-Helper.set_filetype_config = function(filetype, config)
-  Pattern.set(filetype, config)
 end
 
 --- get_keyword_pattern

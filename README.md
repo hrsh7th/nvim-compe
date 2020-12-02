@@ -83,7 +83,7 @@ endif
 
 The compe is under development so I will apply breaking change sometimes.
 
-The below APIs are marked mark as public.
+The below APIs are mark as public.
 
 ### Vim script
 

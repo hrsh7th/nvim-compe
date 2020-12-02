@@ -1,11 +1,11 @@
 local Pattern = {}
 
-Pattern.filetypes = {}
-Pattern.regexes = {}
+Pattern._filetypes = {}
+Pattern._regexes = {}
 
 --- set
-Pattern.set = function(filetype, config)
-  Pattern.filetypes[filetype] = config
+Pattern.set_filetype_config = function(filetype, config)
+  Pattern._filetypes[filetype] = config
 end
 
 --- get_default_pattern
@@ -15,8 +15,8 @@ end
 
 --- get_keyword_pattern
 Pattern.get_keyword_pattern = function(filetype)
-  if Pattern.filetypes[filetype] and Pattern.filetypes[filetype].keyword_pattern then
-    return Pattern.filetypes[filetype].keyword_pattern
+  if Pattern._filetypes[filetype] and Pattern._filetypes[filetype].keyword_pattern then
+    return Pattern._filetypes[filetype].keyword_pattern
   end
   return Pattern.get_default_pattern()
 end
@@ -49,10 +49,10 @@ end
 
 --- regex
 Pattern.regex = function(pattern)
-  if not Pattern.regexes[pattern] then
-    Pattern.regexes[pattern] = vim.regex(pattern)
+  if not Pattern._regexes[pattern] then
+    Pattern._regexes[pattern] = vim.regex(pattern)
   end
-  return Pattern.regexes[pattern]
+  return Pattern._regexes[pattern]
 end
 
 return Pattern
