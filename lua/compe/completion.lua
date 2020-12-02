@@ -1,5 +1,6 @@
 local Debug = require'compe.utils.debug'
 local Async = require'compe.utils.async'
+local Cache = require'compe.utils.cache'
 local Config = require'compe.config'
 local Context = require'compe.context'
 local Matcher = require'compe.matcher'
@@ -7,6 +8,7 @@ local VimBridge = require'compe.vim_bridge'
 
 local Completion = {}
 
+Completion._insert_id = 0
 Completion._sources = {}
 Completion._context = Context.new({})
 Completion._current_offset = 0
@@ -21,24 +23,30 @@ Completion.unregister_source = function(id)
   Completion._sources[id] = nil
 end
 
---- get_sources
 Completion.get_sources = function()
-  local sources = {}
-  for _, source in pairs(Completion._sources) do
-    if Config.is_source_enabled(source.name) then
-      table.insert(sources, source)
+  return Cache.readthrough('Completion.get_sources', Completion._insert_id, function()
+    local sources = {}
+    for _, source in pairs(Completion._sources) do
+      if Config.is_source_enabled(source.name) then
+        table.insert(sources, source)
+      end
     end
-  end
 
-  table.sort(sources, function(source1, source2)
-    local meta1 = source1:get_metadata()
-    local meta2 = source2:get_metadata()
-    if meta1.priority ~= meta2.priority then
-      return meta1.priority > meta2.priority
-    end
+    table.sort(sources, function(source1, source2)
+      local meta1 = source1:get_metadata()
+      local meta2 = source2:get_metadata()
+      if meta1.priority ~= meta2.priority then
+        return meta1.priority > meta2.priority
+      end
+    end)
+
+    return sources
   end)
+end
 
-  return sources
+Completion.start_insert = function()
+  Completion.close()
+  Completion._insert_id = Completion._insert_id + 1
 end
 
 Completion.close = function()

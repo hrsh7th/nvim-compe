@@ -79,14 +79,40 @@ endif
 
 # Development
 
-### special attributes
+## Public API
 
-- preselect
-  - Specify the item should be preselect
+The compe is under development so I will apply breaking change sometimes.
 
-- filter_text
-  - Specify text that will be used only filter
+The below APIs are marked mark as public.
 
-- sort_text
-  - Specify text that will be used only sort
+### Vim script
+
+```viml
+" Setup user configuration.
+call compe#setup({ ... })
+
+" Register and unregister source.
+let l:id = compe#register_source('name', s:source)
+call compe#unregister_source(l:id)
+
+" Invoke completion.
+call compe#complete()
+
+" Confirm selected item.
+call compe#confirm('<C-y>') " optional fallback key.
+
+" Close completion menu.
+call compe#close('<C-e>') " optional fallback key.
+```
+
+### Lua
+
+```lua
+-- Setup user configuration.
+require'compe'.setup({ ... })
+
+-- Register and unregister source.
+local id = require'compe'.register_source(name, source)
+require'compe'.unregister_source(id)
+```
 
