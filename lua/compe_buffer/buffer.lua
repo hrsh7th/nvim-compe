@@ -49,9 +49,9 @@ function Buffer.watch(self)
         for i = 1, (new_lastline - old_lastline) do
           table.insert(self.words, firstline + i, '')
         end
-      elseif old_lastline > new_lastline then
-        for i = 1, (old_lastline - new_lastline) do
-          table.remove(self.words, old_lastline - i + 2)
+      elseif old_lastline >= new_lastline then
+        for i = 0, (old_lastline - new_lastline) do
+          table.remove(self.words, old_lastline - i + 1)
         end
       end
 
@@ -85,11 +85,8 @@ function Buffer.index_line(self, i, line)
     end
     buffer = new_buffer
   end
-  if append then
-    table.insert(self.words, i, words)
-  else
-    self.words[i] = words
-  end
+
+  self.words[i] = words
 end
 
 --- get_words

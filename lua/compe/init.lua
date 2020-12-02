@@ -3,6 +3,7 @@ local Compat = require'compe.utils.compat'
 local Completion = require'compe.completion'
 local Source = require'compe.source'
 local Config = require'compe.config'
+local Helper = require'compe.helper'
 local VimBridge = require'compe.vim_bridge'
 
 --- suppress
@@ -31,7 +32,11 @@ end
 
 local compe = {}
 
+
 --- Public API
+
+--- helper
+compe.helper = Helper
 
 --- setup
 compe.setup = function(config)

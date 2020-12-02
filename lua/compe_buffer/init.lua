@@ -1,10 +1,11 @@
-local Pattern = require'compe.pattern'
+local compe = require'compe'
 local Buffer = require'compe_buffer.buffer'
 
 local Source = {
   buffers = {};
 }
 
+--- get_metadata
 function Source.get_metadata(_)
   return {
     priority = 10;
@@ -13,21 +14,21 @@ function Source.get_metadata(_)
   }
 end
 
+--- datermine
 function Source.datermine(_, context)
-  return {
-    keyword_pattern_offset = Pattern.get_keyword_pattern_offset(context)
-  }
+  return compe.helper.datermine(context)
 end
 
+--- complete
 function Source.complete(self, args)
   --- gather buffers.
-  local bufs = self:get_bufs()
+  local bufs = self:_get_bufs()
   for _, buf in ipairs(bufs) do
     if not self.buffers[buf] then
       local buffer = Buffer.new(
         buf,
-        Pattern.get_keyword_pattern_by_filetype(vim.fn.getbufvar(buf, '&filetype')),
-        Pattern.get_default_keyword_pattern()
+        compe.helper.get_keyword_pattern(vim.fn.getbufvar(buf, '&filetype')),
+        compe.helper.get_default_pattern()
       )
       buffer:index()
       buffer:watch()
@@ -59,7 +60,7 @@ function Source.do_complete(self, args)
   local processing = false
   local words = {}
   local words_uniq = {}
-  for _, buf in ipairs(self:get_bufs()) do
+  for _, buf in ipairs(self:_get_bufs()) do
     processing = processing or self.buffers[buf].processing
     for _, word in ipairs(self.buffers[buf]:get_words(args.context.lnum)) do
       if not words_uniq[word] then
@@ -75,7 +76,8 @@ function Source.do_complete(self, args)
   })
 end
 
-function Source.get_bufs(_)
+--- _get_bufs
+function Source._get_bufs(_)
   local bufs = {}
 
   local tab = vim.fn.tabpagenr()
@@ -86,7 +88,7 @@ function Source.get_bufs(_)
   end
 
   local alternate = vim.fn.bufnr('#')
-  if not vim.tbl_contains(bufs, alternate) then
+  if alternate ~= -1 and not vim.tbl_contains(bufs, alternate) then
     table.insert(bufs, alternate)
   end
 

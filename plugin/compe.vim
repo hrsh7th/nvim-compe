@@ -39,7 +39,15 @@ function! s:on_text_changed() abort
   call luaeval('require"compe"._on_text_changed()')
 endfunction
 
-call compe#pattern#set_defaults()
+call compe#helper#set_filetype_config('vim', {
+\   'keyword_pattern': '\%(\w:\w*\|\h\%(\w\|#\)*\)',
+\ })
+call compe#helper#set_filetype_config('php', {
+\   'keyword_pattern': '\%(\$\w*\|\h\w*\)',
+\ })
+call compe#helper#set_filetype_config('html', {
+\   'keyword_pattern': '\%(/\h?\w*\|\h\w*\)',
+\ })
 
 call compe#register_source('path', compe_path#source#create())
 call compe#register_source('tags', compe_tags#source#create())

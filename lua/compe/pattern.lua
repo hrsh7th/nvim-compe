@@ -3,25 +3,28 @@ local Pattern = {}
 Pattern.filetypes = {}
 Pattern.regexes = {}
 
+--- set
 Pattern.set = function(filetype, config)
   Pattern.filetypes[filetype] = config
 end
 
-Pattern.get_default_keyword_pattern = function()
+--- get_default_pattern
+Pattern.get_default_pattern = function()
   return '\\h\\w*\\%(-\\w*\\)*'
 end
 
-Pattern.get_keyword_pattern = function(context)
-  return Pattern.get_keyword_pattern_by_filetype(context.filetype)
+--- get_keyword_pattern
+Pattern.get_keyword_pattern = function(filetype)
+  if Pattern.filetypes[filetype] and Pattern.filetypes[filetype].keyword_pattern then
+    return Pattern.filetypes[filetype].keyword_pattern
+  end
+  return Pattern.get_default_pattern()
 end
 
-Pattern.get_keyword_pattern_by_filetype = function(filetype)
-  return Pattern.filetypes[filetype] and Pattern.filetypes[filetype].keyword_pattern or Pattern.get_default_keyword_pattern()
-end
-
-Pattern.get_keyword_pattern_offset = function(context)
-  local keyword_pattern = Pattern.get_keyword_pattern(context) .. '$'
-  local default_pattern = Pattern.get_default_keyword_pattern() .. '$'
+--- get_keyword_offset
+Pattern.get_keyword_offset = function(context)
+  local keyword_pattern = Pattern.get_keyword_pattern(context.filetype) .. '$'
+  local default_pattern = Pattern.get_default_pattern() .. '$'
 
   local s1, s2
   if keyword_pattern == default_pattern then
@@ -44,6 +47,7 @@ Pattern.get_keyword_pattern_offset = function(context)
   return math.min(s1, s2) + 1
 end
 
+--- regex
 Pattern.regex = function(pattern)
   if not Pattern.regexes[pattern] then
     Pattern.regexes[pattern] = vim.regex(pattern)

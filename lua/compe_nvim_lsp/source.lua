@@ -1,4 +1,4 @@
-local Pattern = require'compe.pattern'
+local compe = require'compe'
 local protocol = require'vim.lsp.protocol'
 local util = require'vim.lsp.util'
 
@@ -20,20 +20,51 @@ function Source.get_metadata(self)
   }
 end
 
+function Source.datermine(self, context)
+  return compe.helper.datermine(context, {
+    trigger_characters = self:_get_paths(self.client.server_capabilities, { 'completionProvider', 'triggerCharacters' }) or {};
+  })
+end
+
+function Source.complete(self, args)
+  local params = vim.lsp.util.make_position_params()
+
+  if vim.lsp.client_is_stopped(self.client.id) then
+    return args.abort()
+  end
+
+  params.context = {
+    triggerKind = (args.trigger_character_offset > 0 and 2 or (args.incomplete and 3 or 1))
+  }
+
+
+  if args.trigger_character_offset > 0 then
+    params.context.triggerCharacter = args.context.before_char
+  end
+
+  self.client.request('textDocument/completion', params, function(err, _, result)
+    if err or not result then return args.abort() end
+    args.callback({
+      items = self:_convert(result);
+      incomplete = result.incomplete or false;
+    })
+  end)
+end
+
 function Source.documentation(self, args)
-  local completion_item = self:get_paths(args, { 'completed_item', 'user_data', 'nvim', 'lsp', 'completion_item' })
+  local completion_item = self:_get_paths(args, { 'completed_item', 'user_data', 'nvim', 'lsp', 'completion_item' })
   if not completion_item then
     return args.abort()
   end
 
   --- send `completionItem/resolve` if supported.
-  local has_resolve = self:get_paths(self.client.server_capabilities, { 'completionProvider', 'resolveProvider' })
+  local has_resolve = self:_get_paths(self.client.server_capabilities, { 'completionProvider', 'resolveProvider' })
   if has_resolve then
     self.client.request('completionItem/resolve', completion_item, function(err, _, result)
       if err or not result then
         return args.abort()
       end
-      local document = self:create_document(args.context.filetype, result)
+      local document = self:_create_document(args.context.filetype, result)
       if #document > 0 then
         args.callback(document)
       else
@@ -43,7 +74,7 @@ function Source.documentation(self, args)
 
   --- use current completion_item
   else
-    local document = self:create_document(args.context.filetype, completion_item)
+    local document = self:_create_document(args.context.filetype, completion_item)
     if #document > 0 then
       args.callback(document)
     else
@@ -53,7 +84,7 @@ function Source.documentation(self, args)
 end
 
 --- create_document
-function Source.create_document(self, filetype, completion_item)
+function Source._create_document(self, filetype, completion_item)
   local document = {}
   if completion_item.detail then
     table.insert(document, '```' .. filetype)
@@ -71,45 +102,7 @@ function Source.create_document(self, filetype, completion_item)
   return document
 end
 
-function Source.datermine(self, context)
-  local trigger_chars = self:get_paths(self.client.server_capabilities, { 'completionProvider', 'triggerCharacters' }) or {}
-  if vim.tbl_contains(trigger_chars, context.before_char) and context.before_char ~= ' ' then
-    return {
-      keyword_pattern_offset = Pattern.get_keyword_pattern_offset(context);
-      trigger_character_offset = context.col;
-    }
-  end
-
-  return {
-    keyword_pattern_offset = Pattern.get_keyword_pattern_offset(context)
-  }
-end
-
-function Source.complete(self, args)
-  local params = vim.lsp.util.make_position_params()
-
-  if vim.lsp.client_is_stopped(self.client.id) then
-    return args.abort()
-  end
-
-  params.context = {
-    triggerKind = (args.trigger_character_offset > 0 and 2 or (args.incomplete and 3 or 1))
-  }
-
-  if args.trigger_character_offset > 0 then
-    params.context.triggerCharacter = args.context.before_char
-  end
-
-  self.client.request('textDocument/completion', params, function(err, _, result)
-    if err or not result then return args.abort() end
-    args.callback({
-      items = self:convert(result);
-      incomplete = result.incomplete or false;
-    })
-  end)
-end
-
-function Source.convert(_, result)
+function Source._convert(_, result)
   local completion_items = vim.tbl_islist(result or {}) and result or result.items or {}
 
   local complete_items = {}
@@ -165,7 +158,7 @@ function Source.convert(_, result)
   return complete_items
 end
 
-function Source.get_paths(self, root, paths)
+function Source._get_paths(self, root, paths)
   local c = root
   for _, path in ipairs(paths) do
     c = c[path]

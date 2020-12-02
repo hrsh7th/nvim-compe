@@ -15,14 +15,17 @@ Completion._current_offset = 0
 Completion._current_items = {}
 Completion._history = {}
 
+--- register_source
 Completion.register_source = function(source)
   Completion._sources[source.id] = source
 end
 
+--- unregister_source
 Completion.unregister_source = function(id)
   Completion._sources[id] = nil
 end
 
+--- get_sources
 Completion.get_sources = function()
   return Cache.readthrough('Completion.get_sources', Completion._insert_id, function()
     local sources = {}
@@ -44,11 +47,13 @@ Completion.get_sources = function()
   end)
 end
 
+--- start_insert
 Completion.start_insert = function()
   Completion.close()
   Completion._insert_id = Completion._insert_id + 1
 end
 
+--- close
 Completion.close = function()
   VimBridge.clear()
 
@@ -65,6 +70,7 @@ Completion.close = function()
   Completion._context = Context.new({})
 end
 
+--- confirm
 Completion.confirm = function(completed_item)
   Completion.close()
   if completed_item and completed_item.abbr then
@@ -73,8 +79,9 @@ Completion.confirm = function(completed_item)
   end
 end
 
+--- select
 Completion.select = function(index)
-  if selected_index == -1 then
+  if index == -1 then
     return
   end
 
@@ -89,6 +96,7 @@ Completion.select = function(index)
   end
 end
 
+--- complete
 Completion.complete = function(manual)
   local context = Context.new({ manual = manual })
   if not Completion._context:should_complete(context) then
@@ -122,7 +130,7 @@ Completion._trigger = function(context)
   return trigger
 end
 
---- display
+--- _display
 Completion._display = function(context)
   -- Remove throttle timers when display method called.
   Async.throttle('display:processing', 0, function() end)
@@ -197,15 +205,17 @@ Completion._display = function(context)
       end
     end
 
+    local pumvisible = vim.call('pumvisible') == 1
+
     -- All sources didn't trigger.
     -- Clear current completion state.
-    if #items == 0 or start_offset <= 0 then
+    if (#items == 0 or start_offset <= 0) and pumvisible then
       Completion._show(1, {})
       return
     end
 
     -- Completion
-    if #items > 0 or vim.call('pumvisible') == 1 then
+    if #items > 0 or pumvisible then
       Completion._show(start_offset, items)
     end
   end))
@@ -229,7 +239,7 @@ Completion._show = function(start_offset, items)
   end)
 end
 
---- should_ignore_display
+--- _should_ignore_display
 Completion._should_ignore_display = function()
   local should_ignore_display = false
   should_ignore_display = should_ignore_display or vim.call('compe#_is_selected_manually')
