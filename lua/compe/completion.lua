@@ -98,7 +98,16 @@ end
 
 --- complete
 Completion.complete = function(manual)
+  if Completion:_should_ignore() then
+    return
+  end
+
   local context = Context.new({ manual = manual })
+
+  -- Check the new context should be completed.
+  if not Completion._context:should_complete(context) then
+    return
+  end
 
   -- The vim will hide pum when press backspace so we restore manually.
   if Completion._context:maybe_backspace(context) then
@@ -107,30 +116,24 @@ Completion.complete = function(manual)
     end
   end
 
-  local timeout = (vim.call('pumvisible') == 1 and not manual) and Config.get().throttle_time or -1
-  Async.throttle('complete', timeout, function()
-    if not Completion._context:should_complete(context) then
-      return
-    end
-
-    if not Completion._trigger(context) then
-      Completion._display(context)
-    end
-    Completion._context = context
-  end)
+  -- If triggered, the `_display` will be called for each trigger callback.
+  if not Completion._trigger(context) then
+    Completion._display(context)
+  end
+  Completion._context = context
 end
 
 --- _trigger
 Completion._trigger = function(context)
-  if vim.call('compe#_is_selected_manually') then
-    return
+  if Completion:_should_ignore() then
+    return false
   end
 
   local trigger = false
   for _, source in ipairs(Completion.get_sources()) do
     local status, value = pcall(function()
       trigger = source:trigger(context, function()
-        Completion._display(Context.new({ manual = true } ))
+        Completion._display(Context.new({}))
       end) or trigger
     end)
     if not status then
@@ -142,100 +145,103 @@ end
 
 --- _display
 Completion._display = function(context)
-  -- Check for unexpected state
-  if Completion._should_ignore_display() then
-    return
-  end
+  Async.throttle('display:processing', -1, function() end)
 
-  -- Check for waiting processing source.
+  -- Check for processing source.
   for _, source in ipairs(Completion.get_sources()) do
     local should_wait_processing = true
     should_wait_processing = should_wait_processing and source.status == 'processing' -- source is processing
-    should_wait_processing = should_wait_processing and (vim.loop.now() - source.context.time) < Config.get().source_timeout -- processing timeout
+    should_wait_processing = should_wait_processing and source:get_processing_time() < Config.get().source_timeout -- processing timeout
     if should_wait_processing then
+      local timeout = Config.get().source_timeout - source:get_processing_time()
+      Async.throttle('display:processing', timeout + 1, function()
+        Completion._display(Context.new({}))
+      end)
       return
     end
   end
 
-  -- Gather items and datermine start_offset
-  local use_trigger_character = false
-  local start_offset = 0
-  local items = {}
-  local items_uniq = {}
-  for _, source in ipairs(Completion.get_sources()) do
-    local source_start_offset = source:get_start_offset()
-    if source_start_offset > 0 then
-      -- Prefer prior source's trigger character
-      if source.is_triggered_by_character or not use_trigger_character then
-        if source.status == 'processing' then
-          start_offset = (start_offset == 0 or start_offset > source_start_offset) and source_start_offset or start_offset
-        elseif source.status == 'completed' then
-          -- If source status is completed but it does not provide any items, it will be ignored (don't use start_offset, trigger character).
-          local source_items = Matcher.match(context, source, Completion._history)
-          if #source_items > 0 then
-            start_offset = (start_offset == 0 or start_offset > source_start_offset) and source_start_offset or start_offset
-            use_trigger_character = use_trigger_character or source.is_triggered_by_character
+  local timeout = (vim.call('pumvisible') == 0 or context.manual) and -1 or Config.get().throttle_time
+  Async.throttle('display:filter', timeout, function()
+    if Completion:_should_ignore() then
+      return
+    end
 
-            -- Fix start_offset gap.
-            local gap = string.sub(context.before_line, start_offset, source_start_offset - 1)
-            for _, item in ipairs(source_items) do
-              if items_uniq[item.original_word] == nil or item.dup ~= true then
-                items_uniq[item.original_word] = true
-                item.word = gap .. item.original_word
-                item.abbr = string.rep(' ', #gap) .. item.original_abbr
-                table.insert(items, item)
+    -- Gather items and datermine start_offset
+    local use_trigger_character = false
+    local start_offset = 0
+    local items = {}
+    local items_uniq = {}
+    for _, source in ipairs(Completion.get_sources()) do
+      local source_start_offset = source:get_start_offset()
+      if source_start_offset > 0 then
+        -- Prefer prior source's trigger character
+        if source.is_triggered_by_character or not use_trigger_character then
+          if source.status == 'processing' then
+            start_offset = (start_offset == 0 or start_offset > source_start_offset) and source_start_offset or start_offset
+          elseif source.status == 'completed' then
+            -- If source status is completed but it does not provide any items, it will be ignored (don't use start_offset, trigger character).
+            local source_items = Matcher.match(context, source, Completion._history)
+            if #source_items > 0 then
+              start_offset = (start_offset == 0 or start_offset > source_start_offset) and source_start_offset or start_offset
+              use_trigger_character = use_trigger_character or source.is_triggered_by_character
+
+              -- Fix start_offset gap.
+              local gap = string.sub(context.before_line, start_offset, source_start_offset - 1)
+              for _, item in ipairs(source_items) do
+                if items_uniq[item.original_word] == nil or item.dup ~= true then
+                  items_uniq[item.original_word] = true
+                  item.word = gap .. item.original_word
+                  item.abbr = string.rep(' ', #gap) .. item.original_abbr
+                  table.insert(items, item)
+                end
               end
             end
           end
         end
       end
     end
-  end
 
-  table.sort(items, function(item1, item2)
-    return Matcher.compare(item1, item2, Completion._history)
-  end)
+    --- Sort items
+    table.sort(items, function(item1, item2)
+      return Matcher.compare(item1, item2, Completion._history)
+    end)
 
-  local pumvisible = vim.call('pumvisible') == 1
-
-  -- All sources didn't trigger.
-  -- Clear current completion state.
-  if (#items == 0 or start_offset <= 0) and pumvisible then
-    Completion._show(1, {})
-    return
-  end
-
-  -- Completion
-  if #items > 0 or pumvisible then
-    Completion._show(start_offset, items)
-  end
-end
-
---- _show
-Completion._show = function(start_offset, items)
-  vim.schedule(function()
-    local completeopt = vim.o.completeopt
-    vim.cmd('set completeopt=menu,menuone,noselect')
-    vim.call('complete', start_offset, items)
-    vim.cmd('set completeopt=' .. completeopt)
-
-    Completion._current_offset = start_offset
-    Completion._current_items = items
-
-    -- preselect
-    if items[1] and items[1].preselect or Config.get().auto_preselect then
-      vim.api.nvim_select_popupmenu_item(0, false, false, {})
+    local pumvisible = vim.call('pumvisible') == 1
+    if not pumvisible and #items == 0 then
+      return
+    end
+    if #items == 0 then
+      Completion._show(1, {})
+    else
+      Completion._show(start_offset, items)
     end
   end)
 end
 
---- _should_ignore_display
-Completion._should_ignore_display = function()
-  local should_ignore_display = false
-  should_ignore_display = should_ignore_display or vim.call('compe#_is_selected_manually')
-  should_ignore_display = should_ignore_display or string.sub(vim.call('mode'), 1, 1) ~= 'i'
-  should_ignore_display = should_ignore_display or vim.call('getbufvar', '%', '&buftype') == 'prompt'
-  return should_ignore_display
+--- _show
+Completion._show = function(start_offset, items)
+  local completeopt = vim.o.completeopt
+  vim.cmd('set completeopt=menu,menuone,noselect')
+  vim.call('complete', start_offset, items)
+  vim.cmd('set completeopt=' .. completeopt)
+
+  Completion._current_offset = start_offset
+  Completion._current_items = items
+
+  -- preselect
+  if items[1] and items[1].preselect or Config.get().auto_preselect then
+    vim.api.nvim_select_popupmenu_item(0, false, false, {})
+  end
+end
+
+--- _should_ignore
+Completion._should_ignore = function()
+  local should_ignore = false
+  should_ignore = should_ignore or vim.call('compe#_is_selected_manually')
+  should_ignore = should_ignore or string.sub(vim.call('mode'), 1, 1) ~= 'i'
+  should_ignore = should_ignore or vim.call('getbufvar', '%', '&buftype') == 'prompt'
+  return should_ignore
 end
 
 return Completion

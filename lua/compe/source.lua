@@ -83,7 +83,6 @@ function Source.trigger(self, context, callback)
   -- Does not match any patterns
   if state.keyword_pattern_offset == 0 and state.trigger_character_offset == 0 then
     self:clear()
-    self:log('no_completion', context, state)
     return
   end
 
@@ -99,13 +98,11 @@ function Source.trigger(self, context, callback)
   if force == false then
     -- Ignore when condition does not changed
     if is_same_offset then
-      self:log('same_offset', context, state)
       return
     end
 
     -- Ignore when enough length of input
     if is_less_input then
-      self:log('less_input', context, state)
       return
     end
   end
@@ -121,7 +118,6 @@ function Source.trigger(self, context, callback)
   self.context = context
 
   -- Completion
-  self:log('completion', context, state)
   self.source:complete({
     context = self.context;
     input = self.context:get_input(self.keyword_pattern_offset);
@@ -130,11 +126,8 @@ function Source.trigger(self, context, callback)
     incomplete = self.incomplete;
     callback = function(result)
       if context ~= self.context then
-        Debug.log('> completed skip: ' .. self.id .. ': ' .. #result.items)
         return
       end
-
-      Debug.log('> completed: ' .. self.id .. ': ' .. #result.items .. ', sec: ' .. vim.loop.now() - self.context.time)
 
       self.items = self.incomplete and #result.items == 0 and self.items or self:normalize_items(context, result.items or {})
       self.status = 'completed'
@@ -144,7 +137,6 @@ function Source.trigger(self, context, callback)
       callback()
     end;
     abort = function()
-      Debug.log('> completed abort: ' .. self.id)
       self.items = {}
       self.status = 'waiting'
       self.incomplete = false
@@ -154,11 +146,6 @@ function Source.trigger(self, context, callback)
     end;
   })
   return true
-end
-
---- get_id
-function Source.get_id(self)
-  return self.id
 end
 
 --- get_metadata
@@ -175,39 +162,17 @@ function Source.get_metadata(self)
   return metadata
 end
 
---- get_status
-function Source.get_status(self)
-  return self.status
-end
-
 --- get_start_offset
 function Source.get_start_offset(self)
   return self.keyword_pattern_offset or 0
 end
 
---- get_items
-function Source.get_items(self)
-  return self.items or {}
-end
-
--- log
-function Source.log(self, label, context, state)
-  local force_type = ''
-  if context.manual then
-    force_type = 'manual'
-  elseif state.trigger_character_offset > 0 then
-    force_type = 'trigger'
-  elseif self.incomplete then
-    force_type = 'incomplete'
+--- get_start_offset
+function Source.get_processing_time(self)
+  if self.status == 'processing' then
+    return vim.loop.now() - self.context.time
   end
-  Debug.log(string.format('<%s>	%s-%s	k: %d	t: %d, f: %s',
-    label,
-    self.name,
-    self.id,
-    self.keyword_pattern_offset,
-    self.trigger_character_offset,
-    force_type
-  ))
+  return 0
 end
 
 --- normalize_items

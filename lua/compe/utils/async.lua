@@ -1,6 +1,4 @@
 local throttle_timer = {}
-local debounce_timer = {}
-local next_callback = {}
 
 local Async = {}
 
@@ -10,7 +8,7 @@ Async._timers = {}
 Async.set_timeout = function(callback, timeout)
   Async._base_timer_id = Async._base_timer_id + 1
 
-  if timeout == -1 then
+  if timeout < 0 then
     vim.schedule(callback)
     return -1
   end
@@ -43,7 +41,7 @@ Async.throttle = function(id, timeout, callback)
   state.timer_id = Async.set_timeout(function()
     throttle_timer[id] = nil
     callback()
-  end, math.max(-1, timeout - (vim.loop.now() - state.now)))
+  end, timeout - (vim.loop.now() - state.now))
   state.now = vim.loop.now()
 end
 

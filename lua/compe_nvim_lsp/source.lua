@@ -37,7 +37,6 @@ function Source.complete(self, args)
     triggerKind = (args.trigger_character_offset > 0 and 2 or (args.incomplete and 3 or 1))
   }
 
-
   if args.trigger_character_offset > 0 then
     params.context.triggerCharacter = args.context.before_char
   end

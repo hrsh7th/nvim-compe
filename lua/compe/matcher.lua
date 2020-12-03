@@ -10,7 +10,7 @@ Matcher.match = function(context, source)
 
   -- filter
   local matches = {}
-  for _, item in ipairs(source:get_items()) do
+  for _, item in ipairs(source.items) do
     local word = item.filter_text or item.original_word
     item.score = 0
     if #word >= #input then
