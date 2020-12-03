@@ -48,15 +48,15 @@ function Source.complete(self, args)
       timer:stop()
       timer:close()
       timer = nil
-      self:do_complete(args)
+      self:_do_complete(args)
     end))
   else
-    self.do_complete(args)
+    self._do_complete(args)
   end
 end
 
---- do_complete
-function Source.do_complete(self, args)
+--- _do_complete
+function Source._do_complete(self, args)
   local processing = false
   local words = {}
   local words_uniq = {}
