@@ -47,7 +47,7 @@ require'compe'.setup {
     buffer = true;
     vsnip = true;
     nvim_lsp = true;
-    nvim_lua = true;
+    nvim_lua = { ... overwrite source configuration ... };
   };
 }
 EOF
@@ -103,6 +103,9 @@ call compe#confirm('<C-y>') " optional fallback key.
 
 " Close completion menu.
 call compe#close('<C-e>') " optional fallback key.
+
+" Source helpers.
+call compe#helper#*()
 ```
 
 ### Lua
@@ -114,5 +117,23 @@ require'compe'.setup({ ... })
 -- Register and unregister source.
 local id = require'compe'.register_source(name, source)
 require'compe'.unregister_source(id)
+
+-- Source helpers.
+require'compe'.helper.*
 ```
+
+## Source configuration
+
+The source configuration can be defined by `source.get_metadata` function.
+
+- *priority*
+  - Specify source priority.
+- *filetypes*
+  - Specify source enabling filetypes.
+- *sort*
+  - Specify the source candidates will be sorted or not.
+- *dup*
+  - Specify the source candidates will be allowed existing other same word candidate or not.
+- *menu*
+  - Specify item's menu (see `:help complete-items`)
 

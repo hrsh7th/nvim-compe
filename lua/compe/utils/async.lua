@@ -2,66 +2,50 @@ local throttle_timer = {}
 local debounce_timer = {}
 local next_callback = {}
 
-local function debounce(id, timeout, callback)
-  if debounce_timer[id] then
-    debounce_timer[id]:stop()
-    debounce_timer[id]:close()
-    debounce_timer[id] = nil
+local Async = {}
+
+Async._base_timer_id = 0
+Async._timers = {}
+
+Async.set_timeout = function(callback, timeout)
+  Async._base_timer_id = Async._base_timer_id + 1
+
+  if timeout == -1 then
+    vim.schedule(callback)
+    return -1
   end
-  debounce_timer[id] = vim.loop.new_timer()
-  debounce_timer[id]:start(timeout, 0, function()
+
+  local timer_id = Async._base_timer_id
+  Async._timers[timer_id] = vim.loop.new_timer()
+  Async._timers[timer_id]:start(timeout, 0, vim.schedule_wrap(function()
+    Async.clear_timeout(timer_id)
     callback()
-  end)
+  end))
+  return timer_id
 end
 
-local function throttle(id, timeout, callback)
-  if throttle_timer[id] then
-    timeout = math.max(0, timeout - (vim.loop.now() - throttle_timer[id].now))
-    throttle_timer[id].timer:stop()
-    throttle_timer[id].timer:close()
-    throttle_timer[id] = nil
+Async.clear_timeout = function(timer_id)
+  if Async._timers[timer_id] then
+    Async._timers[timer_id]:stop()
+    Async._timers[timer_id]:close()
+    Async._timers[timer_id] = nil
   end
-  throttle_timer[id] = {
-    timer = vim.loop.new_timer();
-    callback = callback;
+end
+
+Async.throttle = function(id, timeout, callback)
+  throttle_timer[id] = throttle_timer[id] or {
+    timer_id = -1;
     now = vim.loop.now();
   }
-  throttle_timer[id].timer:start(timeout, 0, function()
-    throttle_timer[id].callback()
-    throttle_timer[id].timer:stop()
-    throttle_timer[id].timer:close()
+
+  local state = throttle_timer[id]
+  Async.clear_timeout(state.timer_id)
+  state.timer_id = Async.set_timeout(function()
     throttle_timer[id] = nil
-  end)
-end
-
-local function fast_schedule(callback)
-  if not vim.in_fast_event() then
     callback()
-  else
-    vim.schedule(callback)
-  end
+  end, math.max(-1, timeout - (vim.loop.now() - state.now)))
+  state.now = vim.loop.now()
 end
 
-local function fast_schedule_wrap(callback)
-  return function()
-    fast_schedule(callback)
-  end
-end
+return Async
 
-local function next(id, callback)
-  next_callback[id] = callback
-  fast_schedule(function()
-    if next_callback[id] then
-      next_callback[id]()
-      next_callback[id] = nil
-    end
-  end)
-end
-
-return {
-  throttle = throttle;
-  debounce = debounce;
-  next = next;
-  fast_schedule = fast_schedule;
-  fast_schedule_wrap = fast_schedule_wrap;
-}

@@ -89,7 +89,7 @@ Completion.select = function(index)
   if completed_item then
     for _, source in ipairs(Completion.get_sources()) do
       if source.id == completed_item.source_id then
-        source:documentation(vim.v.event, completed_item)
+        source:documentation(completed_item)
         break
       end
     end
@@ -98,9 +98,17 @@ end
 
 --- complete
 Completion.complete = function(manual)
-  local timeout = (vim.call('pumvisible') == 1 and not manual) and Config.get().throttle_time or 0
-  Async.throttle('complete', timeout, Async.fast_schedule_wrap(function()
-    local context = Context.new({ manual = manual })
+  local context = Context.new({ manual = manual })
+
+  -- The vim will hide pum when press backspace so we restore manually.
+  if Completion._context:maybe_backspace(context) then
+    if Completion._current_offset > 0 then
+      Completion._show(Completion._current_offset, Completion._current_items)
+    end
+  end
+
+  local timeout = (vim.call('pumvisible') == 1 and not manual) and Config.get().throttle_time or -1
+  Async.throttle('complete', timeout, function()
     if not Completion._context:should_complete(context) then
       return
     end
@@ -109,7 +117,7 @@ Completion.complete = function(manual)
       Completion._display(context)
     end
     Completion._context = context
-  end))
+  end)
 end
 
 --- _trigger
@@ -134,9 +142,6 @@ end
 
 --- _display
 Completion._display = function(context)
-  -- Remove throttle timers when display method called.
-  Async.throttle('display:processing', 0, function() end)
-
   -- Check for unexpected state
   if Completion._should_ignore_display() then
     return
@@ -148,19 +153,6 @@ Completion._display = function(context)
     should_wait_processing = should_wait_processing and source.status == 'processing' -- source is processing
     should_wait_processing = should_wait_processing and (vim.loop.now() - source.context.time) < Config.get().source_timeout -- processing timeout
     if should_wait_processing then
-      -- Reserve to call display after timeout.
-      Async.throttle('display:processing', Config.get().source_timeout, Async.fast_schedule_wrap(function()
-        Completion._display(context)
-      end))
-
-      -- The vim will hide pum when press backspace so we restore manually.
-      if Completion._context:maybe_backspace(context) then
-        if Completion._current_offset > 0 then
-          Async.fast_schedule(function()
-            Completion._show(Completion._current_offset, Completion._current_items)
-          end)
-        end
-      end
       return
     end
   end
@@ -200,6 +192,10 @@ Completion._display = function(context)
     end
   end
 
+  table.sort(items, function(item1, item2)
+    return Matcher.compare(item1, item2, Completion._history)
+  end)
+
   local pumvisible = vim.call('pumvisible') == 1
 
   -- All sources didn't trigger.
@@ -217,7 +213,7 @@ end
 
 --- _show
 Completion._show = function(start_offset, items)
-  Async.next('_show', function()
+  vim.schedule(function()
     local completeopt = vim.o.completeopt
     vim.cmd('set completeopt=menu,menuone,noselect')
     vim.call('complete', start_offset, items)

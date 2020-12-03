@@ -87,11 +87,6 @@ function Source._get_bufs(_)
     end
   end
 
-  local alternate = vim.fn.bufnr('#')
-  if alternate ~= -1 and not vim.tbl_contains(bufs, alternate) then
-    table.insert(bufs, alternate)
-  end
-
   return bufs
 end
 

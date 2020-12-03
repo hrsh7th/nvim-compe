@@ -1,6 +1,6 @@
 local Config = {}
 
-Config.config = {
+Config._config = {
   enabled = true;
   debug = false;
   min_length = 1;
@@ -12,11 +12,11 @@ Config.config = {
 }
 
 Config.get = function()
-  return Config.config
+  return Config._config
 end
 
 Config.get_metadata = function(name)
-  return Config.get().source[name]
+  return Config._config.source[name]
 end
 
 Config.set = function(config)
@@ -42,11 +42,11 @@ Config.set = function(config)
     end
   end
 
-  Config.config = config
+  Config._config = config
 end
 
 Config.is_source_enabled = function(name)
-  return Config.get().source[name] and not Config.get().source[name].disabled
+  return Config._config.source[name] and not Config._config.source[name].disabled
 end
 
 return Config

@@ -6,14 +6,14 @@ let s:window = s:FloatingWindow.new()
 "
 " compe#documentation#show
 "
-function! compe#documentation#open(event, document) abort
+function! compe#documentation#open(document) abort
   if !compe#_is_selected_manually()
     return
   endif
 
   let l:document = split(s:MarkupContent.normalize(a:document), "\n", v:true)
 
-  let l:pos = s:get_screenpos(a:event, l:document)
+  let l:pos = s:get_screenpos(pum_getpos(), l:document)
   if empty(l:pos)
     return s:window.close()
   endif

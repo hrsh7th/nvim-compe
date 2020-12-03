@@ -33,27 +33,27 @@ function Source.clear(self)
 end
 
 --- documentation
-function Source.documentation(self, event, completed_item)
+function Source.documentation(self, completed_item)
   self.documentation_id = self.documentation_id + 1
 
   local documentation_id = self.documentation_id
   if self.source.documentation then
-    Async.next('documentation', function()
-      self.source:documentation({
-        completed_item = completed_item;
-        context = Context.new({});
-        abort = function()
-          vim.call('compe#documentation#close')
-        end;
-        callback = function(document)
-          if self.documentation_id == documentation_id then
-            vim.call('compe#documentation#open', event, document)
-          end
+    self.source:documentation({
+      completed_item = completed_item;
+      context = Context.new({});
+      abort = vim.schedule_wrap(function()
+        vim.call('compe#documentation#close')
+      end);
+      callback = vim.schedule_wrap(function(document)
+        if self.documentation_id == documentation_id then
+          vim.call('compe#documentation#open', document)
         end
-      })
-    end)
+      end)
+    })
   else
-    vim.call('compe#documentation#close')
+    vim.schedule(function()
+      vim.call('compe#documentation#close')
+    end)
   end
 end
 
@@ -226,6 +226,10 @@ function Source.normalize_items(self, _, items)
         abbr = item;
       }
     end
+
+    -- Matcher related properties.
+    item.score = 0
+    item.fuzzy = false
 
     -- create word/abbr
     item.word = item.word
