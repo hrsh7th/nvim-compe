@@ -40,21 +40,6 @@ function! s:on_text_changed() abort
 endfunction
 
 "
-" setup vim sources.
-"
-call compe#register_source('path', compe_path#source#create())
-call compe#register_source('tags', compe_tags#source#create())
-call compe#register_source('vsnip', compe_vsnip#source#create())
-call compe_lamp#source#attach()
-
-"
-" setup lua sources.
-"
-lua require'compe'.register_source('buffer', require'compe_buffer')
-lua require'compe'.register_source('nvim_lua', require'compe_nvim_lua')
-lua require'compe_nvim_lsp'.attach()
-
-"
 " setup
 "
 if has_key(g:, 'compe')
