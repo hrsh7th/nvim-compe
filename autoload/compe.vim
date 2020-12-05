@@ -29,10 +29,9 @@ endfunction
 "
 " compe#complete
 "
-inoremap <silent> <Plug>(_compe-complete) <C-r>=luaeval('require"compe"._complete()')<CR>
 function! compe#complete() abort
   if mode()[0] ==# 'i'
-    call feedkeys("\<Plug>(_compe-complete)")
+    return "\<C-r>=luaeval('require\"compe\"._complete()')\<CR>"
   endif
   return ''
 endfunction
@@ -42,8 +41,7 @@ endfunction
 "
 function! compe#confirm(...) abort
   if mode()[0] ==# 'i' && complete_info(['selected']).selected != -1
-    call feedkeys("\<C-y>", 'n')
-    return ''
+    return "\<C-y>"
   endif
   return get(a:000, 0, '')
 endfunction
@@ -51,11 +49,9 @@ endfunction
 "
 " compe#close
 "
-inoremap <silent> <Plug>(_compe-close) <C-e><C-r>=luaeval('require"compe"._close()')<CR>
 function! compe#close(...) abort
   if mode()[0] ==# 'i' && pumvisible()
-    call feedkeys("\<Plug>(_compe-close)")
-    return ''
+    return "\<C-e>\<C-r>=luaeval('require\"compe\"._close()')\<CR>"
   endif
   return get(a:000, 0, '')
 endfunction

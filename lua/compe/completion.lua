@@ -67,6 +67,8 @@ Completion.close = function()
 
   vim.call('compe#documentation#close')
 
+  Completion._current_offset = 0
+  Completion._current_items = {}
   Completion._context = Context.new({})
 end
 
