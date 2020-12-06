@@ -21,25 +21,10 @@ end
 
 --- complete
 function Source.complete(self, args)
-  --- gather buffers.
-  local bufs = self:_get_bufs()
-  for _, buf in ipairs(bufs) do
-    if not self.buffers[buf] then
-      local buffer = Buffer.new(
-        buf,
-        compe.helper.get_keyword_pattern(vim.fn.getbufvar(buf, '&filetype')),
-        compe.helper.get_default_pattern()
-      )
-      buffer:index()
-      buffer:watch()
-      self.buffers[buf] = buffer
-    end
-  end
-
   --- check processing
   local processing = false
-  for _, buf in ipairs(bufs) do
-    processing = processing or self.buffers[buf]
+  for _, buffer in ipairs(self:_get_buffers()) do
+    processing = processing or buffer.processing
   end
 
   if processing then
@@ -51,7 +36,7 @@ function Source.complete(self, args)
       self:_do_complete(args)
     end))
   else
-    self._do_complete(args)
+    self:_do_complete(args)
   end
 end
 
@@ -60,9 +45,9 @@ function Source._do_complete(self, args)
   local processing = false
   local words = {}
   local words_uniq = {}
-  for _, buf in ipairs(self:_get_bufs()) do
-    processing = processing or self.buffers[buf].processing
-    for _, word in ipairs(self.buffers[buf]:get_words(args.context.lnum)) do
+  for _, buffer in ipairs(self:_get_buffers()) do
+    processing = processing or buffer.processing
+    for _, word in ipairs(buffer:get_words(args.context.lnum)) do
       if not words_uniq[word] then
         words_uniq[word] = true
         table.insert(words, word)
@@ -77,17 +62,28 @@ function Source._do_complete(self, args)
 end
 
 --- _get_bufs
-function Source._get_bufs(_)
+function Source._get_buffers(self)
   local bufs = {}
-
-  local tab = vim.fn.tabpagenr()
   for _, win in ipairs(vim.api.nvim_list_wins()) do
-    if vim.api.nvim_win_get_tabpage(win) == tab then
-      table.insert(bufs, vim.api.nvim_win_get_buf(win))
-    end
+    bufs[vim.api.nvim_win_get_buf(win)] = true
   end
 
-  return bufs
+  local buffers = {}
+  for _, buf in ipairs(vim.tbl_keys(bufs)) do
+    if not self.buffers[buf] then
+      local buffer = Buffer.new(
+        buf,
+        compe.helper.get_keyword_pattern(vim.fn.getbufvar(buf, '&filetype')),
+        compe.helper.get_default_pattern()
+      )
+      buffer:index()
+      buffer:watch()
+      self.buffers[buf] = buffer
+    end
+    table.insert(buffers, self.buffers[buf])
+  end
+
+  return buffers
 end
 
 return Source
