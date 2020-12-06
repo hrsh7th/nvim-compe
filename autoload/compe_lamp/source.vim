@@ -22,7 +22,7 @@ endfunction
 "
 function! s:source() abort
   for l:source_id in s:state.source_ids
-    call compe#source#vim_bridge#unregister(l:source_id)
+    call compe#unregister_source(l:source_id)
   endfor
   let s:state.source_ids = []
 

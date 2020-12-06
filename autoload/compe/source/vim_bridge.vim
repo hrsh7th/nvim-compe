@@ -17,15 +17,13 @@ endfunction
 " compe#source#vim_bridge#unregister
 "
 function! compe#source#vim_bridge#unregister(id) abort
-  if has_key(s:sources, a:id)
-    for [l:bridge_id, l:source] in items(s:sources)
-      if l:source.id == a:id
-        unlet s:sources[l:bridge_id]
-        break
-      endif
-    endfor
-    call luaeval('require"compe".unregister_source(_A[1])', [a:id])
-  endif
+  for [l:bridge_id, l:source] in items(s:sources)
+    if l:source.id == a:id
+      unlet s:sources[l:bridge_id]
+      break
+    endif
+  endfor
+  call luaeval('require"compe".unregister_source(_A[1])', [a:id])
 endfunction
 
 "

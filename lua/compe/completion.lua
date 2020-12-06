@@ -179,24 +179,20 @@ Completion._display = function(context)
       if source_start_offset > 0 then
         -- Prefer prior source's trigger character
         if source.is_triggered_by_character or not use_trigger_character then
-          if source.status == 'processing' then
+          -- If source status is completed but it does not provide any items, it will be ignored (don't use start_offset, trigger character).
+          local source_items = Matcher.match(context, source, Completion._history)
+          if #source_items > 0 then
             start_offset = (start_offset == 0 or start_offset > source_start_offset) and source_start_offset or start_offset
-          elseif source.status == 'completed' then
-            -- If source status is completed but it does not provide any items, it will be ignored (don't use start_offset, trigger character).
-            local source_items = Matcher.match(context, source, Completion._history)
-            if #source_items > 0 then
-              start_offset = (start_offset == 0 or start_offset > source_start_offset) and source_start_offset or start_offset
-              use_trigger_character = use_trigger_character or source.is_triggered_by_character
+            use_trigger_character = use_trigger_character or source.is_triggered_by_character
 
-              -- Fix start_offset gap.
-              local gap = string.sub(context.before_line, start_offset, source_start_offset - 1)
-              for _, item in ipairs(source_items) do
-                if items_uniq[item.original_word] == nil or item.dup ~= true then
-                  items_uniq[item.original_word] = true
-                  item.word = gap .. item.original_word
-                  item.abbr = string.rep(' ', #gap) .. item.original_abbr
-                  table.insert(items, item)
-                end
+            -- Fix start_offset gap.
+            local gap = string.sub(context.before_line, start_offset, source_start_offset - 1)
+            for _, item in ipairs(source_items) do
+              if items_uniq[item.original_word] == nil or item.dup ~= true then
+                items_uniq[item.original_word] = true
+                item.word = gap .. item.original_word
+                item.abbr = string.rep(' ', #gap) .. item.original_abbr
+                table.insert(items, item)
               end
             end
           end

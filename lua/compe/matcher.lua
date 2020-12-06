@@ -10,9 +10,11 @@ Matcher.match = function(context, source)
 
   -- filter
   local matches = {}
-  for _, item in ipairs(source.items) do
+  for i, item in ipairs(source.items) do
     local word = item.filter_text or item.original_word
+    item.index = i
     item.score = 0
+    item.fuzzy = false
     if #word >= #input then
       local score, fuzzy = Matcher.score(input, word)
       item.score = score
@@ -289,7 +291,11 @@ Matcher.compare = function(item1, item2, history)
     end
   end
 
-  return nil
+  if #item1.word ~= #item2.word then
+    return #item1.word < #item2.word
+  end
+
+  return item1.index < item2.index
 end
 
 --- logger

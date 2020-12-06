@@ -107,12 +107,11 @@ function Source.trigger(self, context, callback)
     end
   end
 
-  local should_update = not (is_same_offset and self.incomplete)
-  self.items = should_update and {} or self.items
-  self.status = should_update and 'processing' or self.status
 
   self.is_triggered_by_character = is_same_offset and self.is_triggered_by_character or (state.trigger_character_offset > 0 and not string.match(context.before_char, '%w+'))
 
+  self.status = 'processing'
+  self.items = (is_same_offset and self.incomplete) and self.items or {}
   self.keyword_pattern_offset = state.keyword_pattern_offset
   self.trigger_character_offset = state.trigger_character_offset
   self.context = context
@@ -193,6 +192,7 @@ function Source.normalize_items(self, _, items)
     end
 
     -- Matcher related properties.
+    item.index = 0
     item.score = 0
     item.fuzzy = false
 
