@@ -2,7 +2,7 @@ local Character = require'compe.utils.character'
 
 local Matcher = {}
 
-Matcher.WORD_BOUNDALY_ORDER_FACTOR = 1000
+Matcher.WORD_BOUNDALY_ORDER_FACTOR = 5
 
 --- match
 Matcher.match = function(context, source)
@@ -19,7 +19,6 @@ Matcher.match = function(context, source)
       local score, fuzzy = Matcher.score(input, word)
       item.score = score
       item.fuzzy = fuzzy
-      item.exact = word == input
       if item.score >= 1 or #input == 0 then
         table.insert(matches, item)
       end
@@ -103,9 +102,11 @@ Matcher.score = function(input, word)
   local input_start_index = 0
   local input_end_index = 1
   local word_index = 1
+  local word_bound_index = 1
   while input_end_index <= #input_bytes and word_index <= #word_bytes do
     local match = Matcher.find_match_region(input_bytes, input_start_index, input_end_index, word_bytes, word_index)
     if match then
+      match.index = word_bound_index
       input_start_index = match.input_match_start
       input_end_index = match.input_match_end + 1
       word_index = Matcher.get_next_semantic_index(word_bytes, match.word_match_end)
@@ -113,6 +114,7 @@ Matcher.score = function(input, word)
     else
       word_index = Matcher.get_next_semantic_index(word_bytes, word_index)
     end
+    word_bound_index = word_bound_index + 1
   end
 
   if #matches == 0 then
@@ -122,7 +124,7 @@ Matcher.score = function(input, word)
   -- Compute prefix match score
   local score = 0
   local input_char_map = {}
-  for i, match in ipairs(matches) do
+  for _, match in ipairs(matches) do
     local s = 0
     for i = match.input_match_start, match.input_match_end do
       if not input_char_map[i] then
@@ -131,7 +133,7 @@ Matcher.score = function(input, word)
       end
     end
     if s > 0 then
-      score = score + (s * (1 + math.max(0, Matcher.WORD_BOUNDALY_ORDER_FACTOR - i) / Matcher.WORD_BOUNDALY_ORDER_FACTOR))
+      score = score + (s * (1 + math.max(0, Matcher.WORD_BOUNDALY_ORDER_FACTOR - match.index) / Matcher.WORD_BOUNDALY_ORDER_FACTOR))
       score = score + (match.strict_match and 0.1 or 0)
     end
   end
