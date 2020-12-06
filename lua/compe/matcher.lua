@@ -49,34 +49,41 @@ end
 --
 --   1. Prefix matching per word boundaly
 --
---     `bora`     -> `border-radius` # imaginary score: 4
---      ^^~~          ^^     ~~
+--     `bora`         -> `border-radius` # imaginary score: 4
+--      ^^~~              ^^     ~~
 --
 --   2. Try sequencial match first
 --
---     `woroff`   -> `word_offset`   # imaginary score: 6
---      ^^^~~~        ^^^  ~~~
+--     `woroff`       -> `word_offset`   # imaginary score: 6
+--      ^^^~~~            ^^^  ~~~
 --
 --     * The `woroff`'s second `o` should not match `word_offset`'s first `o`
 --
 --   3. Prefer early word boundaly
 --
---     `call`     -> `call`          # imaginary score: 4.1
---      ^^^^          ^^^^
---     `call`     -> `condition_all` # imaginary score: 4
---      ^~~~          ^         ~~~
+--     `call`         -> `call`          # imaginary score: 4.1
+--      ^^^^              ^^^^
+--     `call`         -> `condition_all` # imaginary score: 4
+--      ^~~~              ^         ~~~
 --
 --   4. Prefer strict match
 --
---     `Buffer`   -> `Buffer`        # imaginary score: 6.1
---      ^^^^^^        ^^^^^^
---     `buffer`   -> `Buffer`        # imaginary score: 6
---      ^^^^^^        ^^^^^^
+--     `Buffer`       -> `Buffer`        # imaginary score: 6.1
+--      ^^^^^^            ^^^^^^
+--     `buffer`       -> `Buffer`        # imaginary score: 6
+--      ^^^^^^            ^^^^^^
 --
 --   5. Use remaining char for fuzzy match
 --
---     `fmofy`    -> `fnamemodify`   # imaginary score: 1
---      ^~~~~         ^    ~~  ~~
+--     `fmofy`        -> `fnamemodify`   # imaginary score: 1
+--      ^~~~~             ^    ~~  ~~
+--
+--   6. Avoid unexpected match detection
+--
+--     `candlesingle` -> candle#accept#single
+--      ^^^^^^~~~~~~     ^^^^^^        ~~~~~~
+--
+--      * The `accept`'s `a` should not match to `candle`'s `a`
 --
 Matcher.score = function(input, word)
   -- Empty input
@@ -105,7 +112,7 @@ Matcher.score = function(input, word)
   local word_bound_index = 1
   while input_end_index <= #input_bytes and word_index <= #word_bytes do
     local match = Matcher.find_match_region(input_bytes, input_start_index, input_end_index, word_bytes, word_index)
-    if match then
+    if match and input_end_index <= match.input_match_end then
       match.index = word_bound_index
       input_start_index = match.input_match_start
       input_end_index = match.input_match_end + 1
