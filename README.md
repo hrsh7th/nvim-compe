@@ -28,7 +28,7 @@ if s:viml
   let g:compe.source.buffer = v:true
   let g:compe.source.vsnip = v:true
   let g:compe.source.nvim_lsp = v:true
-  let g:compe.source.nvim_lua = { 'filetype': ['lua', 'lua.pad'] }
+  let g:compe.source.nvim_lua = { 'filetypes': ['lua', 'lua.pad'] }
 endif
 
 if s:lua
