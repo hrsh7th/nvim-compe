@@ -157,7 +157,6 @@ function Source.get_metadata(self)
   for key, value in pairs(Config.get_metadata(self.name)) do
     metadata[key] = value
   end
-  metadata.sort = metadata.sort or true
   return metadata
 end
 
@@ -191,29 +190,30 @@ function Source.normalize_items(self, _, items)
       }
     end
 
-    -- Matcher related properties.
+    -- complete-items properties.
+    item.word = item.word
+    item.abbr = item.abbr or item.word
+    item.dup = metadata.dup == nil and 1 or metadata.dup
+    item.menu = metadata.menu == nil and item.menu or metadata.menu
+    item.equal = 1
+    item.empty = 1
+
+    -- Special properties
+    item.source_id = self.id
+    item.priority = metadata.priority or 0
+    item.asis = string.find(item.abbr, item.word, 1, true) == 1
+    item.sort = metadata.sort == nil or metadata.sort == true
+
+    -- Matcher related properties (will be overwrote)
     item.index = 0
     item.score = 0
     item.fuzzy = false
 
-    -- create word/abbr
-    item.word = item.word
-    item.abbr = item.abbr or item.word
-
-    -- required properties
-    item.dup = metadata.dup ~= nil and metadata.dup or 1
-    item.menu = metadata.menu ~= nil and metadata.menu or item.menu
-    item.equal = 1
-    item.empty = 1
-
-    -- special properties
-    item.priority = metadata.priority or 0
-    item.asis = string.find(item.abbr, item.word, 1, true) == 1
-    item.source_id = self.id
-
-    -- restore original word/abbr
+    -- Restore original properties
     item.original_word = item.word
     item.original_abbr = item.abbr
+    item.original_menu = item.menu
+    item.original_kind = item.kind
 
     table.insert(normalized, item)
   end

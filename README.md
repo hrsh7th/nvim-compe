@@ -66,18 +66,60 @@ if s:lexima
 endif
 ```
 
+## Source configuration
+
+The sources can be configured by `let g:compe.source['source_name'] = { ...configuration... }`.
+
+- *priority*
+  - Specify source priority.
+- *filetypes*
+  - Specify source filetypes.
+- *sort*
+  - Specify source is sortable or not.
+- *dup*
+  - Specify source candidates can have the same word another item.
+- *menu*
+  - Specify item's menu (see `:help complete-items`)
+
 
 # Built-in sources
 
-- nvim_lsp
-- nvim_lua
 - buffer
 - path
+- tags
+- nvim_lsp
+- nvim_lua
 - lamp
 - vsnip
 
 
 # Development
+
+## Example source
+
+You can see example on [vim-dadbod-completion](https://github.com/kristijanhusak/vim-dadbod-completion)
+
+- implementation
+  - https://github.com/kristijanhusak/vim-dadbod-completion/blob/master/autoload/vim_dadbod_completion/compe.vim
+- registration
+  - https://github.com/kristijanhusak/vim-dadbod-completion/blob/master/after/plugin/vim_dadbod_completion.vim#L4
+
+
+## The source
+
+The source is defined as dict that has `get_metadata`/`datermine`/`complete` and `documentation(optional)`.
+
+- *get_metadata*
+  - This function should return the default source configuration. see `Source configuration` section.
+- *datermine*
+  - This function should return dict as `{ keyword_pattern_offset = 1-origin number; trigger_character_offset = 1-origin number}`.
+  - If this function returns empty, nvim-compe will do nothing.
+- *complete*
+  - This function should callback the completed items as `args.callback({ items = items })`.
+  - If you want to stop the completion process, you should call `args.abort()`.
+- *documentation*
+  - You can provide documentation for selected items.
+
 
 ## Public API
 
@@ -121,19 +163,4 @@ require'compe'.unregister_source(id)
 -- Source helpers.
 require'compe'.helper.*
 ```
-
-## Source configuration
-
-The source configuration can be defined by `source.get_metadata` function.
-
-- *priority*
-  - Specify source priority.
-- *filetypes*
-  - Specify source enabling filetypes.
-- *sort*
-  - Specify the source candidates will be sorted or not.
-- *dup*
-  - Specify the source candidates will be allowed existing other same word candidate or not.
-- *menu*
-  - Specify item's menu (see `:help complete-items`)
 

@@ -271,29 +271,28 @@ Matcher.compare = function(item1, item2, history)
     return item1.preselect
   end
 
-  if item1.asis ~= item2.asis then
-    return item2.asis
-  end
+  if item1.sort or item2.sort then
+    if item1.score ~= item2.score then
+      return item1.score > item2.score
+    end
 
-  if item1.score ~= item2.score then
-    return item1.score > item2.score
-  end
+    local history_score1 = history[item1.abbr] or 0
+    local history_score2 = history[item2.abbr] or 0
+    if history_score1 ~= history_score2 then
+      return history_score1 > history_score2
+    end
 
-  local history_score1 = history[item1.abbr] or 0
-  local history_score2 = history[item2.abbr] or 0
-  if history_score1 ~= history_score2 then
-    return history_score1 > history_score2
-  end
+    if item1.sort_text and item2.sort_text then
+      if item1.sort_text ~= item2.sort_text then
+        return item1.sort_text < item2.sort_text
+      end
+    end
 
-  if item1.sort_text and item2.sort_text then
-    if item1.sort_text ~= item2.sort_text then
-      return item1.sort_text < item2.sort_text
+    if #item1.word ~= #item2.word then
+      return #item1.word < #item2.word
     end
   end
 
-  if #item1.word ~= #item2.word then
-    return #item1.word < #item2.word
-  end
 
   return item1.index < item2.index
 end
