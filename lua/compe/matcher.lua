@@ -1,4 +1,5 @@
 local Character = require'compe.utils.character'
+local Config = require'compe.config'
 
 local Matcher = {}
 
@@ -97,8 +98,10 @@ Matcher.score = function(input, word)
   end
 
   -- Check first char matching (special check for completion)
-  if not Character.match(string.byte(input, 1), string.byte(word, 1)) then
-    return 0, false
+  if not Config.get().allow_prefix_unmatch then
+    if not Character.match(string.byte(input, 1), string.byte(word, 1)) then
+      return 0, false
+    end
   end
 
   local input_bytes = { string.byte(input, 1, -1) }

@@ -25,6 +25,7 @@ Config.set = function(config)
   config.throttle_time = config.throttle_time or THROTTLE_TIME
   config.source_timeout = config.source_timeout or SOURCE_TIMEOUT
   config.incomplete_delay = config.incomplete_delay or INCOMPLETE_DELAY
+  config.allow_prefix_unmatch = Config._true(config.allow_prefix_unmatch)
 
   -- normalize source metadata
   for name, metadata in pairs(config.source) do

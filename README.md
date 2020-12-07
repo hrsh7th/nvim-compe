@@ -19,16 +19,17 @@ if s:viml
   let g:compe.debug = v:false
   let g:compe.min_length = 1
   let g:compe.auto_preselect = v:true
-  let g:compe.throttle_time = 120
-  let g:compe.source_timeout = 200
-  let g:compe.incomplete_delay = 400
+  let g:compe.throttle_time = ... number ...
+  let g:compe.source_timeout = ... number ...
+  let g:compe.incomplete_delay = ... number ...
+  let g:compe.allow_prefix_unmatch = v:false
 
   let g:compe.source = {}
   let g:compe.source.path = v:true
   let g:compe.source.buffer = v:true
   let g:compe.source.vsnip = v:true
   let g:compe.source.nvim_lsp = v:true
-  let g:compe.source.nvim_lua = { 'filetypes': ['lua', 'lua.pad'] }
+  let g:compe.source.nvim_lua = { ... overwrite source configuration ... }
 endif
 
 if s:lua
@@ -38,9 +39,10 @@ require'compe'.setup {
   debug = false;
   min_length = 1;
   auto_preselect = false;
-  throttle_time = 120;
-  source_timeout = 200;
-  incomplete_delay = 400;
+  throttle_time = ... number ...;
+  source_timeout = ... number ...;
+  incomplete_delay = ... number ...;
+  allow_prefix_unmatch = false;
 
   source = {
     path = true;
