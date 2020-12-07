@@ -1,10 +1,11 @@
-local Pattern = require'compe.pattern'
+local compe = require'compe'
 local Buffer = require'compe_buffer.buffer'
 
 local Source = {
   buffers = {};
 }
 
+--- get_metadata
 function Source.get_metadata(_)
   return {
     priority = 10;
@@ -13,32 +14,17 @@ function Source.get_metadata(_)
   }
 end
 
+--- datermine
 function Source.datermine(_, context)
-  return {
-    keyword_pattern_offset = Pattern:get_keyword_pattern_offset(context)
-  }
+  return compe.helper.datermine(context)
 end
 
+--- complete
 function Source.complete(self, args)
-  --- gather buffers.
-  local bufs = self:get_bufs()
-  for _, buf in ipairs(bufs) do
-    if not self.buffers[buf] then
-      local buffer = Buffer.new(
-        buf,
-        Pattern:get_keyword_pattern_by_filetype(vim.fn.getbufvar(buf, '&filetype')),
-        Pattern:get_default_keyword_pattern()
-      )
-      buffer:index()
-      buffer:watch()
-      self.buffers[buf] = buffer
-    end
-  end
-
   --- check processing
   local processing = false
-  for _, buf in ipairs(bufs) do
-    processing = processing or self.buffers[buf]
+  for _, buffer in ipairs(self:_get_buffers()) do
+    processing = processing or buffer.processing
   end
 
   if processing then
@@ -47,21 +33,21 @@ function Source.complete(self, args)
       timer:stop()
       timer:close()
       timer = nil
-      self:do_complete(args)
+      self:_do_complete(args)
     end))
   else
-    self.do_complete(args)
+    self:_do_complete(args)
   end
 end
 
---- do_complete
-function Source.do_complete(self, args)
+--- _do_complete
+function Source._do_complete(self, args)
   local processing = false
   local words = {}
   local words_uniq = {}
-  for _, buf in ipairs(self:get_bufs()) do
-    processing = processing or self.buffers[buf].processing
-    for _, word in ipairs(self.buffers[buf]:get_words(args.context.lnum)) do
+  for _, buffer in ipairs(self:_get_buffers()) do
+    processing = processing or buffer.processing
+    for _, word in ipairs(buffer:get_words(args.context.lnum)) do
       if not words_uniq[word] then
         words_uniq[word] = true
         table.insert(words, word)
@@ -75,22 +61,29 @@ function Source.do_complete(self, args)
   })
 end
 
-function Source.get_bufs(_)
+--- _get_bufs
+function Source._get_buffers(self)
   local bufs = {}
-
-  local tab = vim.fn.tabpagenr()
   for _, win in ipairs(vim.api.nvim_list_wins()) do
-    if vim.api.nvim_win_get_tabpage(win) == tab then
-      table.insert(bufs, vim.api.nvim_win_get_buf(win))
+    bufs[vim.api.nvim_win_get_buf(win)] = true
+  end
+
+  local buffers = {}
+  for _, buf in ipairs(vim.tbl_keys(bufs)) do
+    if not self.buffers[buf] then
+      local buffer = Buffer.new(
+        buf,
+        compe.helper.get_keyword_pattern(vim.fn.getbufvar(buf, '&filetype')),
+        compe.helper.get_default_pattern()
+      )
+      buffer:index()
+      buffer:watch()
+      self.buffers[buf] = buffer
     end
+    table.insert(buffers, self.buffers[buf])
   end
 
-  local alternate = vim.fn.bufnr('#')
-  if not vim.tbl_contains(bufs, alternate) then
-    table.insert(bufs, alternate)
-  end
-
-  return bufs
+  return buffers
 end
 
 return Source

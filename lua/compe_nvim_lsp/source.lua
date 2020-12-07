@@ -1,12 +1,13 @@
-local Pattern = require'compe.pattern'
+local compe = require'compe'
 local protocol = require'vim.lsp.protocol'
 local util = require'vim.lsp.util'
 
 local Source = {}
 
-function Source.new(client)
+function Source.new(client, filetype)
   local self = setmetatable({}, { __index = Source })
   self.client = client
+  self.filetype = filetype
   return self
 end
 
@@ -15,72 +16,14 @@ function Source.get_metadata(self)
     priority = 1000;
     dup = 0;
     menu = '[LSP]';
+    filetypes = { self.filetype };
   }
-end
-
-function Source.documentation(self, args)
-  local completion_item = self:get_paths(args, { 'completed_item', 'user_data', 'nvim', 'lsp', 'completion_item' })
-  if not completion_item then
-    return args.abort()
-  end
-
-  --- send `completionItem/resolve` if supported.
-  local has_resolve = self:get_paths(self.client.server_capabilities, { 'completionProvider', 'resolveProvider' })
-  if has_resolve then
-    self.client.request('completionItem/resolve', completion_item, function(err, _, result)
-      if err or not result then
-        return args.abort()
-      end
-      local document = self:create_document(args.context.filetype, result)
-      if #document > 0 then
-        args.callback(document)
-      else
-        args.abort()
-      end
-    end)
-
-  --- use current completion_item
-  else
-    local document = self:create_document(args.context.filetype, completion_item)
-    if #document > 0 then
-      args.callback(document)
-    else
-      args.abort()
-    end
-  end
-end
-
---- create_document
-function Source.create_document(self, filetype, completion_item)
-  local document = {}
-  if completion_item.detail then
-    table.insert(document, '```' .. filetype)
-    table.insert(document, completion_item.detail)
-    table.insert(document, '```')
-  end
-  if completion_item.documentation then
-    if completion_item.detail then
-      table.insert(document, ' ')
-    end
-    for _, line in ipairs(util.convert_input_to_markdown_lines(completion_item.documentation)) do
-      table.insert(document, line)
-    end
-  end
-  return document
 end
 
 function Source.datermine(self, context)
-  local trigger_chars = self:get_paths(self.client.server_capabilities, { 'completionProvider', 'triggerCharacters' }) or {}
-  if vim.tbl_contains(trigger_chars, context.before_char) and context.before_char ~= ' ' then
-    return {
-      keyword_pattern_offset = Pattern:get_keyword_pattern_offset(context);
-      trigger_character_offset = context.col;
-    }
-  end
-
-  return {
-    keyword_pattern_offset = Pattern:get_keyword_pattern_offset(context)
-  }
+  return compe.helper.datermine(context, {
+    trigger_characters = self:_get_paths(self.client.server_capabilities, { 'completionProvider', 'triggerCharacters' }) or {};
+  })
 end
 
 function Source.complete(self, args)
@@ -101,13 +44,64 @@ function Source.complete(self, args)
   self.client.request('textDocument/completion', params, function(err, _, result)
     if err or not result then return args.abort() end
     args.callback({
-      items = self:convert(result);
+      items = self:_convert(result);
       incomplete = result.incomplete or false;
     })
   end)
 end
 
-function Source.convert(_, result)
+function Source.documentation(self, args)
+  local completion_item = self:_get_paths(args, { 'completed_item', 'user_data', 'nvim', 'lsp', 'completion_item' })
+  if not completion_item then
+    return args.abort()
+  end
+
+  --- send `completionItem/resolve` if supported.
+  local has_resolve = self:_get_paths(self.client.server_capabilities, { 'completionProvider', 'resolveProvider' })
+  if has_resolve then
+    self.client.request('completionItem/resolve', completion_item, function(err, _, result)
+      if err or not result then
+        return args.abort()
+      end
+      local document = self:_create_document(args.context.filetype, result)
+      if #document > 0 then
+        args.callback(document)
+      else
+        args.abort()
+      end
+    end)
+
+  --- use current completion_item
+  else
+    local document = self:_create_document(args.context.filetype, completion_item)
+    if #document > 0 then
+      args.callback(document)
+    else
+      args.abort()
+    end
+  end
+end
+
+--- create_document
+function Source._create_document(self, filetype, completion_item)
+  local document = {}
+  if completion_item.detail then
+    table.insert(document, '```' .. filetype)
+    table.insert(document, completion_item.detail)
+    table.insert(document, '```')
+  end
+  if completion_item.documentation then
+    if completion_item.detail then
+      table.insert(document, ' ')
+    end
+    for _, line in ipairs(util.convert_input_to_markdown_lines(completion_item.documentation)) do
+      table.insert(document, line)
+    end
+  end
+  return document
+end
+
+function Source._convert(_, result)
   local completion_items = vim.tbl_islist(result or {}) and result or result.items or {}
 
   local complete_items = {}
@@ -163,7 +157,7 @@ function Source.convert(_, result)
   return complete_items
 end
 
-function Source.get_paths(self, root, paths)
+function Source._get_paths(self, root, paths)
   local c = root
   for _, path in ipairs(paths) do
     c = c[path]

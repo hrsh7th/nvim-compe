@@ -44,15 +44,14 @@ function Buffer.watch(self)
         return true
       end
 
-      -- append or delete new lines
-      if new_lastline > old_lastline then
-        for i = 1, (new_lastline - old_lastline) do
-          table.insert(self.words, firstline + i, '')
-        end
-      elseif old_lastline > new_lastline then
-        for i = 1, (old_lastline - new_lastline) do
-          table.remove(self.words, old_lastline - i + 2)
-        end
+      -- append
+      for i = old_lastline, new_lastline - 1 do
+        table.insert(self.words, i + 1, {})
+      end
+
+      -- remove
+      for i = new_lastline, old_lastline - 1 do
+        table.remove(self.words, new_lastline + 1)
       end
 
       -- replace lines
@@ -85,11 +84,8 @@ function Buffer.index_line(self, i, line)
     end
     buffer = new_buffer
   end
-  if append then
-    table.insert(self.words, i, words)
-  else
-    self.words[i] = words
-  end
+
+  self.words[i] = words
 end
 
 --- get_words

@@ -1,33 +1,37 @@
-let s:source_id = 0
+let s:base_bridge_id = 0
 let s:sources = {}
 
 "
 " compe#source#vim_bridge#register
 "
-function! compe#source#vim_bridge#register(id, source) abort
-  let s:source_id += 1
-  let l:id = a:id . '_' . s:source_id
-  let s:sources[l:id] = a:source
-  call luaeval('require"compe":register_vim_source(_A[1])', [l:id])
-  return l:id
+function! compe#source#vim_bridge#register(name, source) abort
+  let s:base_bridge_id += 1
+
+  let l:bridge_id = a:name . '_' . s:base_bridge_id
+  let s:sources[l:bridge_id] = a:source
+  let s:sources[l:bridge_id].id = luaeval('require"compe"._register_vim_source(_A[1], _A[2])', [a:name, l:bridge_id])
+  return s:sources[l:bridge_id].id
 endfunction
 
 "
 " compe#source#vim_bridge#unregister
 "
 function! compe#source#vim_bridge#unregister(id) abort
-  if has_key(s:sources, a:id)
-    unlet s:sources[a:id]
-    call luaeval('require"compe":unregister_source(_A[1])', [a:id])
-  endif
+  for [l:bridge_id, l:source] in items(s:sources)
+    if l:source.id == a:id
+      unlet s:sources[l:bridge_id]
+      break
+    endif
+  endfor
+  call luaeval('require"compe".unregister_source(_A[1])', [a:id])
 endfunction
 
 "
 " compe#source#vim_bridge#get_metadata
 "
-function! compe#source#vim_bridge#get_metadata(id) abort
-  if has_key(s:sources, a:id) && has_key(s:sources[a:id], 'get_metadata')
-    return s:sources[a:id].get_metadata()
+function! compe#source#vim_bridge#get_metadata(bridge_id) abort
+  if has_key(s:sources, a:bridge_id) && has_key(s:sources[a:bridge_id], 'get_metadata')
+    return s:sources[a:bridge_id].get_metadata()
   endif
   return {}
 endfunction
@@ -35,9 +39,9 @@ endfunction
 "
 " compe#source#vim_bridge#datermine
 "
-function! compe#source#vim_bridge#datermine(id, context) abort
-  if has_key(s:sources, a:id) && has_key(s:sources[a:id], 'datermine')
-    return s:sources[a:id].datermine(a:context)
+function! compe#source#vim_bridge#datermine(bridge_id, context) abort
+  if has_key(s:sources, a:bridge_id) && has_key(s:sources[a:bridge_id], 'datermine')
+    return s:sources[a:bridge_id].datermine(a:context)
   endif
   return {}
 endfunction
@@ -45,30 +49,30 @@ endfunction
 "
 " compe#source#vim_bridge#documentation
 "
-function! compe#source#vim_bridge#documentation(id, args) abort
-  if has_key(s:sources, a:id) && has_key(s:sources[a:id], 'documentation')
+function! compe#source#vim_bridge#documentation(bridge_id, args) abort
+  if has_key(s:sources, a:bridge_id) && has_key(s:sources[a:bridge_id], 'documentation')
     let a:args.callback = { document ->
-    \   luaeval('require"compe.completion.source.vim_bridge".documentation_on_callback(_A[1], _A[2])', [a:id, document])
+    \   luaeval('require"compe.vim_bridge".documentation_on_callback(_A[1], _A[2])', [a:bridge_id, document])
     \ }
     let a:args.abort = { ->
-    \   luaeval('require"compe.completion.source.vim_bridge".documentation_on_abort(_A[1])', [a:id])
+    \   luaeval('require"compe.vim_bridge".documentation_on_abort(_A[1])', [a:bridge_id])
     \ }
-    call s:sources[a:id].documentation(a:args)
+    call s:sources[a:bridge_id].documentation(a:args)
   endif
 endfunction
 
 "
 " compe#source#vim_bridge#complete
 "
-function! compe#source#vim_bridge#complete(id, args) abort
-  if has_key(s:sources, a:id) && has_key(s:sources[a:id], 'complete')
+function! compe#source#vim_bridge#complete(bridge_id, args) abort
+  if has_key(s:sources, a:bridge_id) && has_key(s:sources[a:bridge_id], 'complete')
     let a:args.callback = { result ->
-    \   luaeval('require"compe.completion.source.vim_bridge".complete_on_callback(_A[1], _A[2])', [a:id, result])
+    \   luaeval('require"compe.vim_bridge".complete_on_callback(_A[1], _A[2])', [a:bridge_id, result])
     \ }
     let a:args.abort = { ->
-    \   luaeval('require"compe.completion.source.vim_bridge".complete_on_abort(_A[1])', [a:id])
+    \   luaeval('require"compe.vim_bridge".complete_on_abort(_A[1])', [a:bridge_id])
     \ }
-    call s:sources[a:id].complete(a:args)
+    call s:sources[a:bridge_id].complete(a:args)
   endif
 endfunction
 

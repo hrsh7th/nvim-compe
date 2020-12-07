@@ -1,9 +1,38 @@
+"
+" Public API
+"
+
+"
+" compe#setup
+"
+function! compe#setup(config) abort
+  call luaeval('require"compe".setup(_A[1])', [a:config])
+endfunction
+
+"
+" compe#register_source
+"
+function! compe#register_source(name, source) abort
+  if matchstr(a:name, '^\w\+$') ==# ''
+    throw "compe: the source's name must be \w\+"
+  endif
+  return compe#source#vim_bridge#register(a:name, a:source)
+endfunction
+
+"
+" compe#register_source
+"
+function! compe#unregister_source(id) abort
+  call compe#source#vim_bridge#unregister(a:id)
+endfunction
 
 "
 " compe#complete
 "
 function! compe#complete() abort
-  call luaeval('require"compe":on_manual_complete()')
+  if mode()[0] ==# 'i'
+    return "\<C-r>=luaeval('require\"compe\"._complete()')\<CR>"
+  endif
   return ''
 endfunction
 
@@ -11,7 +40,7 @@ endfunction
 " compe#confirm
 "
 function! compe#confirm(...) abort
-  if complete_info(['selected']).selected != -1
+  if mode()[0] ==# 'i' && complete_info(['selected']).selected != -1
     return "\<C-y>"
   endif
   return get(a:000, 0, '')
@@ -21,23 +50,27 @@ endfunction
 " compe#close
 "
 function! compe#close(...) abort
-  if pumvisible()
-    call luaeval('require"compe":clear()')
+  if mode()[0] ==# 'i' && pumvisible()
+    return "\<C-e>\<C-r>=luaeval('require\"compe\"._close()')\<CR>"
   endif
   return get(a:000, 0, '')
 endfunction
 
 "
-" compe#is_selected_manually
+" Private API
 "
-function! compe#is_selected_manually() abort
+
+"
+" compe#_is_selected_manually
+"
+function! compe#_is_selected_manually() abort
   return pumvisible() && !empty(v:completed_item) ? v:true : v:false
 endfunction
 
 "
-" compe#has_completed_item
+" compe#_has_completed_item
 "
-function! compe#has_completed_item() abort
+function! compe#_has_completed_item() abort
   return !empty(v:completed_item) ? v:true : v:false
 endfunction
 

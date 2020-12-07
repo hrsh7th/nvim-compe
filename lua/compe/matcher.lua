@@ -1,32 +1,28 @@
-local Character = require'compe.completion.character'
+local Character = require'compe.utils.character'
 
 local Matcher = {}
 
-Matcher.WORD_BOUNDALY_ORDER_FACTOR = 1000
+Matcher.WORD_BOUNDALY_ORDER_FACTOR = 5
 
 --- match
-Matcher.match = function(context, source, history)
+Matcher.match = function(context, source)
   local input = context:get_input(source:get_start_offset())
 
   -- filter
   local matches = {}
-  for _, item in ipairs(source:get_items()) do
+  for i, item in ipairs(source.items) do
     local word = item.filter_text or item.original_word
+    item.index = i
     item.score = 0
+    item.fuzzy = false
     if #word >= #input then
-      item.score = Matcher.score(input, word)
-      item.exact = word == input
+      local score, fuzzy = Matcher.score(input, word)
+      item.score = score
+      item.fuzzy = fuzzy
       if item.score >= 1 or #input == 0 then
         table.insert(matches, item)
       end
     end
-  end
-
-  -- sort
-  if source:get_metadata().sort then
-    table.sort(matches, function(item1, item2)
-      return Matcher.compare(item1, item2, history)
-    end)
   end
 
   return matches
@@ -53,44 +49,56 @@ end
 --
 --   1. Prefix matching per word boundaly
 --
---     `bora`     -> `border-radius` # imaginary score: 4
---      ^^~~          ^^     ~~
+--     `bora`         -> `border-radius` # imaginary score: 4
+--      ^^~~              ^^     ~~
 --
 --   2. Try sequencial match first
 --
---     `woroff`   -> `word_offset`   # imaginary score: 6
---      ^^^~~~        ^^^  ~~~
+--     `woroff`       -> `word_offset`   # imaginary score: 6
+--      ^^^~~~            ^^^  ~~~
 --
 --     * The `woroff`'s second `o` should not match `word_offset`'s first `o`
 --
 --   3. Prefer early word boundaly
 --
---     `call`     -> `call`          # imaginary score: 4.1
---      ^^^^          ^^^^
---     `call`     -> `condition_all` # imaginary score: 4
---      ^~~~          ^         ~~~
+--     `call`         -> `call`          # imaginary score: 4.1
+--      ^^^^              ^^^^
+--     `call`         -> `condition_all` # imaginary score: 4
+--      ^~~~              ^         ~~~
 --
 --   4. Prefer strict match
 --
---     `Buffer`   -> `Buffer`        # imaginary score: 6.1
---      ^^^^^^        ^^^^^^
---     `buffer`   -> `Buffer`        # imaginary score: 6
---      ^^^^^^        ^^^^^^
+--     `Buffer`       -> `Buffer`        # imaginary score: 6.1
+--      ^^^^^^            ^^^^^^
+--     `buffer`       -> `Buffer`        # imaginary score: 6
+--      ^^^^^^            ^^^^^^
 --
 --   5. Use remaining char for fuzzy match
 --
---     `fmofy`    -> `fnamemodify`   # imaginary score: 1
---      ^~~~~         ^    ~~  ~~
+--     `fmofy`        -> `fnamemodify`   # imaginary score: 1
+--      ^~~~~             ^    ~~  ~~
+--
+--   6. Avoid unexpected match detection
+--
+--     `candlesingle` -> candle#accept#single
+--      ^^^^^^~~~~~~     ^^^^^^        ~~~~~~
+--
+--      * The `accept`'s `a` should not match to `candle`'s `a`
 --
 Matcher.score = function(input, word)
   -- Empty input
-  if #input == 0 or #input > #word then
-    return 1
+  if #input == 0 then
+    return 1, false
+  end
+
+  -- Ignore if input is long than word
+  if #input > #word then
+    return 0, false
   end
 
   -- Check first char matching (special check for completion)
   if not Character.match(string.byte(input, 1), string.byte(word, 1)) then
-    return 0
+    return 0, false
   end
 
   local input_bytes = { string.byte(input, 1, -1) }
@@ -101,9 +109,11 @@ Matcher.score = function(input, word)
   local input_start_index = 0
   local input_end_index = 1
   local word_index = 1
+  local word_bound_index = 1
   while input_end_index <= #input_bytes and word_index <= #word_bytes do
     local match = Matcher.find_match_region(input_bytes, input_start_index, input_end_index, word_bytes, word_index)
-    if match then
+    if match and input_end_index <= match.input_match_end then
+      match.index = word_bound_index
       input_start_index = match.input_match_start
       input_end_index = match.input_match_end + 1
       word_index = Matcher.get_next_semantic_index(word_bytes, match.word_match_end)
@@ -111,16 +121,17 @@ Matcher.score = function(input, word)
     else
       word_index = Matcher.get_next_semantic_index(word_bytes, word_index)
     end
+    word_bound_index = word_bound_index + 1
   end
 
   if #matches == 0 then
-    return 0
+    return 0, false
   end
 
   -- Compute prefix match score
   local score = 0
   local input_char_map = {}
-  for i, match in ipairs(matches) do
+  for _, match in ipairs(matches) do
     local s = 0
     for i = match.input_match_start, match.input_match_end do
       if not input_char_map[i] then
@@ -129,7 +140,7 @@ Matcher.score = function(input, word)
       end
     end
     if s > 0 then
-      score = score + (s * (1 + math.max(0, Matcher.WORD_BOUNDALY_ORDER_FACTOR - i) / Matcher.WORD_BOUNDALY_ORDER_FACTOR))
+      score = score + (s * (1 + math.max(0, Matcher.WORD_BOUNDALY_ORDER_FACTOR - match.index) / Matcher.WORD_BOUNDALY_ORDER_FACTOR))
       score = score + (match.strict_match and 0.1 or 0)
     end
   end
@@ -140,7 +151,7 @@ Matcher.score = function(input, word)
 
     -- If input is remaining but all word consumed, it does not match.
     if last_match.word_match_end >= #word_bytes then
-      return 0
+      return 0, false
     end
 
     for word_index = last_match.word_match_end + 1, #word_bytes do
@@ -153,13 +164,13 @@ Matcher.score = function(input, word)
         word_offset = word_offset + 1
       end
       if input_index - 1 == #input_bytes then
-        return score
+        return score, true
       end
     end
-    return 0
+    return 0, false
   end
 
-  return score
+  return score, false
 end
 
 --- find_match_region
@@ -247,6 +258,15 @@ end
 
 --- compare
 Matcher.compare = function(item1, item2, history)
+  if item1.fuzzy ~= item2.fuzzy then
+    if item1.fuzzy then
+      return false
+    end
+    if item2.fuzzy then
+      return true
+    end
+  end
+
   if item1.priority ~= item2.priority then
     if not item1.priority then
       return false
@@ -260,27 +280,30 @@ Matcher.compare = function(item1, item2, history)
     return item1.preselect
   end
 
-  if item1.asis ~= item2.asis then
-    return item2.asis
-  end
+  if item1.sort or item2.sort then
+    if item1.score ~= item2.score then
+      return item1.score > item2.score
+    end
 
-  if item1.score ~= item2.score then
-    return item1.score > item2.score
-  end
+    local history_score1 = history[item1.abbr] or 0
+    local history_score2 = history[item2.abbr] or 0
+    if history_score1 ~= history_score2 then
+      return history_score1 > history_score2
+    end
 
-  local history_score1 = history[item1.abbr] or 0
-  local history_score2 = history[item2.abbr] or 0
-  if history_score1 ~= history_score2 then
-    return history_score1 > history_score2
-  end
+    if item1.sort_text and item2.sort_text then
+      if item1.sort_text ~= item2.sort_text then
+        return item1.sort_text < item2.sort_text
+      end
+    end
 
-  if item1.sort_text and item2.sort_text then
-    if item1.sort_text ~= item2.sort_text then
-      return item1.sort_text < item2.sort_text
+    if #item1.word ~= #item2.word then
+      return #item1.word < #item2.word
     end
   end
 
-  return nil
+
+  return item1.index < item2.index
 end
 
 --- logger

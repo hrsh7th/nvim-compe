@@ -1,5 +1,4 @@
-local Pattern = require'compe.pattern'
-
+local compe = require'compe'
 local Source = {}
 
 function Source.new()
@@ -18,10 +17,9 @@ function Source.get_metadata(self)
 end
 
 function Source.datermine(self, context)
-  return {
-    keyword_pattern_offset = Pattern:get_keyword_pattern_offset(context);
-    trigger_character_offset = context.before_char == '.' and context.col or 0;
-  }
+  return compe.helper.datermine(context, {
+    trigger_characters = { '.' };
+  })
 end
 
 function Source.complete(self, args)
@@ -53,14 +51,24 @@ function Source.collect(self, paths)
 
   local candidates = {}
   for _, key in ipairs(target_keys) do
-    if string.match(key, '^%w[%w_]*$') then
+    if string.match(key, '^%a[%a_]*$') then
       table.insert(candidates, {
         word = '' .. key;
         kind = type(target[key]);
       })
     end
   end
+  for _, key in ipairs(target_keys) do
+    if not string.match(key, '^%a[%a_]*$') then
+      table.insert(candidates, {
+        word = '' .. key;
+        kind = type(target[key]);
+      })
+    end
+  end
+
   return candidates
 end
 
 return Source.new()
+

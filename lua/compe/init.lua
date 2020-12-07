@@ -1,84 +1,114 @@
+local Debug = require'compe.utils.debug'
+local Pattern = require'compe.pattern'
+local Compat = require'compe.utils.compat'
 local Completion = require'compe.completion'
-local Debug = require'compe.debug'
-local Source = require'compe.completion.source'
-local VimBridge = require'compe.completion.source.vim_bridge'
+local Source = require'compe.source'
+local Config = require'compe.config'
+local Helper = require'compe.helper'
+local VimBridge = require'compe.vim_bridge'
 
-local Compe = {}
-
---- new
-function Compe.new()
-  local self = setmetatable({}, { __index = Compe })
-  self.completion = Completion.new()
-  return self
+--- suppress
+-- suppress errors.
+local suppress = function(callback)
+  return function(...)
+    local args = ...
+    local status, value = pcall(function()
+      return callback(args)
+    end)
+    if not status then
+      Debug.log(value)
+    end
+  end
 end
 
---- register_lua_source
-function Compe.register_lua_source(self, id, source)
-  self.completion:register_source(Source.new(id, source))
+--- enable
+-- call function if enabled.
+local enable = function(callback)
+  return function(...)
+    if Config.get().enabled then
+      return callback(...)
+    end
+  end
 end
 
---- register_vim_source
-function Compe.register_vim_source(self, id)
-  self.completion:register_source(Source.new(id, VimBridge.new(id)))
+local compe = {}
+
+--- Public API
+
+--- helper
+compe.helper = Helper
+
+--- setup
+compe.setup = function(config)
+  Pattern.set_filetype_config('vim', {
+    keyword_pattern = [[\%(\w:\w*\|\h\%(\w\|#\)*\)]];
+  })
+  Pattern.set_filetype_config('php', {
+    keyword_pattern = [[\%(\$\w*\|\h\w*\)]];
+  })
+  Pattern.set_filetype_config('html', {
+    keyword_pattern = [[\%(/\h?\w*\|\h\w*\)]];
+  })
+  Config.set(config)
+end
+
+--- register_source
+compe.register_source = function(name, source)
+  if not string.match(name, '^[%a_]+$') then
+    error("the source's name must be [%a_]+")
+  end
+  local source = Source.new(name, source)
+  Completion.register_source(source)
+  return source.id
 end
 
 --- unregister_source
-function Compe.unregister_source(self, id)
-  self.completion:unregister_source(id)
+compe.unregister_source = function(id)
+  Completion.unregister_source(id)
 end
 
---- on_complete_changed
-function Compe.on_complete_changed(self)
-  local status, value = pcall(function() self.completion:on_complete_changed() end)
-  if not(status) then
-    Debug:log(value)
+--- Private API
+
+--- _complete
+compe._complete = enable(function()
+  Completion.complete(true)
+  return ''
+end)
+
+--- _close
+compe._close = enable(function()
+  Completion.close()
+  return ''
+end)
+
+--- _register_vim_source
+compe._register_vim_source = function(name, bridge_id)
+  local source = Source.new(name, VimBridge.new(bridge_id))
+  Completion.register_source(source)
+  return source.id
+end
+
+--- _on_insert_enter
+compe._on_insert_enter = enable(suppress(function()
+  Completion.start_insert()
+end))
+
+--- _on_text_changed
+compe._on_text_changed = enable(suppress(function()
+  Completion.complete(false)
+end))
+
+--- _on_complete_changed
+compe._on_complete_changed = enable(suppress(function()
+  Completion.select(vim.call('complete_info', {'selected' }).selected or -1)
+end))
+
+--- _on_complete_done
+compe._on_complete_done = enable(suppress(function()
+  if vim.call('compe#_has_completed_item') then
+    Completion.confirm(vim.v.completed_item)
   end
-end
+end))
 
---- on_complete_done
-function Compe.on_complete_done(self)
-  local status, value = pcall(function() self.completion:on_complete_done() end)
-  if not(status) then
-    Debug:log(value)
-  end
-end
-
---- on_text_changed
-function Compe.on_text_changed(self)
-  local status, value = pcall(function() self.completion:on_text_changed() end)
-  if not(status) then
-    Debug:log(value)
-  end
-end
-
---- on_insert_leave
-function Compe.on_insert_leave(self)
-  local status, value = pcall(function() self.completion:on_insert_leave() end)
-  if not(status) then
-    Debug:log(value)
-  end
-end
-
---- on_manual_complete
-function Compe.on_manual_complete(self)
-  local status, value = pcall(function() self.completion:on_manual_complete() end)
-  if not(status) then
-    Debug:log(value)
-  end
-end
-
--- add_history
-function Compe.add_history(self, word)
-  self.completion:add_history(word)
-end
-
---- clear
-function Compe.clear(self)
-  local status, value = pcall(function() self.completion:clear() end)
-  if not(status) then
-    Debug:log(value)
-  end
-end
-
-return Compe.new()
+return compe
 

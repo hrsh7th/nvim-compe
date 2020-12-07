@@ -1,7 +1,7 @@
 let s:Position = vital#lamp#import('VS.LSP.Position')
 
 let s:state = {
-\   'ids': [],
+\   'source_ids': [],
 \   'cancellation_token': lamp#cancellation_token(),
 \ }
 
@@ -21,16 +21,16 @@ endfunction
 " source
 "
 function! s:source() abort
-  for l:id in s:state.ids
-    call compe#source#vim_bridge#unregister(l:id)
+  for l:source_id in s:state.source_ids
+    call compe#unregister_source(l:source_id)
   endfor
-  let s:state.ids = []
+  let s:state.source_ids = []
 
   let l:servers = lamp#server#registry#all()
   let l:servers = filter(l:servers, { _, server -> server.supports('capabilities.completionProvider') })
-  let s:state.ids = map(copy(l:servers), { _, server ->
-  \   compe#source#vim_bridge#register('lamp:' . server.name, {
-  \     'get_metadata': function('s:get_metadata'),
+  let s:state.source_ids = map(copy(l:servers), { _, server ->
+  \   compe#register_source('lamp', {
+  \     'get_metadata': function('s:get_metadata', [server.filetypes]),
   \     'datermine': function('s:datermine', [server]),
   \     'complete': function('s:complete', [server]),
   \   })
@@ -40,10 +40,11 @@ endfunction
 "
 " s:get_metadata
 "
-function! s:get_metadata() abort
+function! s:get_metadata(filetypes) abort
   return {
   \   'priority': 1000,
   \   'menu': '[LSP]',
+  \   'filetypes': a:filetypes
   \ }
 endfunction
 
@@ -55,23 +56,9 @@ function! s:datermine(server, context) abort
     return {}
   endif
 
-  let l:keyword_pattern_offset = compe#pattern#get_keyword_pattern_offset(a:context)
-
-  let l:trigger_chars = a:server.capabilities.get_completion_trigger_characters()
-  if index(l:trigger_chars, a:context.before_char) >= 0 && a:context.before_char !=# ' '
-    return {
-    \   'keyword_pattern_offset': l:keyword_pattern_offset,
-    \   'trigger_character_offset': a:context.col,
-    \ }
-  endif
-
-  if l:keyword_pattern_offset > 0
-    return {
-    \   'keyword_pattern_offset': l:keyword_pattern_offset,
-    \ }
-  endif
-
-  return {}
+  return compe#helper#datermine(a:context, {
+  \   'trigger_characters': a:server.capabilities.get_completion_trigger_characters()
+  \ })
 endfunction
 
 "

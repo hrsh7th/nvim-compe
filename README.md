@@ -13,66 +13,154 @@ Auto completion plugin for nvim.
 # Usage
 
 ```viml
-let g:compe_enabled = v:true
-let g:compe_debug = v:false
-let g:compe_min_length = 1
-let g:compe_auto_preselect = v:false
-let g:compe_throttle_time = 120
-let g:compe_source_timeout = 200
-let g:compe_incomplete_delay = 400
+if s:viml
+  let g:compe = {}
+  let g:compe.enabled = v:true
+  let g:compe.debug = v:false
+  let g:compe.min_length = 1
+  let g:compe.auto_preselect = v:true
+  let g:compe.throttle_time = 120
+  let g:compe.source_timeout = 200
+  let g:compe.incomplete_delay = 400
 
-inoremap <silent> <C-Space> <C-r>=compe#complete()<CR>
-inoremap <silent><expr> <C-e> compe#close('<C-e>')
+  let g:compe.source = {}
+  let g:compe.source.path = v:true
+  let g:compe.source.buffer = v:true
+  let g:compe.source.vsnip = v:true
+  let g:compe.source.nvim_lsp = v:true
+  let g:compe.source.nvim_lua = { 'filetypes': ['lua', 'lua.pad'] }
+endif
+
+if s:lua
+lua <<EOF
+require'compe'.setup {
+  enabled = true;
+  debug = false;
+  min_length = 1;
+  auto_preselect = false;
+  throttle_time = 120;
+  source_timeout = 200;
+  incomplete_delay = 400;
+
+  source = {
+    path = true;
+    buffer = true;
+    vsnip = true;
+    nvim_lsp = true;
+    nvim_lua = { ... overwrite source configuration ... };
+  };
+}
+EOF
+endif
 
 if s:default
-  inoremap <silent><expr> <CR>  compe#confirm('<CR>')
+  inoremap <silent><expr> <C-Space> compe#complete()
+  inoremap <silent><expr> <CR>      compe#confirm('<CR>')
+  inoremap <silent><expr> <C-e>     compe#close('<C-e>')
 endif
 
 if s:lexima
-  inoremap <silent><expr> <CR>  compe#confirm(lexima#expand('<LT>CR>', 'i'))
+  inoremap <silent><expr> <C-Space> compe#complete()
+  inoremap <silent><expr> <CR>      compe#confirm(lexima#expand('<LT>CR>', 'i'))
+  inoremap <silent><expr> <C-e>     compe#close('<C-e>')
 endif
-
-lua require'compe_nvim_lsp'.attach()
-lua require'compe':register_lua_source('buffer', require'compe_buffer')
-call compe#source#vim_bridge#register('path', compe_path#source#create())
-call compe#source#vim_bridge#register('tags', compe_tags#source#create())
 ```
 
+## Source configuration
 
-# Source
+The sources can be configured by `let g:compe.source['source_name'] = { ...configuration... }`.
 
-#### nvim-lsp
-You can enable nvim_lsp completion via `lua require'compe_nvim_lsp'.attach()`.
+- *priority*
+  - Specify source priority.
+- *filetypes*
+  - Specify source filetypes.
+- *sort*
+  - Specify source is sortable or not.
+- *dup*
+  - Specify source candidates can have the same word another item.
+- *menu*
+  - Specify item's menu (see `:help complete-items`)
 
-#### nvim-lua
-You can enable nvim_lua completion via `lua require'compe_nvim_lua'.attach()`.
 
-#### vim-lamp
-You can enable vim-lamp completion via `call compe_lamp#source#attach()`.
+# Built-in sources
 
-#### buffer
-You can enable buffer completion via `lua require'compe':register_lua_source('buffer', require'compe_buffer')`.
-
-#### path
-You can enable path completion via `call compe#source#vim_bridge#register('path', compe_path#source#create())`.
-
-#### tags
-You can enable tags completion via `call compe#source#vim_bridge#register('tags', compe_tags#source#create())`.
-
-#### vsnip
-You can enable vsnip completion via `call compe#source#vim_bridge#register('vsnip', compe_vsnip#source#create())`.
+- buffer
+- path
+- tags
+- nvim_lsp
+- nvim_lua
+- lamp
+- vsnip
 
 
 # Development
 
-### special attributes
+## Example source
 
-- preselect
-  - Specify the item should be preselect
+You can see example on [vim-dadbod-completion](https://github.com/kristijanhusak/vim-dadbod-completion)
 
-- filter_text
-  - Specify text that will be used only filter
+- implementation
+  - https://github.com/kristijanhusak/vim-dadbod-completion/blob/master/autoload/vim_dadbod_completion/compe.vim
+- registration
+  - https://github.com/kristijanhusak/vim-dadbod-completion/blob/master/after/plugin/vim_dadbod_completion.vim#L4
 
-- sort_text
-  - Specify text that will be used only sort
+
+## The source
+
+The source is defined as dict that has `get_metadata`/`datermine`/`complete` and `documentation(optional)`.
+
+- *get_metadata*
+  - This function should return the default source configuration. see `Source configuration` section.
+- *datermine*
+  - This function should return dict as `{ keyword_pattern_offset = 1-origin number; trigger_character_offset = 1-origin number}`.
+  - If this function returns empty, nvim-compe will do nothing.
+- *complete*
+  - This function should callback the completed items as `args.callback({ items = items })`.
+  - If you want to stop the completion process, you should call `args.abort()`.
+- *documentation*
+  - You can provide documentation for selected items.
+
+
+## Public API
+
+The compe is under development so I will apply breaking change sometimes.
+
+The below APIs are mark as public.
+
+### Vim script
+
+```viml
+" Setup user configuration.
+call compe#setup({ ... })
+
+" Register and unregister source.
+let l:id = compe#register_source('name', s:source)
+call compe#unregister_source(l:id)
+
+" Invoke completion.
+call compe#complete()
+
+" Confirm selected item.
+call compe#confirm('<C-y>') " optional fallback key.
+
+" Close completion menu.
+call compe#close('<C-e>') " optional fallback key.
+
+" Source helpers.
+call compe#helper#*()
+```
+
+### Lua
+
+```lua
+-- Setup user configuration.
+require'compe'.setup({ ... })
+
+-- Register and unregister source.
+local id = require'compe'.register_source(name, source)
+require'compe'.unregister_source(id)
+
+-- Source helpers.
+require'compe'.helper.*
+```
 
