@@ -68,6 +68,12 @@ function Source.trigger(self, context, callback)
     end
   end
 
+  if metadata.ignored_filetypes and #metadata.ignored_filetypes then
+    if vim.tbl_contains(metadata.ignored_filetypes or {}, context.filetype) then
+      return self:clear()
+    end
+  end
+
   -- Normalize trigger offsets
   local state = self.source:datermine(context)
   state.trigger_character_offset = state.trigger_character_offset == nil and 0 or state.trigger_character_offset

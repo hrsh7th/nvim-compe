@@ -76,6 +76,8 @@ The sources can be configured by `let g:compe.source['source_name'] = { ...confi
   - Specify source priority.
 - *filetypes*
   - Specify source filetypes.
+- *ignored_filetypes*
+  - Specify filetypes that should not use this source.
 - *sort*
   - Specify source is sortable or not.
 - *dup*
