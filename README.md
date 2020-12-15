@@ -12,13 +12,15 @@ Auto completion plugin for nvim.
 
 # Usage
 
+The `source` option is required but others can be omitted.
+
 ```viml
 if s:viml
   let g:compe = {}
   let g:compe.enabled = v:true
   let g:compe.debug = v:false
   let g:compe.min_length = 1
-  let g:compe.auto_preselect = v:true
+  let g:compe.preselect = 'enable' || 'disable' || 'always'
   let g:compe.throttle_time = ... number ...
   let g:compe.source_timeout = ... number ...
   let g:compe.incomplete_delay = ... number ...
@@ -38,7 +40,7 @@ require'compe'.setup {
   enabled = true;
   debug = false;
   min_length = 1;
-  auto_preselect = false;
+  preselect = 'enable' || 'disable' || 'always';
   throttle_time = ... number ...;
   source_timeout = ... number ...;
   incomplete_delay = ... number ...;

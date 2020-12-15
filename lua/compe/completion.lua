@@ -228,8 +228,13 @@ Completion._show = function(start_offset, items)
   Completion._current_items = items
 
   -- preselect
-  if items[1] and items[1].preselect or Config.get().auto_preselect then
-    vim.api.nvim_select_popupmenu_item(0, false, false, {})
+  if items[1] then
+    local should_preselect = false
+    should_preselect = should_preselect or (Config.get().preselect == 'enable' and items[1].preselect)
+    should_preselect = should_preselect or (Config.get().preselect == 'always')
+    if should_preselect then
+      vim.api.nvim_select_popupmenu_item(0, false, false, {})
+    end
   end
 end
 
