@@ -43,6 +43,7 @@ function! s:FloatingWindow.new() abort
   call setbufvar(l:buf, '&buflisted', 0)
   call setbufvar(l:buf, '&modeline', 0)
   call setbufvar(l:buf, '&buftype', 'nofile')
+  call setbufvar(l:buf, '&bufhidden', 'hide')
 
   return extend(deepcopy(s:FloatingWindow), {
   \   'id': s:id,
