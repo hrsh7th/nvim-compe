@@ -1,6 +1,6 @@
-local THROTTLE_TIME = 40
-local SOURCE_TIMEOUT = 100
-local INCOMPLETE_DELAY = 200
+local THROTTLE_TIME = 80
+local SOURCE_TIMEOUT = 200
+local INCOMPLETE_DELAY = 400
 
 local Config = {}
 

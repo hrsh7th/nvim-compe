@@ -113,15 +113,19 @@ Completion.complete = function(manual)
 
   -- The vim will hide pum when press backspace so we restore manually.
   if Completion._context:maybe_backspace(context) then
-    if Completion._current_offset > 0 then
+    if 0 < Completion._current_offset and Completion._current_offset < context.col then
       Completion._show(Completion._current_offset, Completion._current_items)
+      if not Completion._trigger(context) then
+        Completion._display(context)
+      end
+    end
+  else
+    if not Completion._trigger(context) then
+      Completion._display(context)
     end
   end
 
   -- If triggered, the `_display` will be called for each trigger callback.
-  if not Completion._trigger(context) then
-    Completion._display(context)
-  end
   Completion._context = context
 end
 
@@ -156,8 +160,10 @@ Completion._display = function(context)
     should_wait_processing = should_wait_processing and source:get_processing_time() < Config.get().source_timeout -- processing timeout
     if should_wait_processing then
       local timeout = Config.get().source_timeout - source:get_processing_time()
-      Async.throttle('display:processing', timeout + 1, function()
-        Completion._display(Context.new({}))
+      Async.throttle('display:processing', math.max(1, timeout), function()
+        if source.status == 'processing' then
+          Completion._display(Context.new({}))
+        end
       end)
       return
     end
@@ -180,7 +186,7 @@ Completion._display = function(context)
         -- Prefer prior source's trigger character
         if source.is_triggered_by_character or not use_trigger_character then
           -- If source status is completed but it does not provide any items, it will be ignored (don't use start_offset, trigger character).
-          local source_items = Matcher.match(context, source, Completion._history)
+          local source_items = Matcher.match(context, source)
           if #source_items > 0 then
             start_offset = (start_offset == 0 or start_offset > source_start_offset) and source_start_offset or start_offset
             use_trigger_character = use_trigger_character or source.is_triggered_by_character
@@ -221,9 +227,8 @@ end
 Completion._show = function(start_offset, items)
   local completeopt = vim.o.completeopt
   vim.cmd('set completeopt=menu,menuone,noselect')
-  vim.call('complete', start_offset, items)
-  vim.cmd('set completeopt=' .. completeopt)
 
+  vim.call('complete', start_offset, items)
   Completion._current_offset = start_offset
   Completion._current_items = items
 
@@ -236,6 +241,7 @@ Completion._show = function(start_offset, items)
       vim.api.nvim_select_popupmenu_item(0, false, false, {})
     end
   end
+  vim.cmd('set completeopt=' .. completeopt)
 end
 
 --- _should_ignore
