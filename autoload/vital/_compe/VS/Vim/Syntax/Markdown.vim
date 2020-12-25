@@ -22,7 +22,9 @@ function! s:apply(text, ...) abort
       let b:___VS_Vim_Syntax_Markdown[l:group] = v:true
 
       try
-        unlet b:current_syntax
+        if exists('b:current_syntax')
+          unlet b:current_syntax
+        endif
         execute printf('syntax include @%s syntax/%s.vim', l:group, l:filetype)
         execute printf('syntax region %s matchgroup=Conceal start=/%s/rs=e matchgroup=Conceal end=/%s/re=s contains=@%s containedin=ALL keepend concealends',
         \   l:group,
@@ -31,8 +33,7 @@ function! s:apply(text, ...) abort
         \   l:group
         \ )
       catch /.*/
-        echomsg printf("[VS.Vim.Syntax.Markdown] `%s` isn't valid filetype.")
-        echomsg printf('[VS.Vim.Syntax.Markdown] You can add `%s` to g:markdown_fenced_languages.')
+        echomsg printf('[VS.Vim.Syntax.Markdown] The `%s` is not valid filetype! You can add `"let g:markdown_fenced_languages = ["FILETYPE=%s"]`.', l:mark, l:mark)
       endtry
     endfor
   catch /.*/
