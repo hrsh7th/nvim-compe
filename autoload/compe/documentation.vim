@@ -2,6 +2,7 @@ let s:MarkupContent = vital#compe#import('VS.LSP.MarkupContent')
 let s:FloatingWindow = vital#compe#import('VS.Vim.Window.FloatingWindow')
 
 let s:window = s:FloatingWindow.new()
+let s:border = s:FloatingWindow.new()
 
 "
 " compe#documentation#show
@@ -15,6 +16,7 @@ function! compe#documentation#open(document) abort
 
   let l:pos = s:get_screenpos(pum_getpos(), l:document)
   if empty(l:pos)
+    call s:border.close()
     return s:window.close()
   endif
 
@@ -26,6 +28,24 @@ function! compe#documentation#open(document) abort
   \   'filetype': 'markdown',
   \   'contents': l:document,
   \ })
+
+  let l:width = float2nr(&columns * 0.4)
+  let l:height = float2nr(&lines * 0.4)
+  let l:top = '╭' . repeat('─', l:width - 2) . '╮'
+  let l:mid = '│' . repeat(' ', l:width - 2) . '│'
+  let l:bot = '╰' . repeat('─', l:width - 2) . '╯'
+  let l:lines = [l:top] + repeat([l:mid], l:height - 2) + [l:bot]
+
+
+  call s:border.open({
+  \   'row': l:pos[0],
+  \   'col': l:pos[1],
+  \   'maxwidth': l:width,
+  \   'maxheight': l:height,
+  \   'filetype': 'markdown',
+  \   'contents': l:lines,
+  \ })
+
 endfunction
 
 "
@@ -33,6 +53,7 @@ endfunction
 "
 function! compe#documentation#close() abort
   call s:window.close()
+  call s:border.close()
 endfunction
 
 "
@@ -67,4 +88,6 @@ function! s:get_screenpos(event, document) abort
 
   return [a:event.row, l:col]
 endfunction
+
+
 
