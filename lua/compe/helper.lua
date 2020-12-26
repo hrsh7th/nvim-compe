@@ -11,8 +11,13 @@ Helper.datermine = function(context, option)
     end
   end
 
+  local keyword_pattern_offset
+  if option.keyword_pattern then
+    keyword_pattern_offset = Pattern.get_pattern_offset(context.before_line, option.keyword_pattern)
+  end
+
   return {
-    keyword_pattern_offset = Pattern.get_keyword_offset(context);
+    keyword_pattern_offset = keyword_pattern_offset or Pattern.get_keyword_offset(context);
     trigger_character_offset = trigger_character_offset;
   }
 end

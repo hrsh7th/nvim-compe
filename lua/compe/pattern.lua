@@ -28,24 +28,32 @@ Pattern.get_keyword_offset = function(context)
 
   local s1, s2
   if keyword_pattern == default_pattern then
-    s1 = Pattern.regex(keyword_pattern):match_str(context.before_line)
+    s1 = Pattern.get_pattern_offset(context.before_line, keyword_pattern)
     s2 = s1
   else
-    s1 = Pattern.regex(keyword_pattern):match_str(context.before_line)
-    s2 = Pattern.regex(default_pattern):match_str(context.before_line)
+    s1 = Pattern.get_pattern_offset(context.before_line, keyword_pattern)
+    s2 = Pattern.get_pattern_offset(context.before_line, default_pattern)
   end
 
-  if s1 == nil and s2 == nil then
+  if s2 == 0 then
+    return s1
+  end
+  if s1 == 0 then
+    return s2
+  end
+  return math.min(s1, s2)
+end
+
+--- get_pattern_offset
+Pattern.get_pattern_offset = function(before_line, pattern)
+  local regex = Pattern.regex(pattern)
+  local s = regex:match_str(before_line)
+  if s == nil then
     return 0
   end
-  if s2 == nil then
-    return s1 + 1
-  end
-  if s1 == nil then
-    return s2 + 1
-  end
-  return math.min(s1, s2) + 1
+  return s + 1
 end
+
 
 --- regex
 Pattern.regex = function(pattern)
