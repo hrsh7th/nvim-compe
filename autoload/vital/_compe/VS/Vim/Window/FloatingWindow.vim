@@ -63,6 +63,7 @@ endfunction
 " @param {number?} args.minwidth
 " @param {number?} args.maxheight
 " @param {number?} args.minheight
+" @param {string} args.winhl
 "
 function! s:FloatingWindow.open(args) abort
   let a:args.contents = type(a:args.contents) == type('')
@@ -83,6 +84,7 @@ function! s:FloatingWindow.open(args) abort
     let self.win = s:_open(self.buf, l:style)
     call setwinvar(self.win, '&conceallevel', 2)
     call setwinvar(self.win, '&wrap', 1)
+    call setwinvar(self.win, '&winhighlight', get(a:args, 'winhl', ''))
   endif
 
   call self.set_contents(a:args.filetype, a:args.contents)
