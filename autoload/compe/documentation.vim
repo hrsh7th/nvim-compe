@@ -43,7 +43,7 @@ function! compe#documentation#open(document) abort
   \   'col': l:layout.col,
   \   'maxwidth': l:maxwidth,
   \   'maxheight': l:maxheight,
-  \   'filetype': '',
+  \   'filetype': 'border',
   \   'contents': l:borders,
   \   'winhl': 'NormalFloat:Normal',
   \ })
