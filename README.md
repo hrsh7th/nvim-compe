@@ -15,6 +15,10 @@ Auto completion plugin for nvim.
 The `source` option is required but others can be omitted.
 
 ```viml
+
+" You must set this option.
+set completeopt=menu,menuone,noselect
+
 if s:viml
   let g:compe = {}
   let g:compe.enabled = v:true

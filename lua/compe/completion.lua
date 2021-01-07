@@ -215,10 +215,6 @@ Completion._display = function(context)
       return Matcher.compare(item1, item2, Completion._history)
     end)
 
-    local pumvisible = vim.call('pumvisible') == 1
-    if not pumvisible and #items == 0 then
-      return
-    end
     if #items == 0 then
       Completion._show(1, {})
     else
