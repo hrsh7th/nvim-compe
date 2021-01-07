@@ -8,15 +8,7 @@ Config._config = {
   enabled = true;
 }
 
-Config.get = function()
-  return Config._config
-end
-
-Config.get_metadata = function(name)
-  return Config._config.source[name]
-end
-
-Config.set = function(config)
+Config.setup = function(config)
   -- normalize options
   config.enabled = Config._true(config.enabled)
   config.debug = Config._true(config.debug)
@@ -39,8 +31,16 @@ Config.set = function(config)
   Config._config = config
 end
 
-Config.is_source_enabled = function(name)
-  return Config._config.source[name] and not Config._config.source[name].disabled
+Config.get = function()
+  return Config._config
+end
+
+Config.get_metadata = function(source_name)
+  return Config._config.source[source_name]
+end
+
+Config.is_source_enabled = function(source_name)
+  return Config._config.source[source_name] and not Config._config.source[source_name].disabled
 end
 
 Config._true = function(v)

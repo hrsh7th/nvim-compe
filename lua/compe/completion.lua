@@ -138,9 +138,13 @@ Completion._trigger = function(context)
   local trigger = false
   for _, source in ipairs(Completion.get_sources()) do
     local status, value = pcall(function()
-      trigger = source:trigger(context, function()
-        Completion._display(Context.new({}))
-      end) or trigger
+      trigger = source:trigger(context, (function(source)
+        return function()
+          if #source.items > 0 then
+            Completion._display(Context.new({}))
+          end
+        end
+      end)(source)) or trigger
     end)
     if not status then
       Debug.log(value)
@@ -227,8 +231,8 @@ end
 Completion._show = function(start_offset, items)
   local completeopt = vim.o.completeopt
   vim.cmd('set completeopt=menu,menuone,noselect')
-
   vim.call('complete', start_offset, items)
+  vim.cmd('set completeopt=' .. completeopt)
   Completion._current_offset = start_offset
   Completion._current_items = items
 
@@ -241,7 +245,6 @@ Completion._show = function(start_offset, items)
       vim.api.nvim_select_popupmenu_item(0, false, false, {})
     end
   end
-  vim.cmd('set completeopt=' .. completeopt)
 end
 
 --- _should_ignore
