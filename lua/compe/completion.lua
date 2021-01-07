@@ -229,24 +229,24 @@ end
 
 --- _show
 Completion._show = function(start_offset, items)
-  local completeopt = vim.o.completeopt
-  vim.cmd('set completeopt=menu,menuone,noselect')
   vim.schedule(function()
-      vim.call('complete', start_offset, items)
-  end)
-  vim.cmd('set completeopt=' .. completeopt)
-  Completion._current_offset = start_offset
-  Completion._current_items = items
+    local completeopt = vim.o.completeopt
+    vim.cmd('set completeopt=menu,menuone,noselect')
+    vim.call('complete', start_offset, items)
+    vim.cmd('set completeopt=' .. completeopt)
+    Completion._current_offset = start_offset
+    Completion._current_items = items
 
-  -- preselect
-  if items[1] then
-    local should_preselect = false
-    should_preselect = should_preselect or (Config.get().preselect == 'enable' and items[1].preselect)
-    should_preselect = should_preselect or (Config.get().preselect == 'always')
-    if should_preselect then
-      vim.api.nvim_select_popupmenu_item(0, false, false, {})
+    -- preselect
+    if items[1] then
+      local should_preselect = false
+      should_preselect = should_preselect or (Config.get().preselect == 'enable' and items[1].preselect)
+      should_preselect = should_preselect or (Config.get().preselect == 'always')
+      if should_preselect then
+        vim.api.nvim_select_popupmenu_item(0, false, false, {})
+      end
     end
-  end
+  end)
 end
 
 --- _should_ignore
