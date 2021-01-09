@@ -228,7 +228,7 @@ Completion._show = function(start_offset, items)
   vim.schedule(function()
     local completeopt = vim.o.completeopt
     vim.cmd('set completeopt=menu,menuone,noselect')
-    if not vim.tbl_isempty(items) then
+    if not (vim.call('pumvisible') == 0 and #items == 0) then
       vim.call('complete', start_offset, items)
     end
     vim.cmd('set completeopt=' .. completeopt)
