@@ -31,15 +31,15 @@ endfunction
 " s:documentation
 "
 function! s:documentation(args) abort
-  let word = get(a:args.completed_item, 'word', '')
-  if empty(word)
-    return
+  let l:word = get(a:args.completed_item, 'word', '')
+  if empty(l:word)
+    return a:args.abort()
   endif
-  let tags = map(taglist(word), 'v:val.filename')
-  if len(tags) > 10
-    let tags = tags[0:9] + [printf('...and %d more', len(tags[10:]))]
+  let l:tags = map(taglist(l:word), 'v:val.filename')
+  if len(l:tags) > 10
+    let l:tags = l:tags[0:9] + [printf('...and %d more', len(l:tags[10:]))]
   endif
-  return a:args.callback(tags)
+  return a:args.callback(l:tags)
 endfunction
 
 "
