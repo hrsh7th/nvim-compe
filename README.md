@@ -101,6 +101,7 @@ The sources can be configured by `let g:compe.source['source_name'] = { ...confi
 - nvim_lua
 - lamp
 - vsnip
+- ultisnips
 
 
 # Development
