@@ -35,7 +35,7 @@ function! s:documentation(args) abort
   if empty(l:word)
     return a:args.abort()
   endif
-  let l:tags = map(taglist(l:word), 'v:val.filename')
+  let l:tags = uniq(map(taglist(l:word), 'v:val.filename'))
   if len(l:tags) > 10
     let l:tags = l:tags[0:9] + [printf('...and %d more', len(l:tags[10:]))]
   endif
