@@ -17,6 +17,7 @@ end
 function M:complete(args)
   if vim.fn.exists("*UltiSnips#SnippetsInCurrentScope") == 0 then
     args.abort()
+    return
   end
   local receivedSnippets = vim.call('UltiSnips#SnippetsInCurrentScope')
   if vim.tbl_isempty(receivedSnippets) then
@@ -25,11 +26,10 @@ function M:complete(args)
   end
   local completionList = {}
   for key, value in pairs(receivedSnippets) do
-    -- local userdata = {snippet_source = 'UltiSnips', hover = value}
     local item = {
       word =  key,
       abbr =  key,
-      menu = value,
+      userdata = value,
       kind = 'Snippet',
       dup = 1
     }
@@ -38,6 +38,16 @@ function M:complete(args)
   args.callback{
     items = completionList
   }
+end
+
+function M:documentation(args)
+  local completedItem = args.completed_item
+  local userdata = completedItem.userdata
+  if userdata == nil or userdata == '' then
+    args.abort()
+    return
+  end
+  args.callback(userdata)
 end
 
 return M
