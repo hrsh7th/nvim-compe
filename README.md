@@ -99,9 +99,11 @@ The sources can be configured by `let g:compe.source['source_name'] = { ...confi
 - tags
 - nvim_lsp
 - nvim_lua
+- vim_lsp
 - lamp
 - vsnip
 - ultisnips
+
 
 
 # Development
