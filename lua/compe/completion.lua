@@ -140,9 +140,7 @@ Completion._trigger = function(context)
     local status, value = pcall(function()
       trigger = source:trigger(context, (function(source)
         return function()
-          if #source.items > 0 then
-            Completion._display(Context.new({}))
-          end
+          Completion._display(Context.new({}))
         end
       end)(source)) or trigger
     end)
