@@ -9,7 +9,7 @@ let s:state = {
 " compe_lamp#source#attach
 "
 function! compe_lamp#source#attach() abort
-  augroup compete#source#lamp#register
+  augroup compe_lamp#source#attach
     autocmd!
     autocmd User lamp#server#initialized call s:source()
     autocmd User lamp#server#exited call s:source()
@@ -80,10 +80,10 @@ function! s:complete(server, args) abort
     let l:context.triggerCharacter = a:args.context.before_char
   endif
 
-  let l:compete_position = s:Position.cursor()
+  let l:complete_position = s:Position.cursor()
   let l:promise = a:server.request('textDocument/completion', {
   \   'textDocument': lamp#protocol#document#identifier(bufnr('%')),
-  \   'position': l:compete_position,
+  \   'position': l:complete_position,
   \   'context': l:context,
   \ }, {
   \   'cancellation_token': s:state.cancellation_token,
@@ -93,7 +93,7 @@ function! s:complete(server, args) abort
   \   s:on_response(
   \     a:server,
   \     a:args,
-  \     l:compete_position,
+  \     l:complete_position,
   \     response
   \   )
   \ })
@@ -107,9 +107,6 @@ function! s:on_response(server, args, complete_position, response) abort
     return a:args.abort()
   endif
 
-  let l:completion_items = []
-  let l:completion_items = type(a:response) == type({}) ? get(a:response, 'items', []) : l:completion_items
-  let l:completion_items = type(a:response) == type([]) ? a:response : l:completion_items
   call a:args.callback({
   \   'items': lamp#feature#completion#convert(
   \     a:server.name,
