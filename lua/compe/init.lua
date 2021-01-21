@@ -1,6 +1,5 @@
 local Debug = require'compe.utils.debug'
 local Pattern = require'compe.pattern'
-local Compat = require'compe.utils.compat'
 local Completion = require'compe.completion'
 local Source = require'compe.source'
 local Config = require'compe.config'

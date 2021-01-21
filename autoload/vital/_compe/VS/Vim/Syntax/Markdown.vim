@@ -7,14 +7,15 @@ endfunction
 execute join(['function! vital#_compe#VS#Vim#Syntax#Markdown#import() abort', printf("return map({'apply': ''}, \"vital#_compe#function('<SNR>%s_' . v:key)\")", s:_SID()), 'endfunction'], "\n")
 delfunction s:_SID
 " ___vital___
-function! s:apply(text, ...) abort
+function! s:apply(...) abort
   if !exists('b:___VS_Vim_Syntax_Markdown')
     runtime! syntax/markdown.vim
     let b:___VS_Vim_Syntax_Markdown = {}
   endif
 
+  let l:bufnr = bufnr('%')
   try
-    for [l:mark, l:filetype] in items(s:_get_filetype_map(a:text, get(a:000, 0, {})))
+    for [l:mark, l:filetype] in items(s:_get_filetype_map(l:bufnr, get(a:000, 0, {})))
       let l:group = substitute(toupper(l:mark), '\.', '_', 'g')
       if has_key(b:___VS_Vim_Syntax_Markdown, l:group)
         continue
@@ -44,9 +45,9 @@ endfunction
 "
 " _get_filetype_map
 "
-function! s:_get_filetype_map(text, filetype_map) abort
+function! s:_get_filetype_map(bufnr, filetype_map) abort
   let l:filetype_map = {}
-  for l:mark in s:_find_marks(a:text)
+  for l:mark in s:_find_marks(a:bufnr)
     let l:filetype_map[l:mark] = s:_get_filetype_from_mark(l:mark, a:filetype_map)
   endfor
   return l:filetype_map
@@ -55,18 +56,19 @@ endfunction
 "
 " _find_marks
 "
-function! s:_find_marks(text) abort
+function! s:_find_marks(bufnr) abort
   let l:marks = {}
 
   " find from buffer contents.
+  let l:text = join(getbufline(a:bufnr, '^', '$'), "\n")
   let l:pos = 0
   while 1
-    let l:match = matchlist(a:text, '```\s*\(\w\+\)', l:pos, 1)
+    let l:match = matchlist(l:text, '```\s*\(\w\+\)', l:pos, 1)
     if empty(l:match)
       break
     endif
     let l:marks[l:match[1]] = v:true
-    let l:pos = matchend(a:text, '```\s*\(\w\+\)', l:pos, 1)
+    let l:pos = matchend(l:text, '```\s*\(\w\+\)', l:pos, 1)
   endwhile
 
   return keys(l:marks)
