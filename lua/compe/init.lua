@@ -46,7 +46,7 @@ compe.setup = function(config)
     keyword_pattern = [[\%(\$\w*\|\h\w*\)]];
   })
   Pattern.set_filetype_config('html', {
-    keyword_pattern = [[\%(/\h?\w*\|\h\w*\)]];
+    keyword_pattern = [[\%(/\h\?\w*\|\h\w*\)]];
   })
   Config.setup(config)
 end

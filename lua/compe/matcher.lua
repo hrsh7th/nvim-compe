@@ -12,7 +12,10 @@ Matcher.match = function(context, source)
   -- filter
   local matches = {}
   for i, item in ipairs(source.items) do
-    local word = item.filter_text or item.original_word
+    local word = item.original_word
+    if item.filter_text and Character.match(string.byte(input, 1, 1), string.byte(item.filter_text, 1, 1)) then
+      word = item.filter_text
+    end
     item.index = i
     item.score = 0
     item.fuzzy = false
