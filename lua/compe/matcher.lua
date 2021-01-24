@@ -31,7 +31,7 @@ Matcher.match = function(context, source)
         table.insert(matches, item)
       end
       print('pass')
-      print('')
+      print(' ')
     end
   end
 
