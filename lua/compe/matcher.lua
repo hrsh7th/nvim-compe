@@ -164,6 +164,14 @@ Matcher.score = function(input, word)
       local word_offset = 0
       local input_index = last_match.input_match_end + 1
       while word_offset + word_index <= #word_bytes and input_index <= #input_bytes do
+        print(vim.inspect({
+          mark = 'score',
+          input_bytes = input_bytes,
+          input_index = input_index,
+          word_bytes = word_bytes,
+          word_index = word_index,
+          word_offset = word_offset,
+        }))
         if Character.match(word_bytes[word_index + word_offset], input_bytes[input_index]) then
           input_index = input_index + 1
         end
