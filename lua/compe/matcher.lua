@@ -20,12 +20,18 @@ Matcher.match = function(context, source)
     item.score = 0
     item.fuzzy = false
     if #word >= #input then
+      print(vim.inspect({
+        input = input,
+        word = word,
+      }))
       local score, fuzzy = Matcher.score(input, word)
       item.score = score
       item.fuzzy = fuzzy
       if item.score >= 1 or #input == 0 then
         table.insert(matches, item)
       end
+      print('pass')
+      print('')
     end
   end
 
@@ -164,14 +170,6 @@ Matcher.score = function(input, word)
       local word_offset = 0
       local input_index = last_match.input_match_end + 1
       while word_offset + word_index <= #word_bytes and input_index <= #input_bytes do
-        print(vim.inspect({
-          mark = 'score',
-          input_bytes = input_bytes,
-          input_index = input_index,
-          word_bytes = word_bytes,
-          word_index = word_index,
-          word_offset = word_offset,
-        }))
         if Character.match(word_bytes[word_index + word_offset], input_bytes[input_index]) then
           input_index = input_index + 1
         end
@@ -191,14 +189,6 @@ end
 Matcher.find_match_region = function(input_bytes, input_start_index, input_end_index, word_bytes, word_index)
   -- Datermine input position ( woroff -> word_offset )
   while input_start_index < input_end_index do
-    print(vim.inspect({
-      mark = 'find_match_region1',
-      input_bytes = input_bytes,
-      input_start_index = input_start_index,
-      input_end_index = input_end_index,
-      word_bytes = word_bytes,
-      word_index = word_index,
-    }))
     if Character.match(input_bytes[input_end_index], word_bytes[word_index]) then
       break
     end
@@ -215,14 +205,6 @@ Matcher.find_match_region = function(input_bytes, input_start_index, input_end_i
   local input_index = input_end_index
   local word_offset = 0
   while input_index <= #input_bytes and word_index + word_offset <= #word_bytes do
-    print(vim.inspect({
-      mark = 'find_match_region2',
-      input_bytes = input_bytes,
-      input_index = input_index,
-      word_bytes = word_bytes,
-      word_inex = word_index,
-      word_offset = word_offset,
-    }))
     if Character.match(input_bytes[input_index], word_bytes[word_index + word_offset]) then
       -- Match start.
       if input_match_start == -1 then
