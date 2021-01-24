@@ -13,9 +13,14 @@ Matcher.match = function(context, source)
   local matches = {}
   for i, item in ipairs(source.items) do
     local word = item.original_word
-    if item.filter_text and Character.match(string.byte(input, 1, 1), string.byte(item.filter_text, 1, 1)) then
-      word = item.filter_text
+    if #input > 0 then
+      if item.filter_text and #item.filter_text > 0 then
+        if Character.match(string.byte(input, 1), string.byte(item.filter_text, 1)) then
+          word = item.filter_text
+        end
+      end
     end
+
     item.index = i
     item.score = 0
     item.fuzzy = false
