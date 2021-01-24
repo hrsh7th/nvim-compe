@@ -183,6 +183,14 @@ end
 Matcher.find_match_region = function(input_bytes, input_start_index, input_end_index, word_bytes, word_index)
   -- Datermine input position ( woroff -> word_offset )
   while input_start_index < input_end_index do
+    print(vim.inspect({
+      mark = 'find_match_region1',
+      input_bytes = input_bytes,
+      input_start_index = input_start_index,
+      input_end_index = input_end_index,
+      word_bytes = word_bytes,
+      word_index = word_index,
+    }))
     if Character.match(input_bytes[input_end_index], word_bytes[word_index]) then
       break
     end
@@ -199,6 +207,14 @@ Matcher.find_match_region = function(input_bytes, input_start_index, input_end_i
   local input_index = input_end_index
   local word_offset = 0
   while input_index <= #input_bytes and word_index + word_offset <= #word_bytes do
+    print(vim.inspect({
+      mark = 'find_match_region2',
+      input_bytes = input_bytes,
+      input_index = input_index,
+      word_bytes = word_bytes,
+      word_inex = word_index,
+      word_offset = word_offset,
+    }))
     if Character.match(input_bytes[input_index], word_bytes[word_index + word_offset]) then
       -- Match start.
       if input_match_start == -1 then
