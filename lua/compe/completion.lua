@@ -224,12 +224,12 @@ end
 --- _show
 Completion._show = function(start_offset, items)
   vim.schedule(function()
-    local completeopt = vim.o.completeopt
-    vim.cmd('set completeopt=menu,menuone,noselect')
     if not (vim.call('pumvisible') == 0 and #items == 0) then
+      local completeopt = vim.o.completeopt
+      vim.cmd('set completeopt=menu,menuone,noselect')
       vim.call('complete', start_offset, items)
+      vim.cmd('set completeopt=' .. completeopt)
     end
-    vim.cmd('set completeopt=' .. completeopt)
     Completion._current_offset = start_offset
     Completion._current_items = items
 
