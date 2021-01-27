@@ -74,11 +74,11 @@ function Buffer.index_line(self, i, line)
     local s, e = self:matchstrpos(buffer)
     if s then
       local word = string.sub(buffer, s + 1, e)
-      if #word > 3 and string.sub(word, #word, 1) ~= '-' then
+      if #word > 3 and string.sub(word, #word) ~= '-' then
         table.insert(words, word)
       end
     end
-    local new_buffer = string.sub(buffer, e and (e + 1) or 2)
+    local new_buffer = string.sub(buffer, e and e + 1 or 2)
     if buffer == new_buffer then
       break
     end

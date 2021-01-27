@@ -41,14 +41,14 @@ function Source.documentation(self, completed_item)
     self.source:documentation({
       completed_item = completed_item;
       context = Context.new({});
-      abort = vim.schedule_wrap(function()
-        vim.call('compe#documentation#close')
-      end);
       callback = vim.schedule_wrap(function(document)
         if self.documentation_id == documentation_id then
           vim.call('compe#documentation#open', document)
         end
-      end)
+      end);
+      abort = vim.schedule_wrap(function()
+        vim.call('compe#documentation#close')
+      end);
     })
   else
     vim.schedule(function()
@@ -147,7 +147,6 @@ function Source.trigger(self, context, callback)
       self.incomplete = false
       self.keyword_pattern_offset = 0
       self.trigger_character_offset = 0
-      callback()
     end;
   })
   return true

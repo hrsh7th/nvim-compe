@@ -113,15 +113,14 @@ Completion.complete = function(manual)
     return
   end
 
-  -- The vim will hide pum when press backspace so we restore manually.
-  if Completion._context:maybe_backspace(context) then
-    if 0 < Completion._current_offset and Completion._current_offset < context.col then
-      Completion._show(Completion._current_offset, Completion._current_items)
-      if not Completion._trigger(context) then
-        Completion._display(context)
-      end
-    end
-  else
+  -- Restore pum if vim close it automatically (backspace or invalid chars).
+  local is_completing = (0 < Completion._current_offset and Completion._current_offset < context.col)
+  if is_completing and vim.call('pumvisible') == 0 then
+    Completion._show(Completion._current_offset, Completion._current_items)
+  end
+
+  local should_trigger = is_completing or not Completion._context:maybe_backspace(context)
+  if should_trigger then
     if not Completion._trigger(context) then
       Completion._display(context)
     end
