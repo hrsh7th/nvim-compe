@@ -1,4 +1,4 @@
-if match(&runtimepath, 'UltiSnips') == -1 || exists('g:loaded_compe_ultisnips')
+if exists('g:loaded_compe_ultisnips')
   finish
 endif
 let g:loaded_compe_ultisnips = v:true
