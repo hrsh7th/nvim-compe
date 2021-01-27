@@ -8,7 +8,7 @@ local VimBridge = require'compe.vim_bridge'
 
 local Completion = {}
 
-Completion._insert_id = 0
+Completion._get_sources_cache_key = 0
 Completion._sources = {}
 Completion._context = Context.new({})
 Completion._current_offset = 0
@@ -18,16 +18,18 @@ Completion._history = {}
 --- register_source
 Completion.register_source = function(source)
   Completion._sources[source.id] = source
+  Completion._get_sources_cache_key = Completion._get_sources_cache_key + 1
 end
 
 --- unregister_source
 Completion.unregister_source = function(id)
   Completion._sources[id] = nil
+  Completion._get_sources_cache_key = Completion._get_sources_cache_key + 1
 end
 
 --- get_sources
 Completion.get_sources = function()
-  return Cache.readthrough('Completion.get_sources', Completion._insert_id, function()
+  return Cache.readthrough('Completion.get_sources', Completion._get_sources_cache_key, function()
     local sources = {}
     for _, source in pairs(Completion._sources) do
       if Config.is_source_enabled(source.name) then
@@ -50,7 +52,7 @@ end
 --- start_insert
 Completion.start_insert = function()
   Completion.close()
-  Completion._insert_id = Completion._insert_id + 1
+  Completion._get_sources_cache_key = Completion._get_sources_cache_key + 1
 end
 
 --- close
@@ -62,7 +64,7 @@ Completion.close = function()
   end
 
   if vim.call('pumvisible') == 1 then
-    Completion._show(1, {})
+    Completion._show(0, {})
   end
 
   vim.call('compe#documentation#close')
@@ -214,7 +216,7 @@ Completion._display = function(context)
     end)
 
     if #items == 0 then
-      Completion._show(1, {})
+      Completion._show(0, {})
     else
       Completion._show(start_offset, items)
     end
@@ -227,7 +229,7 @@ Completion._show = function(start_offset, items)
     if not (vim.call('pumvisible') == 0 and #items == 0) then
       local completeopt = vim.o.completeopt
       vim.cmd('set completeopt=menu,menuone,noselect')
-      vim.call('complete', start_offset, items)
+      vim.call('complete', math.max(1, start_offset), items) -- start_offset=0 should close pum with `complete(1, [])`
       vim.cmd('set completeopt=' .. completeopt)
     end
     Completion._current_offset = start_offset
