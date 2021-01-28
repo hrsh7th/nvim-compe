@@ -82,6 +82,13 @@ function Source.documentation(self, args)
   end
 end
 
+function Source.confirm(self, args)
+  local edits = self:_get_paths(args, { 'completed_item', 'user_data', 'nvim', 'lsp', 'completion_item', 'additionalTextEdits' })
+  if edits then
+    vim.lsp.util.apply_text_edits(edits, 0)
+  end
+end
+
 --- create_document
 function Source._create_document(self, filetype, completion_item)
   local document = {}

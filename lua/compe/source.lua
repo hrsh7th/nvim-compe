@@ -57,6 +57,16 @@ function Source.documentation(self, completed_item)
   end
 end
 
+function Source.confirm(self, completed_item)
+  if self.source.confirm then
+    self.source:confirm(
+      {
+        completed_item = completed_item
+      }
+    )
+  end
+end
+
 -- trigger
 function Source.trigger(self, context, callback)
   local metadata = self:get_metadata()

@@ -77,9 +77,14 @@ end
 --- confirm
 Completion.confirm = function(completed_item)
   Completion.close()
-  if completed_item and completed_item.abbr then
-    Completion._history[completed_item.abbr] = Completion._history[completed_item.abbr] or 0
-    Completion._history[completed_item.abbr] = Completion._history[completed_item.abbr] + 1
+  if completed_item  then
+    if  completed_item.abbr then
+      Completion._history[completed_item.abbr] = Completion._history[completed_item.abbr] or 0
+      Completion._history[completed_item.abbr] = Completion._history[completed_item.abbr] + 1
+    end
+    for _, source in ipairs(Completion.get_sources()) do
+      source:confirm(completed_item)
+    end
   end
 end
 
