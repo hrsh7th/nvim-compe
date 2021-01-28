@@ -37,11 +37,11 @@ function! compe#source#vim_bridge#get_metadata(bridge_id) abort
 endfunction
 
 "
-" compe#source#vim_bridge#datermine
+" compe#source#vim_bridge#determine
 "
-function! compe#source#vim_bridge#datermine(bridge_id, context) abort
-  if has_key(s:sources, a:bridge_id) && has_key(s:sources[a:bridge_id], 'datermine')
-    return s:sources[a:bridge_id].datermine(a:context)
+function! compe#source#vim_bridge#determine(bridge_id, context) abort
+  if has_key(s:sources, a:bridge_id) && has_key(s:sources[a:bridge_id], 'determine')
+    return s:sources[a:bridge_id].determine(a:context)
   endif
   return {}
 endfunction

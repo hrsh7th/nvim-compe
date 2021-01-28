@@ -120,11 +120,11 @@ You can see example on [vim-dadbod-completion](https://github.com/kristijanhusak
 
 ## The source
 
-The source is defined as dict that has `get_metadata`/`datermine`/`complete` and `documentation(optional)`.
+The source is defined as dict that has `get_metadata`/`determine`/`complete` and `documentation(optional)`.
 
 - *get_metadata*
   - This function should return the default source configuration. see `Source configuration` section.
-- *datermine*
+- *determine*
   - This function should return dict as `{ keyword_pattern_offset = 1-origin number; trigger_character_offset = 1-origin number}`.
   - If this function returns empty, nvim-compe will do nothing.
 - *complete*

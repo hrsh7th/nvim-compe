@@ -10,8 +10,8 @@ function M:get_metadata()
   }
 end
 
-function M:datermine(context)
-  return compe.helper.datermine(context)
+function M:determine(context)
+  return compe.helper.determine(context)
 end
 
 function M:complete(args)

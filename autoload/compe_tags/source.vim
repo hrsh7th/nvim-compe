@@ -4,7 +4,7 @@
 function! compe_tags#source#create() abort
   return {
   \   'get_metadata': function('s:get_metadata'),
-  \   'datermine': function('s:datermine'),
+  \   'determine': function('s:determine'),
   \   'documentation': function('s:documentation'),
   \   'complete': function('s:complete')
   \ }
@@ -21,10 +21,10 @@ function! s:get_metadata() abort
 endfunction
 
 "
-" s:datermine
+" s:determine
 "
-function! s:datermine(context) abort
-  return compe#helper#datermine(a:context)
+function! s:determine(context) abort
+  return compe#helper#determine(a:context)
 endfunction
 
 "

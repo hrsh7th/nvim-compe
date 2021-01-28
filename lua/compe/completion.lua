@@ -178,7 +178,7 @@ Completion._display = function(context)
       return
     end
 
-    -- Gather items and datermine start_offset
+    -- Gather items and determine start_offset
     local use_trigger_character = false
     local start_offset = 0
     local items = {}
