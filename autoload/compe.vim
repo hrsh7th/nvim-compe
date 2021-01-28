@@ -43,7 +43,14 @@ function! compe#confirm(...) abort
   if mode()[0] ==# 'i' && complete_info(['selected']).selected != -1
     return "\<C-y>"
   endif
-  return get(a:000, 0, '')
+
+  let l:fallback = get(a:000, 0, v:null)
+  if type(l:fallback) == v:t_string
+    call feedkeys(l:fallback, 'n')
+  elseif type(l:fallback) == v:t_dict
+    call feedkeys(get(l:fallback.keys), l:fallback.flags)
+  endif
+  return ''
 endfunction
 
 "
@@ -53,7 +60,14 @@ function! compe#close(...) abort
   if mode()[0] ==# 'i' && pumvisible()
     return "\<C-e>\<C-r>=luaeval('require\"compe\"._close()')\<CR>"
   endif
-  return get(a:000, 0, '')
+
+  let l:fallback = get(a:000, 0, v:null)
+  if type(l:fallback) == v:t_string
+    call feedkeys(l:fallback, 'n')
+  elseif type(l:fallback) == v:t_dict
+    call feedkeys(get(l:fallback.keys), l:fallback.flags)
+  endif
+  return ''
 endfunction
 
 "
