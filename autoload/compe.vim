@@ -10,6 +10,13 @@ function! compe#setup(config) abort
 endfunction
 
 "
+" compe#setup_buffer
+"
+function! compe#setup_buffer(config) abort
+  call luaeval('require"compe".setup_buffer(_A[1])', [a:config])
+endfunction
+
+"
 " compe#register_source
 "
 function! compe#register_source(name, source) abort

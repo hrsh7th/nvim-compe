@@ -51,6 +51,11 @@ compe.setup = function(config)
   Config.setup(config)
 end
 
+--- setup_buffer
+compe.setup_buffer = function(config)
+  Config.setup_buffer(config)
+end
+
 --- register_source
 compe.register_source = function(name, source)
   if not string.match(name, '^[%a_]+$') then
