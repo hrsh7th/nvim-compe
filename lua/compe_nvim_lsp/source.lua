@@ -106,8 +106,8 @@ function Source._convert(_, result)
 
   local complete_items = {}
   for _, completion_item in pairs(completion_items) do
-    local label = string.gsub(completion_item.label, "^%s*(.-)%s*$", "%1")
-    local insert_text = completion_item.insertText and string.gsub(completion_item.insertText, "^%s*(.-)%s*$", "%1") or label
+    local label = completion_item.label
+    local insert_text = completion_item.insertText or label
 
     local word = ''
     local abbr = ''
@@ -115,34 +115,27 @@ function Source._convert(_, result)
       word = label
       abbr = label
 
-      local expandable = false
-      if completion_item.textEdit ~= nil and completion_item.textEdit.newText ~= nil then
-        expandable = word ~= completion_item.textEdit.newText
+      local text = word
+      if completion_item.textEdit ~= nil then
+        text = completion_item.textEdit.newText or text
       elseif completion_item.insertText ~= nil then
-        expandable = word ~= completion_item.insertText
+        text = completion_item.insertText or text
       end
-
-      if expandable then
+      if word ~= text then
         abbr = abbr .. '~'
       end
+      word = string.match(text, '[^%s=%(%$"\']+')
     else
       word = insert_text
       abbr = label
     end
-
-    local kind = protocol.CompletionItemKind[completion_item.kind] or ''
-    if type(completion_item.detail) == 'string' then
-      local match = string.match(string.gsub(completion_item.detail, "^%s*(.-)%s*$", "%1"), '^[^\n]+')
-      if match ~= nil then
-        kind = match
-      end
-    end
+    word = string.gsub(word, '^%s*|%s*$', '')
 
     table.insert(complete_items, {
       word = word;
       abbr = abbr;
-      preselect = completion_item.preselect or false,
-      kind = kind;
+      preselect = completion_item.preselect or false;
+      kind = protocol.CompletionItemKind[completion_item.kind] or nil;
       user_data = {
         nvim = {
           lsp = {
