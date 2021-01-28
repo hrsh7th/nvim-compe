@@ -130,6 +130,13 @@ inoremap <silent><expr> <CR>      compe#confirm(lexima#expand('<LT>CR>', 'i'))
 inoremap <silent><expr> <C-e>     compe#close('<C-e>')
 ```
 
+If you use [Raimondi/delimitMate](https://github.com/Raimondi/delimitMate)
+```viml
+inoremap <silent><expr> <C-Space> compe#complete()
+inoremap <silent><expr> <CR>      compe#confirm({ 'keys': "\<Plug>delimitMateCR", 'mode': '' })
+inoremap <silent><expr> <C-e>     compe#close('<C-e>')
+```
+
 ### Source Configuration
 
 The sources can be configured by `let g:compe.source['source_name'] = { ...configuration... }` in Vimscript or passing the configuration inside `sources['source_name']` table in Lua.
