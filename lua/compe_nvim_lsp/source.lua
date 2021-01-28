@@ -45,7 +45,7 @@ function Source.complete(self, args)
     if err or not result then return args.abort() end
     args.callback({
       items = self:_convert(result);
-      incomplete = result.incomplete or false;
+      incomplete = result.isIncomplete or false;
     })
   end)
 end
