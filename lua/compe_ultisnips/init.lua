@@ -15,7 +15,7 @@ function M:datermine(context)
 end
 
 function M:complete(args)
-  local received_snippets = vim.call('UltiSnips#SnippetsInCurrentScope')
+  local received_snippets = vim.F.npcall(vim.call, 'UltiSnips#SnippetsInCurrentScope') or {}
   if vim.tbl_isempty(received_snippets) then
     args.abort()
     return
