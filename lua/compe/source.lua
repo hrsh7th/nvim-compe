@@ -113,7 +113,6 @@ function Source.trigger(self, context, callback)
     end
   end
 
-
   self.is_triggered_by_character = is_same_offset and self.is_triggered_by_character or (state.trigger_character_offset > 0 and not string.match(context.before_char, '%w+'))
 
   self.status = (is_same_offset and self.incomplete) and self.status or 'processing'
@@ -147,6 +146,7 @@ function Source.trigger(self, context, callback)
       self.incomplete = false
       self.keyword_pattern_offset = 0
       self.trigger_character_offset = 0
+      callback()
     end;
   })
   return true
