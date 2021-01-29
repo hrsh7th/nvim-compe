@@ -6,8 +6,10 @@ Auto completion plugin for nvim.
 - [Concept](#concept)
 - [Usage](#usage)
   - [Prerequisite](#prerequisite)
-  - [Configuring in Vimscript](#configuring-in-vimscript)
-  - [Configuring in Lua](#configuring-in-lua)
+  - [Available Options](#available-options)
+  - [Example Configuration](#example-configuration)
+    - [Vimscript Config](#vimscript-config)
+    - [Lua Config](#lua-config)
   - [Mappings](#mappings)
   - [Source Configuration](#source-configuration)
 - [Builtin Sources](#builtin-sources)
@@ -42,72 +44,73 @@ or using Lua
 vim.o.completeopt = "menu,menuone,noselect"
 ```
 
-### Configuring in Vimscript
+### Available Options
 
-If you're using `init.vim`, here are the available options for `nvim-compe`.
+- `compe.enabled (bool)`: Whether or not nvim-compe is enabled. default: `true`.
+- `compe.debug (bool)`: Whether or not nvim-compe should display debug info. default: `false`
+- `compe.min_length (number)`: Minimal characters length to trigger completion. default: `1`
+- `compe.preselect ("enable" | "disable" | "always")`
+   Controls nvim-compe preselect behaviour. default: `enable`
+   - `enable`: Preselect completion item only if the source told nvim-compe to do so. Eg. completion from `gopls`
+   - `disable`: Never preselect completion item regardless of source
+   - `always`: Always preselect completion item regardless of source
 
+- `compe.throttle_time (number)`: Throttle nvim-compe completion menu. default: `80`
+- `compe.source_timeout (number)`: Timeout for nvim-compe to get completion items. default: `200`
+- `compe.incomplete_delay (number)`: Delay for LSP's `isIncomplete`. default: `400`
+- `compe.allow_prefix_unmatch`: TODO???
+
+- `compe.source.path (bool)`: Path completion. default: `false`
+- `compe.source.buffer (bool)`: Buffer completion. default: `false`
+- `compe.source.vsnip (bool)`: Vsnip completion, make sure you have `vim-vsnip` installed. default: `false`
+- `compe.source.nvim_lsp (bool)`: Nvim's builtin LSP completion. default: `false`
+- `compe.source.nvim_lua (bool)`: Nvim's Lua "stdlib" completion. default: `false`
+- `compe.source.your_awesome_source (table | dict)`: Override source configuration using a custom `table`(lua) or `dictionary`(vimscript).
+
+### Example Configuration
+
+Both Vimscript and Lua example are using the default value.
+
+#### Vimscript Config
 ```viml
 let g:compe = {}
-let g:compe.enabled = v:true " whether or not nvim-compe is enabled. default: `true`.
-let g:compe.debug = v:false " whether or not nvim-compe should display debug info. default: `false`
-let g:compe.min_length = 1 " minimal length to trigger completion. default: `1`
-" controls nvim-compe preselect behaviour. default: `enable`
-" enable: preselect completion item only if the source told nvim-compe to do so. Eg. completion from `gopls`
-" disable: never preselect completion item regardless of source
-" always: always preselect completion item regardless of source
-let g:compe.preselect = 'enable' " default: `enable`
-let g:compe.throttle_time = 80 " throttle nvim-compe completion menu. default: `80`
-let g:compe.source_timeout = 200 " timeout for nvim-compe to get completion items. default: `200`
-let g:compe.incomplete_delay = 400 " delay for LSP's `isIncomplete`. default: `400`
+let g:compe.enabled = v:true
+let g:compe.debug = v:false
+let g:compe.min_length = 1
+let g:compe.preselect = 'enable'
+let g:compe.throttle_time = 80
+let g:compe.source_timeout = 200
+let g:compe.incomplete_delay = 400
 let g:compe.allow_prefix_unmatch = v:false
 
--- define your nvim-compe sources here
--- you MUST fill this field
 let g:compe.source = {}
-let g:compe.source.path = v:true " path completion. default: `false`
-let g:compe.source.buffer = v:true " buffer completion. default: `false`
-let g:compe.source.vsnip = v:true " vsnip completion, make sure you have `vim-vsnip` installed. default: `false`
-let g:compe.source.nvim_lsp = v:true " nvim builtin LSP completion. default: `false`
-let g:compe.source.nvim_lua = v:true " nvim's lua stdlib completion. default: `false`
-let g:compe.source.your_awesome_source = {
-  " you can also override completion source configuration
-  " by setting it to a `table` instead of `boolean`
-  " see `Source Configuration` for more information
-  \}
+let g:compe.source.path = v:true
+let g:compe.source.buffer = v:true
+let g:compe.source.vsnip = v:true
+let g:compe.source.nvim_lsp = v:true
+let g:compe.source.nvim_lua = v:true
+let g:compe.source.your_awesome_source = {}
 ```
 
-### Configuring in Lua
-
-If you're using `init.lua`, you must call the `setup` function that `nvim-compe` provides.
-
+#### Lua
 ```lua
 require'compe'.setup {
-  enabled = true; -- whether or not nvim-compe is enabled. default: `true`.
-  debug = false; -- whether or not nvim-compe should display debug info. default: `false`
-  min_length = 1; -- minimal length to trigger completion. default: `1`
-  -- controls nvim-compe preselect behaviour. default: `enable`
-  -- enable: preselect completion item only if the source told nvim-compe to do so. Eg. completion from `gopls`
-  -- disable: never preselect completion item regardless of source
-  -- always: always preselect completion item regardless of source
-  preselect = 'enable'; -- default: `enable`
-  throttle_time = 80; -- throttle nvim-compe completion menu. default: `80`
-  source_timeout = 200; -- timeout for nvim-compe to get completion items. default: `200`
-  incomplete_delay = 400; -- delay for LSP's `isIncomplete`. default: `400`
+  enabled = true;
+  debug = false;
+  min_length = 1;
+  preselect = 'enable';
+  throttle_time = 80;
+  source_timeout = 200;
+  incomplete_delay = 400;
   allow_prefix_unmatch = false;
 
-  -- define your nvim-compe sources here
-  -- you MUST fill this field
   source = {
-    path = true; -- path completion. default: `false`
-    buffer = true; -- buffer completion. default: `false`
-    vsnip = true; -- vsnip completion, make sure you have `vim-vsnip` installed. default: `false`
-    nvim_lsp = true; -- nvim builtin LSP completion. default: `false`
-    nvim_lua = true; -- nvim's lua stdlib completion. default: `false`
-    your_awesome_source = {
-      -- you can also override completion source configuration
-      -- by setting it to a `table` instead of `boolean`
-      -- see `Source Configuration` for more information
-    };
+    path = true;
+    buffer = true;
+    vsnip = true;
+    nvim_lsp = true;
+    nvim_lua = true;
+    your_awesome_source = {};
   };
 }
 ```
