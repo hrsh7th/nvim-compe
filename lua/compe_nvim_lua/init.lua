@@ -16,8 +16,8 @@ function Source.get_metadata(self)
   }
 end
 
-function Source.datermine(self, context)
-  return compe.helper.datermine(context, {
+function Source.determine(self, context)
+  return compe.helper.determine(context, {
     trigger_characters = { '.' };
   })
 end

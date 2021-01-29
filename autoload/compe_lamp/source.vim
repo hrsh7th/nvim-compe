@@ -31,7 +31,7 @@ function! s:source() abort
   let s:state.source_ids = map(copy(l:servers), { _, server ->
   \   compe#register_source('lamp', {
   \     'get_metadata': function('s:get_metadata', [server.filetypes]),
-  \     'datermine': function('s:datermine', [server]),
+  \     'determine': function('s:determine', [server]),
   \     'complete': function('s:complete', [server]),
   \   })
   \ })
@@ -49,14 +49,14 @@ function! s:get_metadata(filetypes) abort
 endfunction
 
 "
-" s:datermine
+" s:determine
 "
-function! s:datermine(server, context) abort
+function! s:determine(server, context) abort
   if index(a:server.filetypes, a:context.filetype) == -1
     return {}
   endif
 
-  return compe#helper#datermine(a:context, {
+  return compe#helper#determine(a:context, {
   \   'trigger_characters': a:server.capabilities.get_completion_trigger_characters()
   \ })
 endfunction

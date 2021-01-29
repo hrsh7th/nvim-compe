@@ -35,7 +35,7 @@ function! s:source() abort
     \     get(l:option, 'allowlist', v:null),
     \     get(l:option, 'blocklist', v:null)
     \   ]),
-    \   'datermine': function('s:datermine', [server_name]),
+    \   'determine': function('s:determine', [server_name]),
     \   'complete': function('s:complete', [server_name]),
     \ })]
   endfor
@@ -53,16 +53,16 @@ function! s:get_metadata(allowlist, blocklist) abort
 endfunction
 
 "
-" s:datermine
+" s:determine
 "
-function! s:datermine(server_name, context) abort
+function! s:determine(server_name, context) abort
   let l:capabilities = lsp#get_server_capabilities(a:server_name)
 
   let l:trigger_characters = []
   if type(l:capabilities.completionProvider) == type({}) && has_key(l:capabilities.completionProvider, 'triggerCharacters')
     let l:trigger_characters = l:capabilities.completionProvider.triggerCharacters
   endif
-  return compe#helper#datermine(a:context, {
+  return compe#helper#determine(a:context, {
   \   'trigger_characters': l:trigger_characters
   \ })
 endfunction

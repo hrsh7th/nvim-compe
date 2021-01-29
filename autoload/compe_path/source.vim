@@ -8,7 +8,7 @@ let s:name_pattern = '\%([^/\\:\*?<>\|[:blank:]]\|\\ \)'
 function! compe_path#source#create() abort
   return {
   \   'get_metadata': function('s:get_metadata'),
-  \   'datermine': function('s:datermine'),
+  \   'determine': function('s:determine'),
   \   'complete': function('s:complete')
   \ }
 endfunction
@@ -24,9 +24,9 @@ function! s:get_metadata() abort
 endfunction
 
 "
-" s:datermine
+" s:determine
 "
-function! s:datermine(context) abort
+function! s:determine(context) abort
   let [l:_, l:keyword_pattern_offset, l:__] = matchstrpos(a:context.before_line, '/' . s:name_pattern . '*$')
   let l:keyword_pattern_offset += 2
   if l:keyword_pattern_offset > 1

@@ -186,7 +186,7 @@ end
 
 --- find_match_region
 Matcher.find_match_region = function(input_bytes, input_start_index, input_end_index, word_bytes, word_index)
-  -- Datermine input position ( woroff -> word_offset )
+  -- determine input position ( woroff -> word_offset )
   while input_start_index < input_end_index do
     if Character.match(input_bytes[input_end_index], word_bytes[word_index]) then
       break
@@ -194,7 +194,7 @@ Matcher.find_match_region = function(input_bytes, input_start_index, input_end_i
     input_end_index = input_end_index - 1
   end
 
-  -- Can't datermine input position
+  -- Can't determine input position
   if input_start_index == input_end_index then
     return nil
   end

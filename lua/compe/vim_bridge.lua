@@ -65,9 +65,9 @@ function VimBridge.get_metadata(self)
   return Compat.safe(vim.call('compe#source#vim_bridge#get_metadata', self.id))
 end
 
---- datermine
-function VimBridge.datermine(self, context)
-  return Compat.safe(vim.call('compe#source#vim_bridge#datermine', self.id, context))
+--- determine
+function VimBridge.determine(self, context)
+  return Compat.safe(vim.call('compe#source#vim_bridge#determine', self.id, context))
 end
 
 --- complete
