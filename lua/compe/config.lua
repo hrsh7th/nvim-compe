@@ -8,7 +8,7 @@ Config._config = {
   enabled = true;
 }
 
-Config.setup = function(config)
+Config._normalize = function(config)
   -- normalize options
   config.enabled = Config._true(config.enabled)
   config.debug = Config._true(config.debug)
@@ -20,19 +20,27 @@ Config.setup = function(config)
   config.allow_prefix_unmatch = Config._true(config.allow_prefix_unmatch)
 
   -- normalize source metadata
-  for name, metadata in pairs(config.source) do
-    if type(metadata) ~= 'table' then
-      config.source[name] = { disabled = not Config._true(metadata) }
-    else
-      config.source[name].disabled = config.source[name].disabled or false
+  if config.source then
+    for name, metadata in pairs(config.source) do
+      if type(metadata) ~= 'table' then
+        config.source[name] = { disabled = not Config._true(metadata) }
+      else
+        config.source[name].disabled = config.source[name].disabled or false
+      end
     end
+  else
+    config.source = {}
   end
 
-  Config._config = config
+  return config
+end
+
+Config.setup = function(config)
+  Config._config = Config._normalize(config)
 end
 
 Config.setup_buffer = function(config)
-  local buf_config = vim.deepcopy(Config._config)
+  local buf_config = Config._normalize(vim.deepcopy(Config._config))
 
   if config.enabled ~= nil then
     buf_config.enabled = Config._true(config.enabled)
