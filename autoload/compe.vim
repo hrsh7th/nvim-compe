@@ -48,7 +48,7 @@ function! compe#confirm(...) abort
   if type(l:fallback) == v:t_string
     call feedkeys(l:fallback, 'n')
   elseif type(l:fallback) == v:t_dict
-    call feedkeys(get(l:fallback.keys), l:fallback.mode)
+    call feedkeys(get(l:fallback, 'keys', ''), get(l:fallback, 'mode', ''))
   endif
   return ''
 endfunction
@@ -65,7 +65,7 @@ function! compe#close(...) abort
   if type(l:fallback) == v:t_string
     call feedkeys(l:fallback, 'n')
   elseif type(l:fallback) == v:t_dict
-    call feedkeys(get(l:fallback.keys), l:fallback.mode)
+    call feedkeys(get(l:fallback, 'keys', ''), get(l:fallback, 'mode', ''))
   endif
   return ''
 endfunction
