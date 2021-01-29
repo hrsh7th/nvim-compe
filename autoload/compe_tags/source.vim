@@ -16,7 +16,7 @@ endfunction
 function! s:get_metadata() abort
   return {
   \   'priority': 90,
-  \   'menu': '[TAG]'
+  \   'menu': '[Tag]'
   \ }
 endfunction
 
