@@ -60,10 +60,10 @@ endfunction
 function! s:convert(input, key, path) abort
   let l:part = fnamemodify(a:path, ':t')
   if isdirectory(a:path)
-    let l:menu = '[DIR]'
+    let l:menu = '[Dir]'
     let l:abbr = '/' . l:part
   else
-    let l:menu = '[FILE]'
+    let l:menu = '[File]'
     let l:abbr =  l:part
   endif
 
@@ -78,10 +78,10 @@ endfunction
 " sort
 "
 function! s:sort(item1, item2) abort
-  if a:item1.menu ==# '[DIR]' && a:item2.menu !=# '[DIR]'
+  if a:item1.menu ==# '[Dir]' && a:item2.menu !=# '[Dir]'
     return -1
   endif
-  if a:item1.menu !=# '[DIR]' && a:item2.menu ==# '[DIR]'
+  if a:item1.menu !=# '[Dir]' && a:item2.menu ==# '[Dir]'
     return 1
   endif
   return 0

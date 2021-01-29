@@ -10,7 +10,7 @@ function Source.get_metadata(_)
   return {
     priority = 10;
     dup = 0;
-    menu = '[BUFFER]';
+    menu = '[Buffer]';
   }
 end
 
@@ -87,4 +87,3 @@ function Source._get_buffers(self)
 end
 
 return Source
-
