@@ -2,81 +2,134 @@
 
 Auto completion plugin for nvim.
 
+## Table Of Contents
+- [Concept](#concept)
+- [Usage](#usage)
+  - [Prerequisite](#prerequisite)
+  - [Configuring in Vimscript](#configuring-in-vimscript)
+  - [Configuring in Lua](#configuring-in-lua)
+  - [Mappings](#mappings)
+  - [Source Configuration](#source-configuration)
+- [Builtin Sources](#builtin-sources)
+- [Development](#development)
+  - [Example Source](#example-source)
+  - [The Source](#the-source)
+  - [Public API](#public-api)
+    - [Vimscript](#vim-script)
+    - [Lua](#lua)
 
-# Concept
+
+## Concept
 
 - Lua source & Vim source
 - Better matching algorithm
 - Support LSP completion features (trigger character, isIncomplete)
 
 
-# Usage
+## Usage
 
 The `source` option is required but others can be omitted.
 
+### Prerequisite
+You must set `completeopt` to `menu,menuone,noselect` which can be easily done as follows.
+
+Using Vimscript
 ```viml
-
-" You must set this option.
 set completeopt=menu,menuone,noselect
-
-if s:viml
-  let g:compe = {}
-  let g:compe.enabled = v:true
-  let g:compe.debug = v:false
-  let g:compe.min_length = 1
-  let g:compe.preselect = 'enable' || 'disable' || 'always'
-  let g:compe.throttle_time = ... number ...
-  let g:compe.source_timeout = ... number ...
-  let g:compe.incomplete_delay = ... number ...
-  let g:compe.allow_prefix_unmatch = v:false
-
-  let g:compe.source = {}
-  let g:compe.source.path = v:true
-  let g:compe.source.buffer = v:true
-  let g:compe.source.vsnip = v:true
-  let g:compe.source.nvim_lsp = v:true
-  let g:compe.source.nvim_lua = { ... overwrite source configuration ... }
-endif
-
-if s:lua
-lua <<EOF
-require'compe'.setup {
-  enabled = true;
-  debug = false;
-  min_length = 1;
-  preselect = 'enable' || 'disable' || 'always';
-  throttle_time = ... number ...;
-  source_timeout = ... number ...;
-  incomplete_delay = ... number ...;
-  allow_prefix_unmatch = false;
-
-  source = {
-    path = true;
-    buffer = true;
-    vsnip = true;
-    nvim_lsp = true;
-    nvim_lua = { ... overwrite source configuration ... };
-  };
-}
-EOF
-endif
-
-if s:default
-  inoremap <silent><expr> <C-Space> compe#complete()
-  inoremap <silent><expr> <CR>      compe#confirm('<CR>')
-  inoremap <silent><expr> <C-e>     compe#close('<C-e>')
-endif
-
-if s:lexima
-  inoremap <silent><expr> <C-Space> compe#complete()
-  inoremap <silent><expr> <CR>      compe#confirm(lexima#expand('<LT>CR>', 'i'))
-  inoremap <silent><expr> <C-e>     compe#close('<C-e>')
-endif
+```
+or using Lua
+```lua
+vim.o.completeopt = "menu,menuone,noselect"
 ```
 
-## Source configuration
+### Configuring in Vimscript
 
-The sources can be configured by `let g:compe.source['source_name'] = { ...configuration... }`.
+If you're using `init.vim`, here are the available options for `nvim-compe`.
+
+```viml
+let g:compe = {}
+let g:compe.enabled = v:true " whether or not nvim-compe is enabled. default: `true`.
+let g:compe.debug = v:false " whether or not nvim-compe should display debug info. default: `false`
+let g:compe.min_length = 1 " minimal length to trigger completion. default: `1`
+" controls nvim-compe preselect behaviour. default: `enable`
+" enable: preselect completion item only if the source told nvim-compe to do so. Eg. completion from `gopls`
+" disable: never preselect completion item regardless of source
+" always: always preselect completion item regardless of source
+let g:compe.preselect = 'enable' " default: `enable`
+let g:compe.throttle_time = 80 " throttle nvim-compe completion menu. default: `80`
+let g:compe.source_timeout = 200 " timeout for nvim-compe to get completion items. default: `200`
+let g:compe.incomplete_delay = 400 " delay for LSP's `isIncomplete`. default: `400`
+let g:compe.allow_prefix_unmatch = v:false
+
+-- define your nvim-compe sources here
+-- you MUST fill this field
+let g:compe.source = {}
+let g:compe.source.path = v:true " path completion. default: `false`
+let g:compe.source.buffer = v:true " buffer completion. default: `false`
+let g:compe.source.vsnip = v:true " vsnip completion, make sure you have `vim-vsnip` installed. default: `false`
+let g:compe.source.nvim_lsp = v:true " nvim builtin LSP completion. default: `false`
+let g:compe.source.nvim_lua = v:true " nvim's lua stdlib completion. default: `false`
+let g:compe.source.your_awesome_source = {
+  " you can also override completion source configuration
+  " by setting it to a `table` instead of `boolean`
+  " see `Source Configuration` for more information
+  \}
+```
+
+### Configuring in Lua
+
+If you're using `init.lua`, you must call the `setup` function that `nvim-compe` provides.
+
+```lua
+require'compe'.setup {
+  enabled = true; -- whether or not nvim-compe is enabled. default: `true`.
+  debug = false; -- whether or not nvim-compe should display debug info. default: `false`
+  min_length = 1; -- minimal length to trigger completion. default: `1`
+  -- controls nvim-compe preselect behaviour. default: `enable`
+  -- enable: preselect completion item only if the source told nvim-compe to do so. Eg. completion from `gopls`
+  -- disable: never preselect completion item regardless of source
+  -- always: always preselect completion item regardless of source
+  preselect = 'enable'; -- default: `enable`
+  throttle_time = 80; -- throttle nvim-compe completion menu. default: `80`
+  source_timeout = 200; -- timeout for nvim-compe to get completion items. default: `200`
+  incomplete_delay = 400; -- delay for LSP's `isIncomplete`. default: `400`
+  allow_prefix_unmatch = false;
+
+  -- define your nvim-compe sources here
+  -- you MUST fill this field
+  source = {
+    path = true; -- path completion. default: `false`
+    buffer = true; -- buffer completion. default: `false`
+    vsnip = true; -- vsnip completion, make sure you have `vim-vsnip` installed. default: `false`
+    nvim_lsp = true; -- nvim builtin LSP completion. default: `false`
+    nvim_lua = true; -- nvim's lua stdlib completion. default: `false`
+    your_awesome_source = {
+      -- you can also override completion source configuration
+      -- by setting it to a `table` instead of `boolean`
+      -- see `Source Configuration` for more information
+    };
+  };
+}
+```
+
+### Mappings
+If you don't use any autopair plugin.
+```viml
+inoremap <silent><expr> <C-Space> compe#complete()
+inoremap <silent><expr> <CR>      compe#confirm('<CR>')
+inoremap <silent><expr> <C-e>     compe#close('<C-e>')
+```
+
+If you use [cohama/lexima.vim](https://github.com/cohama/lexima.vim)
+```viml
+inoremap <silent><expr> <C-Space> compe#complete()
+inoremap <silent><expr> <CR>      compe#confirm(lexima#expand('<LT>CR>', 'i'))
+inoremap <silent><expr> <C-e>     compe#close('<C-e>')
+```
+
+### Source Configuration
+
+The sources can be configured by `let g:compe.source['source_name'] = { ...configuration... }` in Vimscript or passing the configuration inside `sources['source_name']` table in Lua.
 
 - *priority*
   - Specify source priority.
@@ -92,7 +145,7 @@ The sources can be configured by `let g:compe.source['source_name'] = { ...confi
   - Specify item's menu (see `:help complete-items`)
 
 
-# Built-in sources
+## Built-in sources
 
 - buffer
 - path
@@ -106,9 +159,9 @@ The sources can be configured by `let g:compe.source['source_name'] = { ...confi
 
 
 
-# Development
+## Development
 
-## Example source
+### Example source
 
 You can see example on [vim-dadbod-completion](https://github.com/kristijanhusak/vim-dadbod-completion)
 
@@ -118,7 +171,7 @@ You can see example on [vim-dadbod-completion](https://github.com/kristijanhusak
   - https://github.com/kristijanhusak/vim-dadbod-completion/blob/master/after/plugin/vim_dadbod_completion.vim#L4
 
 
-## The source
+### The source
 
 The source is defined as dict that has `get_metadata`/`determine`/`complete` and `documentation(optional)`.
 
@@ -134,13 +187,13 @@ The source is defined as dict that has `get_metadata`/`determine`/`complete` and
   - You can provide documentation for selected items.
 
 
-## Public API
+### Public API
 
 The compe is under development so I will apply breaking change sometimes.
 
 The below APIs are mark as public.
 
-### Vim script
+#### Vim script
 
 ```viml
 " Setup user configuration.
@@ -163,7 +216,7 @@ call compe#close('<C-e>') " optional fallback key.
 call compe#helper#*()
 ```
 
-### Lua
+#### Lua
 
 ```lua
 -- Setup user configuration.
