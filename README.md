@@ -150,16 +150,23 @@ The sources can be configured by `let g:compe.source['source_name'] = { ...confi
 
 ## Built-in sources
 
+#### common
+
 - buffer
 - path
 - tags
+- spell
+
+#### neovim-specific
+
 - nvim_lsp
 - nvim_lua
+
+#### external-plugin
+
 - vim_lsp
-- lamp
 - vsnip
 - ultisnips
-
 
 
 ## Development
