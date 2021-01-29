@@ -119,10 +119,12 @@ Completion.complete = function(manual)
     Completion._show(Completion._current_offset, Completion._current_items)
   end
 
-  local should_trigger = is_completing or not Completion._context:maybe_backspace(context)
-  if should_trigger then
-    if not Completion._trigger(context) then
-      Completion._display(context)
+  if Config.get().autocomplete or (manual or is_completing) then
+    local should_trigger = is_completing or not Completion._context:maybe_backspace(context)
+    if should_trigger then
+      if not Completion._trigger(context) then
+        Completion._display(context)
+      end
     end
   end
 

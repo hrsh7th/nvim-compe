@@ -18,6 +18,11 @@ Config.setup = function(config)
   config.source_timeout = config.source_timeout or SOURCE_TIMEOUT
   config.incomplete_delay = config.incomplete_delay or INCOMPLETE_DELAY
   config.allow_prefix_unmatch = Config._true(config.allow_prefix_unmatch)
+  if config.autocomplete == nil then
+    config.autocomplete = true
+  else
+    config.autocomplete = Config._true(config.autocomplete)
+  end
 
   -- normalize source metadata
   for name, metadata in pairs(config.source) do

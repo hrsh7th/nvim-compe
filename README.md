@@ -47,6 +47,7 @@ vim.o.completeopt = "menu,menuone,noselect"
 ### Available Options
 
 - `compe.enabled (bool)`: Whether or not nvim-compe is enabled. default: `true`.
+- `compe.autocomplete (bool)`: Whether or not nvim-compe opens the popup menu automatically. default: `true`.
 - `compe.debug (bool)`: Whether or not nvim-compe should display debug info. default: `false`
 - `compe.min_length (number)`: Minimal characters length to trigger completion. default: `1`
 - `compe.preselect ("enable" | "disable" | "always")`
@@ -75,6 +76,7 @@ Both Vimscript and Lua example are using the default value.
 ```viml
 let g:compe = {}
 let g:compe.enabled = v:true
+let g:compe.autocomplete = v:true
 let g:compe.debug = v:false
 let g:compe.min_length = 1
 let g:compe.preselect = 'enable'
@@ -96,6 +98,7 @@ let g:compe.source.your_awesome_source = {}
 ```lua
 require'compe'.setup {
   enabled = true;
+  autocomplete = true;
   debug = false;
   min_length = 1;
   preselect = 'enable';
