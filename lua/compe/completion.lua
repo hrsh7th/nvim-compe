@@ -207,7 +207,6 @@ Completion._display = function(context)
     local items = {}
     local items_uniq = {}
     for _, source in ipairs(Completion.get_sources()) do
-      local source_items_uniq = {}
       local source_start_offset = source:get_start_offset()
       if source_start_offset > 0 then
         -- Prefer prior source's trigger character
