@@ -78,7 +78,7 @@ function Source.confirm(self, args)
   local completion_item = self:_get_paths(completed_item, { 'user_data', 'nvim', 'lsp', 'completion_item' })
   local request_position = self:_get_paths(completed_item, { 'user_data', 'nvim', 'lsp', 'request_position' })
   if completion_item then
-    vim.call('compe#confirm#lsp', {
+    vim.call('compe#confirmation#lsp', {
       completed_item = completed_item,
       completion_item = completion_item,
       request_position = request_position,
