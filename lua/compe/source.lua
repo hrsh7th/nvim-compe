@@ -24,12 +24,47 @@ end
 function Source.clear(self)
   self.status = 'waiting'
   self.metadata = nil
+  self.item_id = 0
   self.items = {}
+  self.resolved_items = {}
   self.keyword_pattern_offset = 0
   self.trigger_character_offset = 0
   self.is_triggered_by_character = false
   self.incomplete = false
   self.documentation_id = 0
+end
+
+--- confirm
+function Source.confirm(self, completed_item)
+  if self.source.confirm then
+    self:resolve({
+      completed_item = completed_item,
+      callback = function(completed_item)
+        self.source:confirm({
+          completed_item = completed_item,
+        })
+      end
+    })
+  end
+end
+
+--- resolve
+function Source.resolve(self, args)
+  if self.resolved_items[args.completed_item.item_id] then
+    return args.callback(self.resolved_items[args.completed_item.item_id])
+  end
+  if self.source.resolve then
+    self.source:resolve({
+      completed_item = args.completed_item,
+      callback = function(completed_item)
+        self.resolved_items[args.completed_item.item_id] = completed_item or args.completed_item
+        args.callback(self.resolved_items[args.completed_item.item_id])
+      end;
+    })
+  else
+    self.resolved_items[args.completed_item.item_id] = args.completed_item
+    args.callback(self.resolved_items[args.completed_item.item_id])
+  end
 end
 
 --- documentation
@@ -38,17 +73,26 @@ function Source.documentation(self, completed_item)
 
   local documentation_id = self.documentation_id
   if self.source.documentation then
-    self.source:documentation({
-      completed_item = completed_item;
-      context = Context.new({});
-      callback = vim.schedule_wrap(function(document)
-        if self.documentation_id == documentation_id then
-          vim.call('compe#documentation#open', document)
-        end
-      end);
-      abort = vim.schedule_wrap(function()
-        vim.call('compe#documentation#close')
-      end);
+    self:resolve({
+      completed_item = completed_item,
+      callback = function(completed_item)
+        self.source:documentation({
+          completed_item = completed_item;
+          context = Context.new({});
+          callback = vim.schedule_wrap(function(document)
+            if self.documentation_id == documentation_id then
+              if document and #document ~= 0 then
+                vim.call('compe#documentation#open', document)
+              else
+                vim.call('compe#documentation#close')
+              end
+            end
+          end);
+          abort = vim.schedule_wrap(function()
+            vim.call('compe#documentation#close')
+          end);
+        })
+      end
     })
   else
     vim.schedule(function()
@@ -187,6 +231,8 @@ function Source.normalize_items(self, _, items)
 
   local normalized = {}
   for _, item in pairs(items) do
+    self.item_id = self.item_id + 1
+
     -- string to completed_item
     if type(item) == 'string' then
       item = {
@@ -198,12 +244,13 @@ function Source.normalize_items(self, _, items)
     -- complete-items properties.
     item.word = item.word
     item.abbr = item.abbr or item.word
-    item.dup = metadata.dup == nil and 1 or metadata.dup
     item.menu = metadata.menu == nil and item.menu or metadata.menu
     item.equal = 1
     item.empty = 1
+    item.dup = 1
 
     -- Special properties
+    item.item_id = self.item_id
     item.source_id = self.id
     item.priority = metadata.priority or 0
     item.asis = string.find(item.abbr, item.word, 1, true) == 1
@@ -219,6 +266,7 @@ function Source.normalize_items(self, _, items)
     item.original_abbr = item.abbr
     item.original_menu = item.menu
     item.original_kind = item.kind
+    item.original_dup = metadata.dup == nil and 1 or metadata.dup
 
     table.insert(normalized, item)
   end

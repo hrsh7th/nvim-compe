@@ -81,15 +81,20 @@ compe._close = enable(function()
 end)
 
 --- _register_vim_source
-compe._register_vim_source = function(name, bridge_id)
-  local source = Source.new(name, VimBridge.new(bridge_id))
+compe._register_vim_source = function(name, bridge_id, methods)
+  local source = Source.new(name, VimBridge.new(bridge_id, methods))
   Completion.register_source(source)
   return source.id
 end
 
 --- _on_insert_enter
 compe._on_insert_enter = enable(suppress(function()
-  Completion.start_insert()
+  Completion.enter_insert()
+end))
+
+--- _on_insert_leave
+compe._on_insert_leave = enable(suppress(function()
+  Completion.leave_insert()
 end))
 
 --- _on_text_changed
@@ -104,8 +109,8 @@ end))
 
 --- _on_complete_done
 compe._on_complete_done = enable(suppress(function()
-  if vim.call('compe#_has_completed_item') then
-    Completion.confirm(vim.v.completed_item)
+  if vim.call('compe#_is_confirming') then
+    Completion.confirm()
   end
 end))
 

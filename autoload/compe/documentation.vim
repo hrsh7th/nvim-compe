@@ -16,10 +16,6 @@ call setbufvar(s:window.get_bufnr(), '&buflisted', 0)
 " compe#documentation#show
 "
 function! compe#documentation#open(document) abort
-  if !compe#_is_selected_manually()
-    return
-  endif
-
   let l:document = split(s:MarkupContent.normalize(a:document), "\n", v:true)
   call deletebufline(s:window.get_bufnr(), 1, '$')
   call setbufline(s:window.get_bufnr(), 1, l:document)

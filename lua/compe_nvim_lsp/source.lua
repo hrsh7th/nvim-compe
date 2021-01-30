@@ -20,12 +20,14 @@ function Source.get_metadata(self)
   }
 end
 
+--- determine
 function Source.determine(self, context)
   return compe.helper.determine(context, {
     trigger_characters = self:_get_paths(self.client.server_capabilities, { 'completionProvider', 'triggerCharacters' }) or {};
   })
 end
 
+--- complete
 function Source.complete(self, args)
   local params = vim.lsp.util.make_position_params()
 
@@ -44,35 +46,46 @@ function Source.complete(self, args)
   self.client.request('textDocument/completion', params, function(err, _, result)
     if err or not result then return args.abort() end
     args.callback({
-      items = self:_convert(result);
+      items = self:_convert(params.position, result);
       incomplete = result.isIncomplete or false;
     })
   end)
 end
 
-function Source.documentation(self, args)
-  local completion_item = self:_get_paths(args, { 'completed_item', 'user_data', 'nvim', 'lsp', 'completion_item' })
-  if not completion_item then
-    return args.abort()
-  end
-
-  --- send `completionItem/resolve` if supported.
+--- resolve
+function Source.resolve(self, args)
+  local completion_item = self:_get_paths(args, { 'completed_item', 'user_data', 'compe', 'completion_item' })
   local has_resolve = self:_get_paths(self.client.server_capabilities, { 'completionProvider', 'resolveProvider' })
-  if has_resolve then
+  if has_resolve and completion_item then
     self.client.request('completionItem/resolve', completion_item, function(err, _, result)
-      if err or not result then
-        return args.abort()
+      if not err and result then
+        args.completed_item.user_data.compe.completion_item = result
       end
-      local document = self:_create_document(args.context.filetype, result)
-      if #document > 0 then
-        args.callback(document)
-      else
-        args.abort()
-      end
+      args.callback(args.completed_item)
     end)
-
-  --- use current completion_item
   else
+    args.callback(args.completed_item)
+  end
+end
+
+--- confirm
+function Source.confirm(self, args)
+  local completed_item = args.completed_item
+  local completion_item = self:_get_paths(completed_item, { 'user_data', 'compe', 'completion_item' })
+  local request_position = self:_get_paths(completed_item, { 'user_data', 'compe', 'request_position' })
+  if completion_item then
+    vim.call('compe#confirmation#lsp', {
+      completed_item = completed_item,
+      completion_item = completion_item,
+      request_position = request_position,
+    })
+  end
+end
+
+--- documentation
+function Source.documentation(self, args)
+  local completion_item = self:_get_paths(args, { 'completed_item', 'user_data', 'compe', 'completion_item' })
+  if completion_item then
     local document = self:_create_document(args.context.filetype, completion_item)
     if #document > 0 then
       args.callback(document)
@@ -82,7 +95,7 @@ function Source.documentation(self, args)
   end
 end
 
---- create_document
+--- _create_document
 function Source._create_document(self, filetype, completion_item)
   local document = {}
   if completion_item.detail then
@@ -101,7 +114,8 @@ function Source._create_document(self, filetype, completion_item)
   return document
 end
 
-function Source._convert(_, result)
+--- _convert
+function Source._convert(_, request_position, result)
   local completion_items = vim.tbl_islist(result or {}) and result or result.items or {}
 
   local complete_items = {}
@@ -137,10 +151,9 @@ function Source._convert(_, result)
       preselect = completion_item.preselect or false;
       kind = protocol.CompletionItemKind[completion_item.kind] or nil;
       user_data = {
-        nvim = {
-          lsp = {
-            completion_item = completion_item;
-          };
+        compe = {
+          request_position = request_position;
+          completion_item = completion_item;
         };
       };
       filter_text = completion_item.filterText or nil;
@@ -150,6 +163,7 @@ function Source._convert(_, result)
   return complete_items
 end
 
+--- _get_paths
 function Source._get_paths(self, root, paths)
   local c = root
   for _, path in ipairs(paths) do
