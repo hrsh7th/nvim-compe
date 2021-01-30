@@ -144,8 +144,8 @@ AVAILABLE OPTIONS                                          *compe-usage-options*
   Nvim's Lua "stdlib" completion.
   default: `false`
 
-`compe.source.snippets (bool)`
-  Snippets.nvim completion.
+`compe.source.snippets_nvim (bool)`
+  Snippets.nvim completion, make sure you have `snippets.nvim` installed.
   default: `false`
 
 `compe.source.your_awesome_source (table | dict)`
@@ -182,7 +182,7 @@ VIMSCRIPT CONFIG                                           *compe-usage-ex-viml*
   let g:compe.source.vsnip = v:true
   let g:compe.source.nvim_lsp = v:true
   let g:compe.source.nvim_lua = v:true
-  let g:compe.source.snippets = v:true
+  let g:compe.source.snippets_nvim = v:true
   let g:compe.source.your_awesome_source = {}
 <
 
@@ -208,7 +208,7 @@ LUA CONFIG                                                  *compe-usage-ex-lua*
       vsnip = true;
       nvim_lsp = true;
       nvim_lua = true;
-      snippets = true;
+      snippets_nvim = true;
       your_awesome_source = {};
     };
   }

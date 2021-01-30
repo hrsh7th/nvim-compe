@@ -20,16 +20,16 @@ end
 function Source.complete(_, context)
   local items = {}
 
-  local snippetsList = vim.tbl_extend ('force',
+  local snippets_list = vim.tbl_extend ('force',
     require"snippets".snippets._global or {},
     require"snippets".snippets[vim.bo.filetype] or {}
   )
 
-  for name, expansion in pairs(snippetsList) do
+  for name, expansion in pairs(snippets_list) do
     table.insert(items, {
       word = name,
-      userdata = {
-        snippets = {
+      user_data = {
+        snippets_nvim = {
           snippet = {expansion},
         }
       },
@@ -46,7 +46,7 @@ end
 
 function Source.confirm(_, context)
   require"snippets".expand_at_cursor(
-    context.completed_item.userdata.snippets.snippet[1],
+    context.completed_item.user_data.snippets_nvim.snippet[1],
     context.completed_item.word
   )
 end

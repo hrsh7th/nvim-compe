@@ -86,7 +86,7 @@ vim.o.completeopt = "menu,menuone,noselect"
 - `compe.source.nvim_lsp (bool)`: Nvim's builtin LSP completion. default: `false`
 - `compe.source.nvim_lua (bool)`: Nvim's Lua "stdlib" completion. default: `false`
 - `compe.source.spell (bool)`: Dictionary completion if you set `spell`. default: `false`
-- `compe.source.snippets (bool)`: [snippets.nvim](https://github.com/norcalli/snippets.nvim) completion. default: `false`
+- `compe.source.snippets_nvim (bool)`: [snippets.nvim](https://github.com/norcalli/snippets.nvim) completion. default: `false`
 - `compe.source.your_awesome_source (table | dict)`: Override source configuration using a custom `table`(lua) or `dictionary`(vimscript).
 
 ### Example Configuration
@@ -113,7 +113,7 @@ let g:compe.source.vsnip = v:true
 let g:compe.source.nvim_lsp = v:true
 let g:compe.source.nvim_lua = v:true
 let g:compe.source.spell = v:true
-let g:compe.source.snippets = v:true
+let g:compe.source.snippets_nvim= v:true
 let g:compe.source.your_awesome_source = {}
 ```
 
@@ -137,7 +137,7 @@ require'compe'.setup {
     nvim_lsp = true;
     nvim_lua = true;
     spell = true;
-    snippets = true;
+    snippets_nvim = true;
     your_awesome_source = {};
   };
 }
