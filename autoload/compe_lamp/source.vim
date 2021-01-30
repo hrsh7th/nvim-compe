@@ -71,8 +71,9 @@ endfunction
 function! s:resolve(server, args) abort
   let l:completed_item = a:args.completed_item
   if has_key(l:completed_item, 'user_data') &&
-  \ has_key(l:completed_item.user_data, 'lamp') &&
-  \ has_key(l:completed_item.user_data.lamp, 'completion_item')
+  \   has_key(l:completed_item.user_data, 'lamp') &&
+  \   has_key(l:completed_item.user_data.lamp, 'completion_item') &&
+  \ a:server.supports('capabilities.completionProvider.resolveSupport')
     let l:ctx = {}
     function! l:ctx.callback(args, completion_item) abort
       let a:args.completed_item.user_data.lamp.completion_item = a:completion_item
@@ -93,8 +94,8 @@ endfunction
 function! s:documentation(server, args) abort
   let l:completed_item = a:args.completed_item
   if has_key(l:completed_item, 'user_data') &&
-  \ has_key(l:completed_item.user_data, 'lamp') &&
-  \ has_key(l:completed_item.user_data.lamp, 'completion_item')
+  \   has_key(l:completed_item.user_data, 'lamp') &&
+  \   has_key(l:completed_item.user_data.lamp, 'completion_item')
     let l:completion_item = l:completed_item.user_data.lamp.completion_item
     let l:document = []
     if has_key(l:completion_item, 'detail')
