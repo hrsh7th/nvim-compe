@@ -31,6 +31,21 @@ Auto completion plugin for nvim.
 - Support LSP completion features (trigger character, isIncomplete)
 
 
+## Features
+
+- VSCode compatible expansion handling
+  - rust-analyzer's [Magic completion](https://rust-analyzer.github.io/manual.html#magic-completions)
+  - vscode-html-languageserver-bin's closing tag completion
+  - Other complex expansion are supported
+- Flexible Custom Source API
+  - The source can support `documentation` / `resolve` / `confirm`
+- Better fuzzy matching algorithm
+  - `gu` can be matched `get_user`
+  - `fmodify` can be matched `fnamemodify`
+  - See [detailed explanation](./lua/compe/matcher.lua:L57) if you interest it
+- Buffer source carefully crafted
+  - The buffer source will index buffer words by filetype specific regular expression if needed
+
 ## Usage
 
 The `source` option is required but others can be omitted.
