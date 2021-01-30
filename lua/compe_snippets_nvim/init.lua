@@ -1,11 +1,6 @@
 local compe = require("compe")
 local Source = {}
-local ok, snippets_nvim = pcall(require, "snippets")
-
-if not ok then
-  error("You need to install snippets.nvim!")
-  return
-end
+local snippets_nvim_exists, snippets_nvim = pcall(require, "snippets")
 
 function Source.new()
   return setmetatable({}, { __index = Source })
@@ -20,6 +15,10 @@ function Source.get_metadata(_)
 end
 
 function Source.determine(_, context)
+  if not snippets_nvim_exists then
+    error("You need to install snippets.nvim!")
+    return {}
+  end
   return compe.helper.determine(context)
 end
 
