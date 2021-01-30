@@ -7,6 +7,7 @@ Auto completion plugin for nvim.
 CONTENTS                                                   *nvim-compe-contents*
 
 Concept                                                          |compe-concept|
+Features                                                        |compe-features|
 Usage                                                              |compe-usage|
   Prerequisite                                                |compe-usage-preq|
   Available Options                                        |compe-usage-options|
@@ -34,6 +35,25 @@ CONCEPT                                                          *compe-concept*
 - Lua source & Vim source
 - Better matching algorithm
 - Support LSP completion features (trigger character, isIncomplete)
+
+
+
+==============================================================================
+FEATURES                                                        *compe-features*
+
+- VSCode compatible expansion handling
+  - rust-analyzer's `Magic Completion`
+  - vscode-html-languageserver-bin's closing tag completion
+  - Other complex expansion are supported
+- Flexible Custom Source API
+  - The source can support `documentation` / `resolve` / `confirm`
+- Better fuzzy matching algorithm
+  - `gu` can be matched `get_user`
+  - `fmodify` can be matched `fnamemodify`
+  - See `lua/compe/matcher.lua:L57` for implementation details if you're interested
+- Buffer source carefully crafted
+  - The buffer source will index buffer words by filetype specific regular
+    expression if needed
 
 
 
@@ -124,6 +144,10 @@ AVAILABLE OPTIONS                                          *compe-usage-options*
   Nvim's Lua "stdlib" completion.
   default: `false`
 
+`compe.source.snippets_nvim (bool)`
+  Snippets.nvim completion, make sure you have `snippets.nvim` installed.
+  default: `false`
+
 `compe.source.your_awesome_source (table | dict)`
   Override source configuration using a custom `table` in Lua or `dictionary`
   in Vimscript.
@@ -158,6 +182,7 @@ VIMSCRIPT CONFIG                                           *compe-usage-ex-viml*
   let g:compe.source.vsnip = v:true
   let g:compe.source.nvim_lsp = v:true
   let g:compe.source.nvim_lua = v:true
+  let g:compe.source.snippets_nvim = v:true
   let g:compe.source.your_awesome_source = {}
 <
 
@@ -183,6 +208,7 @@ LUA CONFIG                                                  *compe-usage-ex-lua*
       vsnip = true;
       nvim_lsp = true;
       nvim_lua = true;
+      snippets_nvim = true;
       your_awesome_source = {};
     };
   }
