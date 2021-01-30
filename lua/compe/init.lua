@@ -32,6 +32,16 @@ end
 
 local compe = {}
 
+Pattern.set_filetype_config('vim', {
+  keyword_pattern = [[\%(\h\%(\w\|#\)*\)]];
+})
+Pattern.set_filetype_config('php', {
+  keyword_pattern = [[\%(\$\w*\|\h\w*\)]];
+})
+Pattern.set_filetype_config('html', {
+  keyword_pattern = [[\%(/\h\?\w*\|\h\w*\)]];
+})
+
 --- Public API
 
 --- helper
@@ -39,15 +49,6 @@ compe.helper = Helper
 
 --- setup
 compe.setup = function(config, bufnr)
-  Pattern.set_filetype_config('vim', {
-    keyword_pattern = [[\%(\h\%(\w\|#\)*\)]];
-  })
-  Pattern.set_filetype_config('php', {
-    keyword_pattern = [[\%(\$\w*\|\h\w*\)]];
-  })
-  Pattern.set_filetype_config('html', {
-    keyword_pattern = [[\%(/\h\?\w*\|\h\w*\)]];
-  })
   Config.setup(config, bufnr)
 end
 
