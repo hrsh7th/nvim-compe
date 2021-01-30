@@ -43,7 +43,7 @@ Auto completion plugin for nvim.
 - Better fuzzy matching algorithm
   - `gu` can be matched `get_user`
   - `fmodify` can be matched `fnamemodify`
-  - See [detailed explanation](./lua/compe/matcher.lua:L57) if you're interested
+  - See [matcher.lua](./lua/compe/matcher.lua:L57) for implementation details if you're interested
 - Buffer source carefully crafted
   - The buffer source will index buffer words by filetype specific regular expression if needed
 
