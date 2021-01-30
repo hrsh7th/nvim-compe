@@ -54,12 +54,12 @@ end
 
 --- resolve
 function Source.resolve(self, args)
-  local completion_item = self:_get_paths(args, { 'completed_item', 'user_data', 'nvim', 'lsp', 'completion_item' })
+  local completion_item = self:_get_paths(args, { 'completed_item', 'user_data', 'compe', 'completion_item' })
   local has_resolve = self:_get_paths(self.client.server_capabilities, { 'completionProvider', 'resolveProvider' })
   if has_resolve and completion_item then
     self.client.request('completionItem/resolve', completion_item, function(err, _, result)
       if not err and result then
-        args.completed_item.user_data.nvim.lsp.completion_item = result
+        args.completed_item.user_data.compe.completion_item = result
       end
       args.callback(args.completed_item)
     end)
@@ -71,8 +71,8 @@ end
 --- confirm
 function Source.confirm(self, args)
   local completed_item = args.completed_item
-  local completion_item = self:_get_paths(completed_item, { 'user_data', 'nvim', 'lsp', 'completion_item' })
-  local request_position = self:_get_paths(completed_item, { 'user_data', 'nvim', 'lsp', 'request_position' })
+  local completion_item = self:_get_paths(completed_item, { 'user_data', 'compe', 'completion_item' })
+  local request_position = self:_get_paths(completed_item, { 'user_data', 'compe', 'request_position' })
   if completion_item then
     vim.call('compe#confirmation#lsp', {
       completed_item = completed_item,
@@ -84,7 +84,7 @@ end
 
 --- documentation
 function Source.documentation(self, args)
-  local completion_item = self:_get_paths(args, { 'completed_item', 'user_data', 'nvim', 'lsp', 'completion_item' })
+  local completion_item = self:_get_paths(args, { 'completed_item', 'user_data', 'compe', 'completion_item' })
   if completion_item then
     local document = self:_create_document(args.context.filetype, completion_item)
     if #document > 0 then
@@ -151,11 +151,9 @@ function Source._convert(_, request_position, result)
       preselect = completion_item.preselect or false;
       kind = protocol.CompletionItemKind[completion_item.kind] or nil;
       user_data = {
-        nvim = {
-          lsp = {
-            request_position = request_position;
-            completion_item = completion_item;
-          };
+        compe = {
+          request_position = request_position;
+          completion_item = completion_item;
         };
       };
       filter_text = completion_item.filterText or nil;

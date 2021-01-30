@@ -22,7 +22,7 @@ function! compe#confirmation#lsp(args) abort
 endfunction
 
 "
-" get_snippet_expanding_function
+" expand_snippet
 "
 function! s:expand_snippet(args) abort
   if exists('g:loaded_vsnip')
