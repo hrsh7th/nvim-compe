@@ -58,16 +58,12 @@ function Source.resolve(self, args)
       completed_item = args.completed_item,
       callback = function(completed_item)
         self.resolved_items[args.completed_item.item_id] = completed_item or args.completed_item
-        args.callback(completed_item)
+        args.callback(self.resolved_items[args.completed_item.item_id])
       end;
-      abort = function()
-        self.resolved_items[args.completed_item.item_id] = args.completed_item
-        args.callback(args.completed_item)
-      end
     })
   else
-    self.resolved_items[args.completed_item.item_id] = completed_item
-    args.callback()
+    self.resolved_items[args.completed_item.item_id] = args.completed_item
+    args.callback(self.resolved_items[args.completed_item.item_id])
   end
 end
 

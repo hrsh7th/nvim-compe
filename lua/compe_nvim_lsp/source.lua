@@ -55,12 +55,8 @@ end
 --- resolve
 function Source.resolve(self, args)
   local completion_item = self:_get_paths(args, { 'completed_item', 'user_data', 'nvim', 'lsp', 'completion_item' })
-  if not completion_item then
-    return args.abort()
-  end
-
   local has_resolve = self:_get_paths(self.client.server_capabilities, { 'completionProvider', 'resolveProvider' })
-  if has_resolve then
+  if has_resolve and completion_item then
     self.client.request('completionItem/resolve', completion_item, function(err, _, result)
       if not err and result then
         args.completed_item.user_data.nvim.lsp.completion_item = result
