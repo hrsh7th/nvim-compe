@@ -8,6 +8,8 @@ Config._config = {
   enabled = true;
 }
 
+Config._bufnrs = {}
+
 Config._normalize = function(config)
   -- normalize options
   config.enabled = Config._true(config.enabled)
@@ -46,16 +48,21 @@ Config.setup = function(config, bufnr)
         config[key] = value
       end
     end
-    vim.api.nvim_buf_set_var(bufnr, 'compe_config', config)
+
+    if bufnr == 0 then
+      bufnr = vim.api.nvim_get_current_buf()
+    end
+    Config._bufnrs[bufnr] = config
+    -- vim.api.nvim_buf_set_var(bufnr, 'compe_config', config)
   end
 end
 
 Config.get = function()
-  local ok, config = pcall(vim.api.nvim_buf_get_var, 0, 'compe_config')
-  if ok then
-    return config
-  end
-  return Config._config
+  -- local ok, config = pcall(vim.api.nvim_buf_get_var, 0, 'compe_config')
+  -- if ok then
+  --   return config
+  -- end
+  return Config._bufnrs[vim.api.nvim_get_current_buf()] or Config._config
 end
 
 Config.get_metadata = function(source_name)
