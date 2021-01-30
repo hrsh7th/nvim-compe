@@ -35,50 +35,50 @@ Config._normalize = function(config)
   return config
 end
 
-Config.setup = function(config)
-  Config._config = Config._normalize(config)
-end
+Config.setup = function(config, bufnr)
+  if bufnr == nil then
+    Config._config = Config._normalize(config)
+  else
+    local buf_config = Config._normalize(vim.deepcopy(Config._config))
 
-Config.setup_buffer = function(config)
-  local buf_config = Config._normalize(vim.deepcopy(Config._config))
+    if config.enabled ~= nil then
+      buf_config.enabled = Config._true(config.enabled)
+    end
+    if config.debug ~= nil then
+      buf_config.debug = Config._true(config.debug)
+    end
+    if config.min_length ~= nil then
+      buf_config.min_length = config.min_length or 1
+    end
+    if config.preselect ~= nil then
+      buf_config.preselect = config.preselect or 'enable'
+    end
+    if config.throttle_time ~= nil then
+      buf_config.throttle_time = config.throttle_time or THROTTLE_TIME
+    end
+    if config.source_timeout ~= nil then
+      buf_config.source_timeout = config.source_timeout or SOURCE_TIMEOUT
+    end
+    if config.incomplete_delay ~= nil then
+      buf_config.incomplete_delay = config.incomplete_delay or INCOMPLETE_DELAY
+    end
+    if config.allow_prefix_unmatch ~= nil then
+      buf_config.allow_prefix_unmatch = Config._true(config.allow_prefix_unmatch)
+    end
 
-  if config.enabled ~= nil then
-    buf_config.enabled = Config._true(config.enabled)
-  end
-  if config.debug ~= nil then
-    buf_config.debug = Config._true(config.debug)
-  end
-  if config.min_length ~= nil then
-    buf_config.min_length = config.min_length or 1
-  end
-  if config.preselect ~= nil then
-    buf_config.preselect = config.preselect or 'enable'
-  end
-  if config.throttle_time ~= nil then
-    buf_config.throttle_time = config.throttle_time or THROTTLE_TIME
-  end
-  if config.source_timeout ~= nil then
-    buf_config.source_timeout = config.source_timeout or SOURCE_TIMEOUT
-  end
-  if config.incomplete_delay ~= nil then
-    buf_config.incomplete_delay = config.incomplete_delay or INCOMPLETE_DELAY
-  end
-  if config.allow_prefix_unmatch ~= nil then
-    buf_config.allow_prefix_unmatch = Config._true(config.allow_prefix_unmatch)
-  end
-
-  if config.source ~= nil then
-    buf_config.source = config.source
-    for name, metadata in pairs(buf_config.source) do
-      if type(metadata) ~= 'table' then
-        buf_config.source[name] = { disabled = not Config._true(metadata) }
-      else
-        buf_config.source[name].disabled = buf_config.source[name].disabled or false
+    if config.source ~= nil then
+      buf_config.source = config.source
+      for name, metadata in pairs(buf_config.source) do
+        if type(metadata) ~= 'table' then
+          buf_config.source[name] = { disabled = not Config._true(metadata) }
+        else
+          buf_config.source[name].disabled = buf_config.source[name].disabled or false
+        end
       end
     end
-  end
 
-  vim.api.nvim_buf_set_var(0, 'compe_config', buf_config)
+    vim.api.nvim_buf_set_var(bufnr, 'compe_config', buf_config)
+  end
 end
 
 Config.get = function()

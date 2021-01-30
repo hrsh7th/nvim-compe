@@ -38,7 +38,7 @@ local compe = {}
 compe.helper = Helper
 
 --- setup
-compe.setup = function(config)
+compe.setup = function(config, bufnr)
   Pattern.set_filetype_config('vim', {
     keyword_pattern = [[\%(\h\%(\w\|#\)*\)]];
   })
@@ -48,12 +48,7 @@ compe.setup = function(config)
   Pattern.set_filetype_config('html', {
     keyword_pattern = [[\%(/\h\?\w*\|\h\w*\)]];
   })
-  Config.setup(config)
-end
-
---- setup_buffer
-compe.setup_buffer = function(config)
-  Config.setup_buffer(config)
+  Config.setup(config, bufnr)
 end
 
 --- register_source

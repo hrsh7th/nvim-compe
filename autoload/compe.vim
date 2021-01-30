@@ -5,15 +5,8 @@
 "
 " compe#setup
 "
-function! compe#setup(config) abort
-  call luaeval('require"compe".setup(_A[1])', [a:config])
-endfunction
-
-"
-" compe#setup_buffer
-"
-function! compe#setup_buffer(config) abort
-  call luaeval('require"compe".setup_buffer(_A[1])', [a:config])
+function! compe#setup(config, ...) abort
+  call luaeval('require"compe".setup(_A[1], _A[2])', [a:config, get(a:, 1, v:null)])
 endfunction
 
 "
