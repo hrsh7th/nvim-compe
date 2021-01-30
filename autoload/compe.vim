@@ -33,7 +33,7 @@ function! compe#complete() abort
   if mode()[0] ==# 'i'
     return "\<C-r>=luaeval('require\"compe\"._complete()')\<CR>"
   endif
-  return ''
+  return "\<Ignore>"
 endfunction
 
 "
@@ -67,7 +67,7 @@ function! compe#close(...) abort
   elseif type(l:fallback) == v:t_dict
     call feedkeys(get(l:fallback, 'keys', ''), get(l:fallback, 'mode', ''))
   endif
-  return ''
+  return "\<Ignore>"
 endfunction
 
 "
