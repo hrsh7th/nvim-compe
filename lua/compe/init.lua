@@ -81,8 +81,8 @@ compe._close = enable(function()
 end)
 
 --- _register_vim_source
-compe._register_vim_source = function(name, bridge_id)
-  local source = Source.new(name, VimBridge.new(bridge_id))
+compe._register_vim_source = function(name, bridge_id, methods)
+  local source = Source.new(name, VimBridge.new(bridge_id, methods))
   Completion.register_source(source)
   return source.id
 end

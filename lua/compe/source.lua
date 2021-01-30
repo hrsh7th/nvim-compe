@@ -81,7 +81,11 @@ function Source.documentation(self, completed_item)
           context = Context.new({});
           callback = vim.schedule_wrap(function(document)
             if self.documentation_id == documentation_id then
-              vim.call('compe#documentation#open', document)
+              if document and #document ~= 0 then
+                vim.call('compe#documentation#open', document)
+              else
+                vim.call('compe#documentation#close')
+              end
             end
           end);
           abort = vim.schedule_wrap(function()
