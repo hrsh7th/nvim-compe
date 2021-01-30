@@ -12,6 +12,9 @@ Auto completion plugin for nvim.
     - [Lua Config](#lua-config)
   - [Mappings](#mappings)
   - [Source Configuration](#source-configuration)
+    - [Common](#common)
+    - [Neovim-specific](#neovim-specific)
+    - [External-plugin](#external-plugin)
 - [Builtin Sources](#builtin-sources)
 - [Development](#development)
   - [Example Source](#example-source)
@@ -66,11 +69,12 @@ vim.o.completeopt = "menu,menuone,noselect"
 - `compe.source.vsnip (bool)`: Vsnip completion, make sure you have `vim-vsnip` installed. default: `false`
 - `compe.source.nvim_lsp (bool)`: Nvim's builtin LSP completion. default: `false`
 - `compe.source.nvim_lua (bool)`: Nvim's Lua "stdlib" completion. default: `false`
+- `compe.source.spell (bool)`: Dictionary completion if you set `spell`. default: `false`
 - `compe.source.your_awesome_source (table | dict)`: Override source configuration using a custom `table`(lua) or `dictionary`(vimscript).
 
 ### Example Configuration
 
-Both Vimscript and Lua example are using the default value.
+Both Vimscript and Lua example are using the default value except the source field which enables all sources.
 
 #### Vimscript Config
 ```viml
@@ -91,6 +95,7 @@ let g:compe.source.buffer = v:true
 let g:compe.source.vsnip = v:true
 let g:compe.source.nvim_lsp = v:true
 let g:compe.source.nvim_lua = v:true
+let g:compe.source.spell = v:true
 let g:compe.source.your_awesome_source = {}
 ```
 
@@ -113,6 +118,7 @@ require'compe'.setup {
     vsnip = true;
     nvim_lsp = true;
     nvim_lua = true;
+    spell = true;
     your_awesome_source = {};
   };
 }
@@ -142,7 +148,7 @@ inoremap <silent><expr> <C-e>     compe#close('<C-e>')
 
 ### Source Configuration
 
-The sources can be configured by `let g:compe.source['source_name'] = { ...configuration... }` in Vimscript or passing the configuration inside `sources['source_name']` table in Lua.
+The sources can be configured by `let g:compe.source['source_name'] = { ...configuration... }` in Vimscript or passing the configuration inside `sources['source_name']` field in Lua setup function.
 
 - *priority*
   - Specify source priority.
@@ -160,19 +166,19 @@ The sources can be configured by `let g:compe.source['source_name'] = { ...confi
 
 ## Built-in sources
 
-#### common
+#### Common
 
 - buffer
 - path
 - tags
 - spell
 
-#### neovim-specific
+#### Neovim-specific
 
 - nvim_lsp
 - nvim_lua
 
-#### external-plugin
+#### External-plugin
 
 - vim_lsp
 - vsnip

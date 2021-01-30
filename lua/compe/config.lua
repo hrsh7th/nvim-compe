@@ -10,7 +10,7 @@ Config._config = {
 
 Config.setup = function(config)
   -- normalize options
-  config.enabled = Config._true(config.enabled)
+  config.enabled = Config._true(config.enabled) or true
   config.debug = Config._true(config.debug)
   config.min_length = config.min_length or 1
   config.preselect = config.preselect or 'enable'
