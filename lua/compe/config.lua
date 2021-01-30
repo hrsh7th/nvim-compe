@@ -53,15 +53,10 @@ Config.setup = function(config, bufnr)
       bufnr = vim.api.nvim_get_current_buf()
     end
     Config._bufnrs[bufnr] = config
-    -- vim.api.nvim_buf_set_var(bufnr, 'compe_config', config)
   end
 end
 
 Config.get = function()
-  -- local ok, config = pcall(vim.api.nvim_buf_get_var, 0, 'compe_config')
-  -- if ok then
-  --   return config
-  -- end
   return Config._bufnrs[vim.api.nvim_get_current_buf()] or Config._config
 end
 
