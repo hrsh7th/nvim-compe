@@ -109,7 +109,7 @@ end))
 
 --- _on_complete_done
 compe._on_complete_done = enable(suppress(function()
-  if vim.call('compe#_has_completed_item') then
+  if vim.call('compe#_is_confirming') then
     Completion.confirm()
   end
 end))

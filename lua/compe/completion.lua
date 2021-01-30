@@ -69,16 +69,8 @@ Completion.close = function()
     source:clear()
   end
 
-  if vim.call('pumvisible') == 1 then
-    Completion._show(0, {})
-  end
-
-  vim.call('compe#documentation#close')
-
+  Completion._show(0, {})
   Completion._context = Context.new({})
-  Completion._current_offset = 0
-  Completion._current_items = {}
-  Completion._selected_item = nil
 end
 
 --- confirm
@@ -135,7 +127,7 @@ Completion.complete = function(manual)
   end
 
   -- Restore pum if vim close it automatically (backspace or invalid chars).
-  local is_completing = (0 < Completion._current_offset and Completion._current_offset < context.col)
+  local is_completing = (0 < Completion._current_offset and Completion._current_offset <= context.col)
   if is_completing and vim.call('pumvisible') == 0 then
     Completion._show(Completion._current_offset, Completion._current_items)
   end
@@ -143,9 +135,8 @@ Completion.complete = function(manual)
   if Config.get().autocomplete or (manual or is_completing) then
     local should_trigger = is_completing or not Completion._context:maybe_backspace(context)
     if should_trigger then
-      if not Completion._trigger(context) then
-        Completion._display(context)
-      end
+      Completion._trigger(context)
+      Completion._display(context)
     end
   end
 

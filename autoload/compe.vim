@@ -39,13 +39,20 @@ endfunction
 "
 " compe#confirm
 "
+let s:confirming = v:false
+inoremap <silent><expr><Plug>(compe-confirm-before) <SID>confirm_state(v:true)
+inoremap <silent><expr><Plug>(compe-confirm-after) <SID>confirm_state(v:false)
+function! s:confirm_state(state) abort
+  let s:confirming = a:state
+  return "\<Ignore>"
+endfunction
 function! compe#confirm(...) abort
-  if mode()[0] ==# 'i' && complete_info(['selected']).selected != -1
-    return "\<C-y>"
-  endif
-
   let l:fallback = get(a:000, 0, v:null)
-  if type(l:fallback) == v:t_string
+  if mode()[0] ==# 'i' && complete_info(['selected']).selected != -1
+    call feedkeys("\<Plug>(compe-confirm-before)", '')
+    call feedkeys("\<C-y>", 'n')
+    call feedkeys("\<Plug>(compe-confirm-after)", '')
+  elseif type(l:fallback) == v:t_string
     call feedkeys(l:fallback, 'n')
   elseif type(l:fallback) == v:t_dict
     call feedkeys(get(l:fallback, 'keys', ''), get(l:fallback, 'mode', ''))
@@ -88,3 +95,9 @@ function! compe#_has_completed_item() abort
   return !empty(v:completed_item) ? v:true : v:false
 endfunction
 
+"
+" compe#_is_confirming
+"
+function! compe#_is_confirming() abort
+  return s:confirming
+endfunction
