@@ -38,10 +38,8 @@ Config._normalize = function(config)
 end
 
 Config.setup = function(config, bufnr)
-  config = Config._normalize(config)
-
   if bufnr == nil then
-    Config._config = config
+    Config._config = Config._normalize(config)
   else
     for key, value in pairs(Config._config) do
       if config[key] == nil then
@@ -52,7 +50,7 @@ Config.setup = function(config, bufnr)
     if bufnr == 0 then
       bufnr = vim.api.nvim_get_current_buf()
     end
-    Config._bufnrs[bufnr] = config
+    Config._bufnrs[bufnr] = Config._normalize(config)
   end
 end
 
