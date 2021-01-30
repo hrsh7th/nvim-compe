@@ -50,7 +50,7 @@ function! compe#confirm(...) abort
   elseif type(l:fallback) == v:t_dict
     call feedkeys(get(l:fallback, 'keys', ''), get(l:fallback, 'mode', ''))
   endif
-  return ''
+  return "\<Ignore>"
 endfunction
 
 "

@@ -89,7 +89,12 @@ end
 
 --- _on_insert_enter
 compe._on_insert_enter = enable(suppress(function()
-  Completion.start_insert()
+  Completion.enter_insert()
+end))
+
+--- _on_insert_leave
+compe._on_insert_leave = enable(suppress(function()
+  Completion.leave_insert()
 end))
 
 --- _on_text_changed
@@ -105,7 +110,7 @@ end))
 --- _on_complete_done
 compe._on_complete_done = enable(suppress(function()
   if vim.call('compe#_has_completed_item') then
-    Completion.confirm(vim.v.completed_item)
+    Completion.confirm()
   end
 end))
 
