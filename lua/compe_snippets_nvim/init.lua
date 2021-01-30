@@ -49,6 +49,27 @@ function Source.complete(_, context)
   })
 end
 
+function Source._parse_result(snippet_doc)
+  local result = {}
+  for _, v in ipairs(snippet_doc) do
+    if type(v) == "table" then
+      table.insert(result, "$" .. v.order)
+    else
+      table.insert(result, v)
+    end
+  end
+
+  return table.concat(result)
+end
+
+function Source.documentation(self, context)
+  local doc = self._parse_result(snippets_nvim.lookup_snippet(
+    vim.bo.filetype, context.completed_item.word
+  ))
+
+  context.callback(doc)
+end
+
 function Source.confirm(_, context)
   snippets_nvim.expand_at_cursor(
     context.completed_item.user_data.snippets_nvim.snippet[1],
