@@ -93,7 +93,7 @@ Completion.confirm = function()
   if completed_item then
     for _, source in ipairs(Completion.get_sources()) do
       if source.id == completed_item.source_id then
-        source:confirm(Completion._current_offset, completed_item)
+        source:confirm(completed_item)
         break
       end
     end

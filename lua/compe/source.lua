@@ -35,13 +35,12 @@ function Source.clear(self)
 end
 
 --- confirm
-function Source.confirm(self, pum_offset, completed_item)
+function Source.confirm(self, completed_item)
   if self.source.confirm then
     self:resolve({
       completed_item = completed_item,
       callback = function(completed_item)
         self.source:confirm({
-          pum_offset = pum_offset,
           completed_item = completed_item,
         })
       end
