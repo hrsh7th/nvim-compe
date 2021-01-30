@@ -1,5 +1,11 @@
 local compe = require("compe")
 local Source = {}
+local ok, snippets_nvim = pcall(require, "snippets")
+
+if not ok then
+  error("You need to install snippets.nvim!")
+  return
+end
 
 function Source.new()
   return setmetatable({}, { __index = Source })
@@ -21,8 +27,8 @@ function Source.complete(_, context)
   local items = {}
 
   local snippets_list = vim.tbl_extend ('force',
-    require"snippets".snippets._global or {},
-    require"snippets".snippets[vim.bo.filetype] or {}
+    snippets_nvim.snippets._global or {},
+    snippets_nvim.snippets[vim.bo.filetype] or {}
   )
 
   for name, expansion in pairs(snippets_list) do
@@ -45,7 +51,7 @@ function Source.complete(_, context)
 end
 
 function Source.confirm(_, context)
-  require"snippets".expand_at_cursor(
+  snippets_nvim.expand_at_cursor(
     context.completed_item.user_data.snippets_nvim.snippet[1],
     context.completed_item.word
   )
