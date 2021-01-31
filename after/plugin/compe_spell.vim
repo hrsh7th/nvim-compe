@@ -4,6 +4,6 @@ endif
 let g:loaded_compe_spell = v:true
 
 if exists('g:loaded_compe')
-  call compe#register_source('spell', compe_spell#source#create())
+  lua require'compe'.register_source('spell', require'compe_spell')
 endif
 
