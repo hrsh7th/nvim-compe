@@ -17,17 +17,14 @@ function Source.determine(_, context)
 end
 
 function Source.complete(_, context)
-  local items = {}
-  local snips = vim.fn['vsnip#get_complete_items'](vim.fn.bufnr('%'))
+  local items = vim.fn['vsnip#get_complete_items'](vim.fn.bufnr('%'))
 
   local add_user_data = function(item)
     item.user_data = { compe = item.user_data }
     return item
   end
 
-  for _, v in ipairs(snips) do
-    table.insert(items, add_user_data(v))
-  end
+  vim.tbl_map(function(item) return add_user_data(item) end, items)
 
   context.callback({
     items = items
