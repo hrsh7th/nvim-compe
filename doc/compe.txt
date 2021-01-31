@@ -95,6 +95,12 @@ If you use an autopair plugin, like cohama/lexima.vim:
   inoremap <silent><expr> <CR>      compe#confirm(lexima#expand('<LT>CR>', 'i'))
   inoremap <silent><expr> <C-e>     compe#close('<C-e>')
 <
+For Raimondi/delimitMate:
+>
+  inoremap <silent><expr> <C-Space> compe#complete()
+  inoremap <silent><expr> <CR>      compe#confirm({'keys': "\<Plug>delimitMateCR", 'mode': ''})
+  inoremap <silent><expr> <C-e>     compe#close('<C-e>')
+<
 
 ==============================================================================
 FUNCTIONS                                                    *compe-functions*
@@ -342,6 +348,7 @@ Vimscript:
   let g:compe.source.lamp = v:true
   let g:compe.source.nvim_lsp = v:true
   let g:compe.source.nvim_lua = v:true
+  let g:compe.source.spell = v:true
   let g:compe.source.snippets_nvim = v:true
 <
 Lua:
@@ -365,6 +372,7 @@ Lua:
       lamp = true;
       nvim_lsp = true;
       nvim_lua = true;
+      spell = true;
       snippets_nvim = true;
     };
   }
