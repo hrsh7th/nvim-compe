@@ -43,7 +43,7 @@ Auto completion plugin for nvim.
 - Better fuzzy matching algorithm
   - `gu` can be matched `get_user`
   - `fmodify` can be matched `fnamemodify`
-  - See [matcher.lua](./lua/compe/matcher.lua:L57) for implementation details if you're interested
+  - See [matcher.lua](./lua/compe/matcher.lua#L57) for implementation details if you're interested
 - Buffer source carefully crafted
   - The buffer source will index buffer words by filetype specific regular expression if needed
 
@@ -80,14 +80,16 @@ vim.o.completeopt = "menu,menuone,noselect"
 - `compe.incomplete_delay (number)`: Delay for LSP's `isIncomplete`. default: `400`
 - `compe.allow_prefix_unmatch`: TODO???
 
-- `compe.source.path (bool)`: Path completion. default: `false`
-- `compe.source.buffer (bool)`: Buffer completion. default: `false`
-- `compe.source.vsnip (bool)`: Vsnip completion, make sure you have `vim-vsnip` installed. default: `false`
-- `compe.source.nvim_lsp (bool)`: Nvim's builtin LSP completion. default: `false`
-- `compe.source.nvim_lua (bool)`: Nvim's Lua "stdlib" completion. default: `false`
-- `compe.source.spell (bool)`: Dictionary completion if you set `spell`. default: `false`
-- `compe.source.snippets_nvim (bool)`: [snippets.nvim](https://github.com/norcalli/snippets.nvim) completion. default: `false`
-- `compe.source.your_awesome_source (table | dict)`: Override source configuration using a custom `table`(lua) or `dictionary`(vimscript).
+- `compe.source.path (bool | table | dict)`: Path completion. default: `false`
+- `compe.source.buffer (bool | table | dict)`: Buffer completion. default: `false`
+- `compe.source.vsnip (bool | table | dict)`: [vim-vsnip](https://github.com/hrsh7th/vim-vsnip) completion, make sure you have it installed. default: `false`
+- `compe.source.nvim_lsp (bool | table | dict)`: Nvim's builtin LSP completion. default: `false`
+- `compe.source.nvim_lua (bool | table | dict)`: Nvim's Lua "stdlib" completion. default: `false`
+- `compe.source.spell (bool | table | dict)`: Dictionary completion if you set `spell`. default: `false`
+- `compe.source.snippets_nvim (bool | table | dict)`: [snippets.nvim](https://github.com/norcalli/snippets.nvim) completion, make sure you have it installed. default: `false`
+- `compe.source.your_awesome_source (bool | table | dict)`: Your next awesome custom source!
+
+See [source configuration](#source-configuration) for more details on customizing the source using a `table` or `dict`.
 
 ### Example Configuration
 
@@ -110,11 +112,11 @@ let g:compe.source = {}
 let g:compe.source.path = v:true
 let g:compe.source.buffer = v:true
 let g:compe.source.vsnip = v:true
+let g:compe.source.lamp = v:true
 let g:compe.source.nvim_lsp = v:true
 let g:compe.source.nvim_lua = v:true
 let g:compe.source.spell = v:true
-let g:compe.source.snippets_nvim= v:true
-let g:compe.source.your_awesome_source = {}
+let g:compe.source.snippets_nvim = v:true
 ```
 
 #### Lua
@@ -134,11 +136,11 @@ require'compe'.setup {
     path = true;
     buffer = true;
     vsnip = true;
+    lamp = true;
     nvim_lsp = true;
     nvim_lua = true;
     spell = true;
     snippets_nvim = true;
-    your_awesome_source = {};
   };
 }
 ```
@@ -199,10 +201,10 @@ The sources can be configured by `let g:compe.source['source_name'] = { ...confi
 
 #### External-plugin
 
-- vim_lsp
-- vsnip
-- ultisnips
-- snippets.nvim
+- [vim_lsp](https://github.com/prabirshrestha/vim-lsp)
+- [vim-vsnip](https://github.com/hrsh7th/vim-vsnip)
+- [ultisnips](https://github.com/SirVer/ultisnips)
+- [snippets.nvim](htps://github.com/norcalli/snippets.nvim)
 
 
 ## Development
@@ -219,18 +221,25 @@ You can see example on [vim-dadbod-completion](https://github.com/kristijanhusak
 
 ### The source
 
-The source is defined as dict that has `get_metadata`/`determine`/`complete` and `documentation(optional)`.
+The source is defined as a dict that has `get_metadata`/`determine`/`complete`/`confirm` and `documentation(optional)`.
 
 - *get_metadata*
-  - This function should return the default source configuration. see `Source configuration` section.
+  - This function should return the default source configuration. See [Source configuration](#source-configuration) section.
 - *determine*
   - This function should return dict as `{ keyword_pattern_offset = 1-origin number; trigger_character_offset = 1-origin number}`.
   - If this function returns empty, nvim-compe will do nothing.
 - *complete*
   - This function should callback the completed items as `args.callback({ items = items })`.
   - If you want to stop the completion process, you should call `args.abort()`.
-- *documentation*
+- *documentation* (optional)
   - You can provide documentation for selected items.
+  - See [nvim_lsp source](./lua/compe_nvim_lsp/source.lua#86) or [snippets.nvim source](./lua/compe_snippets_nvim/init.lua#65) for examples.
+- *confirm* (optional)
+  - A function that gets executed when you confirm a completion item.
+  - Useful for snippets that needs to be expanded.
+  - See [vsnip source](./autoload/compe_vsnip/source.vim#55) or [snippets.nvim source](./lua/compe_snippets_nvim/init.lua#73) for examples.
+
+See [the wiki](https://github.com/hrsh7th/nvim-compe/wiki/Home) for more information about creating your own custom source.
 
 
 ### Public API

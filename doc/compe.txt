@@ -50,7 +50,7 @@ FEATURES                                                        *compe-features*
 - Better fuzzy matching algorithm
   - `gu` can be matched `get_user`
   - `fmodify` can be matched `fnamemodify`
-  - See `lua/compe/matcher.lua:L57` for implementation details if you're interested
+  - See `lua/compe/matcher.lua#L57` for implementation details if you're interested
 - Buffer source carefully crafted
   - The buffer source will index buffer words by filetype specific regular
     expression if needed
@@ -124,33 +124,36 @@ AVAILABLE OPTIONS                                          *compe-usage-options*
 `compe.allow_prefix_unmatch`
   TODO???
 
-`compe.source.path (bool)`
+`compe.source.path (bool | table | dict)`
   Path completion.
   default: `false`
 
-`compe.source.buffer (bool)`
+`compe.source.buffer (bool | table | dict)`
   Buffer completion.
   default: `false`
 
-`compe.source.vsnip (bool)`
+`compe.source.vsnip (bool | table | dict)`
   Vsnip completion, make sure you have `vim-vsnip` installed.
   default: `false`
 
-`compe.source.nvim_lsp (bool)`
+`compe.source.lamp (bool | table | dict)`
+  Vsnip completion, make sure you have `vim-vsnip` installed.
+  default: `false`
+
+`compe.source.nvim_lsp (bool | table | dict)`
   Nvim's builtin LSP completion.
   default: `false`
 
-`compe.source.nvim_lua (bool)`
+`compe.source.nvim_lua (bool | table | dict)`
   Nvim's Lua "stdlib" completion.
   default: `false`
 
-`compe.source.snippets_nvim (bool)`
+`compe.source.snippets_nvim (bool | table | dict)`
   Snippets.nvim completion, make sure you have `snippets.nvim` installed.
   default: `false`
 
-`compe.source.your_awesome_source (table | dict)`
-  Override source configuration using a custom `table` in Lua or `dictionary`
-  in Vimscript.
+`compe.source.your_awesome_source (bool | table | dict)`
+  Your next awesome custom source!
 
 
 
@@ -180,10 +183,10 @@ VIMSCRIPT CONFIG                                           *compe-usage-ex-viml*
   let g:compe.source.path = v:true
   let g:compe.source.buffer = v:true
   let g:compe.source.vsnip = v:true
+  let g:compe.source.lamp = v:true
   let g:compe.source.nvim_lsp = v:true
   let g:compe.source.nvim_lua = v:true
   let g:compe.source.snippets_nvim = v:true
-  let g:compe.source.your_awesome_source = {}
 <
 
 
@@ -206,10 +209,10 @@ LUA CONFIG                                                  *compe-usage-ex-lua*
       path = true;
       buffer = true;
       vsnip = true;
+      lamp = true;
       nvim_lsp = true;
       nvim_lua = true;
       snippets_nvim = true;
-      your_awesome_source = {};
     };
   }
 >
@@ -282,8 +285,10 @@ BUILTIN SOURCES                                          *compe-builtin-sources*
 
 *External-plugin*                                       |compe-builtin-ext-plugin|
 - vim_lsp
+- vim_lamp
 - vsnip
 - ultisnips
+- snippets.nvim
 
 
 
@@ -323,8 +328,14 @@ and `documentation(optional)`.
   - If you want to stop the completion process, you should call
     `args.abort()`.
 
-- *documentation*
+- *documentation* (optional)
   - You can provide documentation for selected items.
+  - See `nvim_lsp source` or `snippets.nvim source` for examples.
+
+- *confirm* (optional)
+  - A function that gets executed when you confirm a completion item.
+  - Useful for snippets that needs to be expanded.
+  - See `vsnip source` or `snippets.nvim source` for examples.
 
 
 
