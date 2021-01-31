@@ -24,34 +24,18 @@ function Source.complete(_, context)
 end
 
 function Source.documentation(_, context)
-  local tags = {}
-  local word = context.completed_item.word or ''
+  local document = {}
+  local tags = vim.fn.taglist(context.completed_item.word)
 
-  if word == '' then return context.abort() end
-
-  local slice = function(tbl, first, last, step)
-    local sliced = {}
-
-    for i = first or 1, last or #tbl, step or 1 do
-      sliced[#sliced+1] = tbl[i]
+  for i, tag in ipairs(tags) do
+    if 10 < i then
+      table.insert(document, ('...and %d more'):format(#tags - 10))
+      break
     end
-
-    return sliced
+    table.insert(document, tag.filename)
   end
 
-  tags = vim.tbl_map(function(item)
-    if not vim.tbl_contains(tags, item) then
-      return item.filename
-    end
-  end, vim.fn.taglist(word))
-
-  if #tags > 10 then
-    tags = table.insert(
-      slice(tags, 1, 9), string.format("...and %d more", #slice(tags, 10))
-    )
-  end
-
-  context.callback(tags)
+  context.callback(document)
 end
 
 return Source.new()
