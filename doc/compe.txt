@@ -68,7 +68,7 @@ The `source` option is required but others can be omitted.
 PREREQUISITE                                                  *compe-usage-preq*
 
 The `source` option is required but others can be omitted.
-You must set `completeopt` to `menu,menuone,noselect` which can be easily done
+You must set 'completeopt' to `menu,menuone,noselect` which can be easily done
 as follows.
 
 Using Vimscript
@@ -298,12 +298,12 @@ DEVELOPMENT                                                          *compe-dev*
 ==============================================================================
 EXAMPLE SOURCE                                             *compe-dev-ex-source*
 
-You can see example on *https://github.com/kristijanhusak/vim-dadbod-completion*
+You can see example on https://github.com/kristijanhusak/vim-dadbod-completion
 
 - implementation
-  *https://github.com/kristijanhusak/vim-dadbod-completion/blob/master/autoload/vim_dadbod_completion/compe.vim*
+  https://github.com/kristijanhusak/vim-dadbod-completion/blob/master/autoload/vim_dadbod_completion/compe.vim
 - registration
-  *https://github.com/kristijanhusak/vim-dadbod-completion/blob/master/after/plugin/vim_dadbod_completion.vim#L4*
+  https://github.com/kristijanhusak/vim-dadbod-completion/blob/master/after/plugin/vim_dadbod_completion.vim#L4
 
 
 
@@ -350,40 +350,77 @@ The below APIs are mark as public.
 
 ==============================================================================
 VIMSCRIPT                                                       *compe-dev-viml*
+
+compe#setup({config}[, {bufnr}])                                 *compe#setup()*
+    Setup user configuration.
+
+    {config} is a dictionary. See |compe-usage-options| for the list of keys.
+
+    If {bufnr} is provided, sets up completion for buffer {bufnr}, or 0 for
+    current buffer. Missing options will be inherited from global config.
 >
-  " Setup user configuration.
-  call compe#setup({ ... })
+    " Global configuration
+    call compe#setup({ ... })
 
-  " Register and unregister source.
-  let l:id = compe#register_source('name', s:source)
-  call compe#unregister_source(l:id)
-
-  " Invoke completion.
-  call compe#complete()
-
-  " Confirm selected item.
-  call compe#confirm('<C-y>') " optional fallback key.
-
-  " Close completion menu.
-  call compe#close('<C-e>') " optional fallback key.
-
-  " Source helpers.
-  call compe#helper#*()
+    " Buffer configuration
+    autocmd FileType c,cpp call compe#setup({ ... }, 0)
 <
+compe#register_source({name}, {source})                *compe#register_source()*
+    Register source.
+    Returns source id.
 
+compe#unregister_source({id})                        *compe#unregister_source()*
+    Unregister source.
+>
+    let l:id = compe#register_source('name', s:source)
+    call compe#unregister_source(l:id)
+<
+compe#complete()                                              *compe#complete()*
+    Invoke completion.
+
+compe#confirm([{fallback}])                                    *compe#confirm()*
+    Confirm selected item.
+    {fallback} is optional fallback key.
+>
+    call compe#confirm('<C-y>')
+<
+compe#close([{fallback}])                                        *compe#close()*
+    Close completion menu.
+    {fallback} is optional fallback key.
+>
+    call compe#close('<C-e>')
+<
+compe#helper#*()                                                  *compe#helper*
+    Source helpers.
+>
 
 ==============================================================================
 LUA                                                              *compe-dev-lua*
+
+compe.setup({config}[, {bufnr}])                                 *compe.setup()*
+    Setup user configuration.
+    See |compe#setup()|.
 >
-  -- Setup user configuration.
-  require'compe'.setup({ ... })
+    -- Global configuration
+    require'compe'.setup({ ... })
 
-  -- Register and unregister source.
-  local id = require'compe'.register_source(name, source)
-  require'compe'.unregister_source(id)
-
-  -- Source helpers.
-  require'compe'.helper.*
+    -- Buffer configuration
+    local on_attach = function()
+      require'compe'.setup({ ... }, 0)
+    end
 <
+compe.register_source({name}, {source})                *compe.register_source()*
+    See |compe#register_source()|.
+
+compe.unregister_source({id})                        *compe.unregister_source()*
+    See |compe#unregister_source()|.
+>
+    local id = require'compe'.register_source(name, source)
+    require'compe'.unregister_source(id)
+<
+compe.helper.*                                                    *compe.helper*
+    Source helpers.
+
+
 ==============================================================================
 vim:tw=78:ts=4:et:ft=help:norl:
