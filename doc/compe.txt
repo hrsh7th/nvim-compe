@@ -250,22 +250,22 @@ in Vimscript or passing the configuration inside
 <
 field in Lua setup function.
 
-- *priority*
+- priority
   Specify source priority.
 
-- *filetypes*
+- filetypes
   Specify source filetypes.
 
-- *ignored_filetypes*
+- ignored_filetypes
   Specify filetypes that should not use this source.
 
-- *sort*
+- sort
   Specify source is sortable or not.
 
-- *dup*
+- dup
   Specify source candidates can have the same word another item.
 
-- *menu*
+- menu
   Specify item's menu (see `:help complete-items`)
 
 
@@ -273,23 +273,22 @@ field in Lua setup function.
 ==============================================================================
 BUILTIN SOURCES                                          *compe-builtin-sources*
 
-*Common*                                                    |compe-builtin-common|
+Common                                                    *compe-builtin-common*
 - buffer
 - path
 - tags
 - spell
 
-*Neovim-specific*                                           |compe-builtin-neovim|
+Neovim-specific                                           *compe-builtin-neovim*
 - nvim_lsp
 - nvim_lua
 
-*External-plugin*                                       |compe-builtin-ext-plugin|
+External-plugin                                       *compe-builtin-ext-plugin*
 - vim_lsp
 - vim_lamp
 - vsnip
 - ultisnips
 - snippets.nvim
-
 
 
 ==============================================================================
@@ -313,26 +312,26 @@ THE SOURCE                                                *compe-dev-the-source*
 The source is defined as dict that has `get_metadata`/`determine`/`complete`
 and `documentation(optional)`.
 
-- *get_metadata*
+- get_metadata
   - This function should return the default source configuration. see `Source
     configuration` section.
 
-- *determine*
+- determine
   - This function should return dict as `{ keyword_pattern_offset = 1-origin
     number; trigger_character_offset = 1-origin number}`.
   - If this function returns empty, nvim-compe will do nothing.
 
-- *complete*
+- complete
   - This function should callback the completed items as `args.callback({
     items = items })`.
   - If you want to stop the completion process, you should call
     `args.abort()`.
 
-- *documentation* (optional)
+- documentation (optional)
   - You can provide documentation for selected items.
   - See `nvim_lsp source` or `snippets.nvim source` for examples.
 
-- *confirm* (optional)
+- confirm (optional)
   - A function that gets executed when you confirm a completion item.
   - Useful for snippets that needs to be expanded.
   - See `vsnip source` or `snippets.nvim source` for examples.
