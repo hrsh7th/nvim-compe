@@ -68,7 +68,7 @@ The `source` option is required but others can be omitted.
 PREREQUISITE                                                  *compe-usage-preq*
 
 The `source` option is required but others can be omitted.
-You must set `completeopt` to `menu,menuone,noselect` which can be easily done
+You must set 'completeopt' to `menu,menuone,noselect` which can be easily done
 as follows.
 
 Using Vimscript
@@ -250,22 +250,22 @@ in Vimscript or passing the configuration inside
 <
 field in Lua setup function.
 
-- *priority*
+- priority
   Specify source priority.
 
-- *filetypes*
+- filetypes
   Specify source filetypes.
 
-- *ignored_filetypes*
+- ignored_filetypes
   Specify filetypes that should not use this source.
 
-- *sort*
+- sort
   Specify source is sortable or not.
 
-- *dup*
+- dup
   Specify source candidates can have the same word another item.
 
-- *menu*
+- menu
   Specify item's menu (see `:help complete-items`)
 
 
@@ -273,23 +273,22 @@ field in Lua setup function.
 ==============================================================================
 BUILTIN SOURCES                                          *compe-builtin-sources*
 
-*Common*                                                    |compe-builtin-common|
+Common                                                    *compe-builtin-common*
 - buffer
 - path
 - tags
 - spell
 
-*Neovim-specific*                                           |compe-builtin-neovim|
+Neovim-specific                                           *compe-builtin-neovim*
 - nvim_lsp
 - nvim_lua
 
-*External-plugin*                                       |compe-builtin-ext-plugin|
+External-plugin                                       *compe-builtin-ext-plugin*
 - vim_lsp
 - vim_lamp
 - vsnip
 - ultisnips
 - snippets.nvim
-
 
 
 ==============================================================================
@@ -298,12 +297,12 @@ DEVELOPMENT                                                          *compe-dev*
 ==============================================================================
 EXAMPLE SOURCE                                             *compe-dev-ex-source*
 
-You can see example on *https://github.com/kristijanhusak/vim-dadbod-completion*
+You can see example on https://github.com/kristijanhusak/vim-dadbod-completion
 
 - implementation
-  *https://github.com/kristijanhusak/vim-dadbod-completion/blob/master/autoload/vim_dadbod_completion/compe.vim*
+  https://github.com/kristijanhusak/vim-dadbod-completion/blob/master/autoload/vim_dadbod_completion/compe.vim
 - registration
-  *https://github.com/kristijanhusak/vim-dadbod-completion/blob/master/after/plugin/vim_dadbod_completion.vim#L4*
+  https://github.com/kristijanhusak/vim-dadbod-completion/blob/master/after/plugin/vim_dadbod_completion.vim#L4
 
 
 
@@ -313,26 +312,26 @@ THE SOURCE                                                *compe-dev-the-source*
 The source is defined as dict that has `get_metadata`/`determine`/`complete`
 and `documentation(optional)`.
 
-- *get_metadata*
+- get_metadata
   - This function should return the default source configuration. see `Source
     configuration` section.
 
-- *determine*
+- determine
   - This function should return dict as `{ keyword_pattern_offset = 1-origin
     number; trigger_character_offset = 1-origin number}`.
   - If this function returns empty, nvim-compe will do nothing.
 
-- *complete*
+- complete
   - This function should callback the completed items as `args.callback({
     items = items })`.
   - If you want to stop the completion process, you should call
     `args.abort()`.
 
-- *documentation* (optional)
+- documentation (optional)
   - You can provide documentation for selected items.
   - See `nvim_lsp source` or `snippets.nvim source` for examples.
 
-- *confirm* (optional)
+- confirm (optional)
   - A function that gets executed when you confirm a completion item.
   - Useful for snippets that needs to be expanded.
   - See `vsnip source` or `snippets.nvim source` for examples.
@@ -350,40 +349,77 @@ The below APIs are mark as public.
 
 ==============================================================================
 VIMSCRIPT                                                       *compe-dev-viml*
+
+compe#setup({config}[, {bufnr}])                                 *compe#setup()*
+    Setup user configuration.
+
+    {config} is a dictionary. See |compe-usage-options| for the list of keys.
+
+    If {bufnr} is provided, sets up completion for buffer {bufnr}, or 0 for
+    current buffer. Missing options will be inherited from global config.
 >
-  " Setup user configuration.
-  call compe#setup({ ... })
+    " Global configuration
+    call compe#setup({ ... })
 
-  " Register and unregister source.
-  let l:id = compe#register_source('name', s:source)
-  call compe#unregister_source(l:id)
-
-  " Invoke completion.
-  call compe#complete()
-
-  " Confirm selected item.
-  call compe#confirm('<C-y>') " optional fallback key.
-
-  " Close completion menu.
-  call compe#close('<C-e>') " optional fallback key.
-
-  " Source helpers.
-  call compe#helper#*()
+    " Buffer configuration
+    autocmd FileType c,cpp call compe#setup({ ... }, 0)
 <
+compe#register_source({name}, {source})                *compe#register_source()*
+    Register source.
+    Returns source id.
 
+compe#unregister_source({id})                        *compe#unregister_source()*
+    Unregister source.
+>
+    let l:id = compe#register_source('name', s:source)
+    call compe#unregister_source(l:id)
+<
+compe#complete()                                              *compe#complete()*
+    Invoke completion.
+
+compe#confirm([{fallback}])                                    *compe#confirm()*
+    Confirm selected item.
+    {fallback} is optional fallback key.
+>
+    call compe#confirm('<C-y>')
+<
+compe#close([{fallback}])                                        *compe#close()*
+    Close completion menu.
+    {fallback} is optional fallback key.
+>
+    call compe#close('<C-e>')
+<
+compe#helper#*()                                                  *compe#helper*
+    Source helpers.
+>
 
 ==============================================================================
 LUA                                                              *compe-dev-lua*
+
+compe.setup({config}[, {bufnr}])                                 *compe.setup()*
+    Setup user configuration.
+    See |compe#setup()|.
 >
-  -- Setup user configuration.
-  require'compe'.setup({ ... })
+    -- Global configuration
+    require'compe'.setup({ ... })
 
-  -- Register and unregister source.
-  local id = require'compe'.register_source(name, source)
-  require'compe'.unregister_source(id)
-
-  -- Source helpers.
-  require'compe'.helper.*
+    -- Buffer configuration
+    local on_attach = function()
+      require'compe'.setup({ ... }, 0)
+    end
 <
+compe.register_source({name}, {source})                *compe.register_source()*
+    See |compe#register_source()|.
+
+compe.unregister_source({id})                        *compe.unregister_source()*
+    See |compe#unregister_source()|.
+>
+    local id = require'compe'.register_source(name, source)
+    require'compe'.unregister_source(id)
+<
+compe.helper.*                                                    *compe.helper*
+    Source helpers.
+
+
 ==============================================================================
 vim:tw=78:ts=4:et:ft=help:norl:
