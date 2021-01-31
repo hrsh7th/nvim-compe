@@ -254,6 +254,9 @@ The below APIs are mark as public.
 " Setup user configuration.
 call compe#setup({ ... })
 
+" Setup user configuration for current buffer.
+call compe#setup({ ... }, 0)
+
 " Register and unregister source.
 let l:id = compe#register_source('name', s:source)
 call compe#unregister_source(l:id)
@@ -276,6 +279,9 @@ call compe#helper#*()
 ```lua
 -- Setup user configuration.
 require'compe'.setup({ ... })
+
+-- Setup user configuration for current buffer.
+require'compe'.setup({ ... }, 0)
 
 -- Register and unregister source.
 local id = require'compe'.register_source(name, source)
