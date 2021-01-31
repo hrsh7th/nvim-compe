@@ -5,9 +5,10 @@ let g:loaded_compe = v:true
 
 augroup compe
   autocmd!
-  autocmd CompleteDone * call s:on_complete_done()
   autocmd CompleteChanged * call s:on_complete_changed()
+  autocmd CompleteDone * call s:on_complete_done()
   autocmd InsertEnter * call s:on_insert_enter()
+  autocmd InsertLeave * call s:on_insert_leave()
   autocmd TextChangedI,TextChangedP * call s:on_text_changed()
 augroup END
 
@@ -30,6 +31,13 @@ endfunction
 "
 function! s:on_insert_enter() abort
   call luaeval('require"compe"._on_insert_enter()')
+endfunction
+
+"
+" on_insert_enter
+"
+function! s:on_insert_leave() abort
+  call luaeval('require"compe"._on_insert_leave()')
 endfunction
 
 "

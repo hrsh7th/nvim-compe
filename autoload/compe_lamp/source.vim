@@ -1,4 +1,5 @@
 let s:Position = vital#lamp#import('VS.LSP.Position')
+let s:MarkupContent = vital#lamp#import('VS.LSP.MarkupContent')
 
 let s:state = {
 \   'source_ids': [],
@@ -30,8 +31,11 @@ function! s:source() abort
   let l:servers = filter(l:servers, { _, server -> server.supports('capabilities.completionProvider') })
   let s:state.source_ids = map(copy(l:servers), { _, server ->
   \   compe#register_source('lamp', {
-  \     'get_metadata': function('s:get_metadata', [server.filetypes]),
-  \     'datermine': function('s:datermine', [server]),
+  \     'get_metadata': function('s:get_metadata', [server]),
+  \     'determine': function('s:determine', [server]),
+  \     'resolve': function('s:resolve', [server]),
+  \     'documentation': function('s:documentation', [server]),
+  \     'confirm': function('s:confirm', [server]),
   \     'complete': function('s:complete', [server]),
   \   })
   \ })
@@ -40,24 +44,82 @@ endfunction
 "
 " s:get_metadata
 "
-function! s:get_metadata(filetypes) abort
+function! s:get_metadata(server) abort
   return {
   \   'priority': 1000,
   \   'menu': '[LSP]',
-  \   'filetypes': a:filetypes
+  \   'filetypes': a:server.filetypes
   \ }
 endfunction
 
 "
-" s:datermine
+" s:determine
 "
-function! s:datermine(server, context) abort
+function! s:determine(server, context) abort
   if index(a:server.filetypes, a:context.filetype) == -1
     return {}
   endif
 
-  return compe#helper#datermine(a:context, {
+  return compe#helper#determine(a:context, {
   \   'trigger_characters': a:server.capabilities.get_completion_trigger_characters()
+  \ })
+endfunction
+
+"
+" resolve
+"
+function! s:resolve(server, args) abort
+  let l:completed_item = a:args.completed_item
+  if has_key(l:completed_item, 'user_data') &&
+  \   has_key(l:completed_item.user_data, 'lamp') &&
+  \   has_key(l:completed_item.user_data.lamp, 'completion_item') &&
+  \ a:server.supports('capabilities.completionProvider.resolveSupport')
+    let l:ctx = {}
+    function! l:ctx.callback(args, completion_item) abort
+      let a:args.completed_item.user_data.lamp.completion_item = a:completion_item
+      call a:args.callback(a:args.completed_item)
+    endfunction
+    call a:server.request(
+    \   'completionItem/resolve',
+    \   l:completed_item.user_data.lamp.completion_item
+    \ ).then({ completion_item -> l:ctx.callback(a:args, completion_item) })
+  else
+    call a:args.callback(l:completed_item)
+  endif
+endfunction
+
+"
+" documentation
+"
+function! s:documentation(server, args) abort
+  let l:completed_item = a:args.completed_item
+  if has_key(l:completed_item, 'user_data') &&
+  \   has_key(l:completed_item.user_data, 'lamp') &&
+  \   has_key(l:completed_item.user_data.lamp, 'completion_item')
+    let l:completion_item = l:completed_item.user_data.lamp.completion_item
+    let l:document = []
+    if has_key(l:completion_item, 'detail')
+      let l:document += [printf('```%s', a:args.context.filetype)]
+      let l:document += [l:completion_item.detail]
+      let l:document += ['```']
+    endif
+    if has_key(l:completion_item, 'documentation')
+      let l:document += [s:MarkupContent.normalize(l:completion_item.documentation)]
+    endif
+    call a:args.callback(l:document)
+  else
+    call a:args.abort()
+  endif
+endfunction
+
+"
+" confirm
+"
+function! s:confirm(server, args) abort
+  call compe#confirmation#lsp({
+  \   'completed_item': a:args.completed_item,
+  \   'completion_item': a:args.completed_item.user_data.lamp.completion_item,
+  \   'request_position': a:args.completed_item.user_data.lamp.complete_position,
   \ })
 endfunction
 

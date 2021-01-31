@@ -13,6 +13,7 @@ Completion._sources = {}
 Completion._context = Context.new({})
 Completion._current_offset = 0
 Completion._current_items = {}
+Completion._selected_item = nil
 Completion._history = {}
 
 --- register_source
@@ -49,10 +50,15 @@ Completion.get_sources = function()
   end)
 end
 
---- start_insert
-Completion.start_insert = function()
+--- enter_insert
+Completion.enter_insert = function()
   Completion.close()
   Completion._get_sources_cache_key = Completion._get_sources_cache_key + 1
+end
+
+--- leave_insert
+Completion.leave_insert = function()
+  Completion.close()
 end
 
 --- close
@@ -63,24 +69,29 @@ Completion.close = function()
     source:clear()
   end
 
-  if vim.call('pumvisible') == 1 then
-    Completion._show(0, {})
-  end
-
-  vim.call('compe#documentation#close')
-
-  Completion._current_offset = 0
-  Completion._current_items = {}
+  Completion._show(0, {})
   Completion._context = Context.new({})
 end
 
 --- confirm
-Completion.confirm = function(completed_item)
-  Completion.close()
+Completion.confirm = function()
+  local completed_item = Completion._selected_item
+
   if completed_item and completed_item.abbr then
     Completion._history[completed_item.abbr] = Completion._history[completed_item.abbr] or 0
     Completion._history[completed_item.abbr] = Completion._history[completed_item.abbr] + 1
   end
+
+  if completed_item then
+    for _, source in ipairs(Completion.get_sources()) do
+      if source.id == completed_item.source_id then
+        source:confirm(completed_item)
+        break
+      end
+    end
+  end
+
+  Completion.close()
 end
 
 --- select
@@ -91,6 +102,8 @@ Completion.select = function(index)
 
   local completed_item = Completion._current_items[(index == -2 and 0 or index) + 1]
   if completed_item then
+    Completion._selected_item = completed_item
+
     for _, source in ipairs(Completion.get_sources()) do
       if source.id == completed_item.source_id then
         source:documentation(completed_item)
@@ -114,14 +127,15 @@ Completion.complete = function(manual)
   end
 
   -- Restore pum if vim close it automatically (backspace or invalid chars).
-  local is_completing = (0 < Completion._current_offset and Completion._current_offset < context.col)
+  local is_completing = (0 < Completion._current_offset and Completion._current_offset <= context.col)
   if is_completing and vim.call('pumvisible') == 0 then
     Completion._show(Completion._current_offset, Completion._current_items)
   end
 
-  local should_trigger = is_completing or not Completion._context:maybe_backspace(context)
-  if should_trigger then
-    if not Completion._trigger(context) then
+  if Config.get().autocomplete or (manual or is_completing) then
+    local should_trigger = is_completing or not Completion._context:maybe_backspace(context)
+    if should_trigger then
+      Completion._trigger(context)
       Completion._display(context)
     end
   end
@@ -178,7 +192,7 @@ Completion._display = function(context)
       return
     end
 
-    -- Gather items and datermine start_offset
+    -- Gather items and determine start_offset
     local use_trigger_character = false
     local start_offset = 0
     local items = {}
@@ -197,7 +211,7 @@ Completion._display = function(context)
             -- Fix start_offset gap.
             local gap = string.sub(context.before_line, start_offset, source_start_offset - 1)
             for _, item in ipairs(source_items) do
-              if items_uniq[item.original_word] == nil or item.dup ~= true then
+              if items_uniq[item.original_word] == nil or item.original_dup ~= true then
                 items_uniq[item.original_word] = true
                 item.word = gap .. item.original_word
                 item.abbr = string.rep(' ', #gap) .. item.original_abbr
@@ -233,6 +247,12 @@ Completion._show = function(start_offset, items)
     end
     Completion._current_offset = start_offset
     Completion._current_items = items
+    Completion._selected_item = nil
+
+    -- close documentation if needed.
+    if start_offset == 0 or #items == 0 then
+      vim.call('compe#documentation#close')
+    end
 
     -- preselect
     if items[1] then

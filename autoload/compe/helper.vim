@@ -1,8 +1,8 @@
 "
-" compe#helper#datermine
+" compe#helper#determine
 "
-function! compe#helper#datermine(context, ...) abort
-  return luaeval('require"compe".helper.datermine(_A[1], _A[2])', [a:context, get(a:000, 0, v:false)])
+function! compe#helper#determine(context, ...) abort
+  return luaeval('require"compe".helper.determine(_A[1], _A[2])', [a:context, get(a:000, 0, v:false)])
 endfunction
 
 "

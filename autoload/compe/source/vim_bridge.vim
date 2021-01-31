@@ -9,7 +9,11 @@ function! compe#source#vim_bridge#register(name, source) abort
 
   let l:bridge_id = a:name . '_' . s:base_bridge_id
   let s:sources[l:bridge_id] = a:source
-  let s:sources[l:bridge_id].id = luaeval('require"compe"._register_vim_source(_A[1], _A[2])', [a:name, l:bridge_id])
+  let s:sources[l:bridge_id].id = luaeval('require"compe"._register_vim_source(_A[1], _A[2], _A[3])', [
+  \   a:name,
+  \   l:bridge_id,
+  \   filter(['get_metadata', 'determine', 'documentation', 'complete', 'confirm', 'resolve'], 'has_key(a:source, v:val)')
+  \ ])
   return s:sources[l:bridge_id].id
 endfunction
 
@@ -37,11 +41,11 @@ function! compe#source#vim_bridge#get_metadata(bridge_id) abort
 endfunction
 
 "
-" compe#source#vim_bridge#datermine
+" compe#source#vim_bridge#determine
 "
-function! compe#source#vim_bridge#datermine(bridge_id, context) abort
-  if has_key(s:sources, a:bridge_id) && has_key(s:sources[a:bridge_id], 'datermine')
-    return s:sources[a:bridge_id].datermine(a:context)
+function! compe#source#vim_bridge#determine(bridge_id, context) abort
+  if has_key(s:sources, a:bridge_id) && has_key(s:sources[a:bridge_id], 'determine')
+    return s:sources[a:bridge_id].determine(a:context)
   endif
   return {}
 endfunction
@@ -73,6 +77,27 @@ function! compe#source#vim_bridge#complete(bridge_id, args) abort
     \   luaeval('require"compe.vim_bridge".complete_on_abort(_A[1])', [a:bridge_id])
     \ }
     call s:sources[a:bridge_id].complete(a:args)
+  endif
+endfunction
+
+"
+" compe#source#vim_bridge#resolve
+"
+function! compe#source#vim_bridge#resolve(bridge_id, args) abort
+  if has_key(s:sources, a:bridge_id) && has_key(s:sources[a:bridge_id], 'resolve')
+    let a:args.callback = { completed_item ->
+    \   luaeval('require"compe.vim_bridge".resolve_on_callback(_A[1], _A[2])', [a:bridge_id, completed_item])
+    \ }
+    call s:sources[a:bridge_id].resolve(a:args)
+  endif
+endfunction
+
+"
+" compe#source#vim_bridge#confirm
+"
+function! compe#source#vim_bridge#confirm(bridge_id, args) abort
+  if has_key(s:sources, a:bridge_id) && has_key(s:sources[a:bridge_id], 'confirm')
+    call s:sources[a:bridge_id].confirm(a:args)
   endif
 endfunction
 

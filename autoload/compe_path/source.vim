@@ -8,7 +8,7 @@ let s:name_pattern = '\%([^/\\:\*?<>\|[:blank:]]\|\\ \)'
 function! compe_path#source#create() abort
   return {
   \   'get_metadata': function('s:get_metadata'),
-  \   'datermine': function('s:datermine'),
+  \   'determine': function('s:determine'),
   \   'complete': function('s:complete')
   \ }
 endfunction
@@ -24,9 +24,9 @@ function! s:get_metadata() abort
 endfunction
 
 "
-" s:datermine
+" s:determine
 "
-function! s:datermine(context) abort
+function! s:determine(context) abort
   let [l:_, l:keyword_pattern_offset, l:__] = matchstrpos(a:context.before_line, '/' . s:name_pattern . '*$')
   let l:keyword_pattern_offset += 2
   if l:keyword_pattern_offset > 1
@@ -60,10 +60,10 @@ endfunction
 function! s:convert(input, key, path) abort
   let l:part = fnamemodify(a:path, ':t')
   if isdirectory(a:path)
-    let l:menu = '[DIR]'
+    let l:menu = '[Dir]'
     let l:abbr = '/' . l:part
   else
-    let l:menu = '[FILE]'
+    let l:menu = '[File]'
     let l:abbr =  l:part
   endif
 
@@ -78,10 +78,10 @@ endfunction
 " sort
 "
 function! s:sort(item1, item2) abort
-  if a:item1.menu ==# '[DIR]' && a:item2.menu !=# '[DIR]'
+  if a:item1.menu ==# '[Dir]' && a:item2.menu !=# '[Dir]'
     return -1
   endif
-  if a:item1.menu !=# '[DIR]' && a:item2.menu ==# '[DIR]'
+  if a:item1.menu !=# '[Dir]' && a:item2.menu ==# '[Dir]'
     return 1
   endif
   return 0

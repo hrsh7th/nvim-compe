@@ -12,7 +12,7 @@ Config._bufnrs = {}
 
 Config._normalize = function(config)
   -- normalize options
-  config.enabled = Config._true(config.enabled)
+  config.enabled = Config._true(config.enabled) or true
   config.debug = Config._true(config.debug)
   config.min_length = config.min_length or 1
   config.preselect = config.preselect or 'enable'
@@ -20,6 +20,11 @@ Config._normalize = function(config)
   config.source_timeout = config.source_timeout or SOURCE_TIMEOUT
   config.incomplete_delay = config.incomplete_delay or INCOMPLETE_DELAY
   config.allow_prefix_unmatch = Config._true(config.allow_prefix_unmatch)
+  if config.autocomplete == nil then
+    config.autocomplete = true
+  else
+    config.autocomplete = Config._true(config.autocomplete)
+  end
 
   -- normalize source metadata
   if config.source then

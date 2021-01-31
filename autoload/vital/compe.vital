@@ -2,6 +2,7 @@ compe
 621cda4f832d2f43f3b15cdbfb70ca36b219efc2
 
 VS.LSP.MarkupContent
+VS.LSP.CompletionItem
 VS.Vim.Buffer
 VS.Vim.Syntax.Markdown
 VS.Vim.Window
