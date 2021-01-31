@@ -82,6 +82,7 @@ vim.o.completeopt = "menu,menuone,noselect"
 
 - `compe.source.path (bool | table | dict)`: Path completion. default: `false`
 - `compe.source.buffer (bool | table | dict)`: Buffer completion. default: `false`
+- `compe.source.calc (bool | table | dict)`: Math expression in Lua. default: `false`
 - `compe.source.vsnip (bool | table | dict)`: [vim-vsnip](https://github.com/hrsh7th/vim-vsnip) completion, make sure you have it installed. default: `false`
 - `compe.source.nvim_lsp (bool | table | dict)`: Nvim's builtin LSP completion. default: `false`
 - `compe.source.nvim_lua (bool | table | dict)`: Nvim's Lua "stdlib" completion. default: `false`
@@ -111,8 +112,8 @@ let g:compe.allow_prefix_unmatch = v:false
 let g:compe.source = {}
 let g:compe.source.path = v:true
 let g:compe.source.buffer = v:true
+let g:compe.source.calc = v:true
 let g:compe.source.vsnip = v:true
-let g:compe.source.lamp = v:true
 let g:compe.source.nvim_lsp = v:true
 let g:compe.source.nvim_lua = v:true
 let g:compe.source.spell = v:true
@@ -135,8 +136,8 @@ require'compe'.setup {
   source = {
     path = true;
     buffer = true;
+    calc = true;
     vsnip = true;
-    lamp = true;
     nvim_lsp = true;
     nvim_lua = true;
     spell = true;
@@ -193,6 +194,7 @@ The sources can be configured by `let g:compe.source['source_name'] = { ...confi
 - path
 - tags
 - spell
+- calc
 
 #### Neovim-specific
 

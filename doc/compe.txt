@@ -182,8 +182,8 @@ VIMSCRIPT CONFIG                                           *compe-usage-ex-viml*
   let g:compe.source = {}
   let g:compe.source.path = v:true
   let g:compe.source.buffer = v:true
+  let g:compe.source.calc = v:true
   let g:compe.source.vsnip = v:true
-  let g:compe.source.lamp = v:true
   let g:compe.source.nvim_lsp = v:true
   let g:compe.source.nvim_lua = v:true
   let g:compe.source.snippets_nvim = v:true
@@ -208,8 +208,8 @@ LUA CONFIG                                                  *compe-usage-ex-lua*
     source = {
       path = true;
       buffer = true;
+      calc = true;
       vsnip = true;
-      lamp = true;
       nvim_lsp = true;
       nvim_lua = true;
       snippets_nvim = true;
@@ -278,6 +278,7 @@ Common                                                    *compe-builtin-common*
 - path
 - tags
 - spell
+- calc
 
 Neovim-specific                                           *compe-builtin-neovim*
 - nvim_lsp
@@ -285,7 +286,6 @@ Neovim-specific                                           *compe-builtin-neovim*
 
 External-plugin                                       *compe-builtin-ext-plugin*
 - vim_lsp
-- vim_lamp
 - vsnip
 - ultisnips
 - snippets.nvim
