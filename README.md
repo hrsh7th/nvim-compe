@@ -206,7 +206,7 @@ The sources can be configured by `let g:compe.source['source_name'] = { ...confi
 - [vim_lsp](https://github.com/prabirshrestha/vim-lsp)
 - [vim-vsnip](https://github.com/hrsh7th/vim-vsnip)
 - [ultisnips](https://github.com/SirVer/ultisnips)
-- [snippets.nvim](htps://github.com/norcalli/snippets.nvim)
+- [snippets.nvim](https://github.com/norcalli/snippets.nvim)
 
 
 ## Development
