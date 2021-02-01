@@ -46,4 +46,8 @@ function M:documentation(args)
   args.callback(user_data)
 end
 
+function M:confirm(_, _)
+  vim.call('UltiSnips#ExpandSnippet')
+end
+
 return M
