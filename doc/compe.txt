@@ -406,6 +406,12 @@ documentation ~
     You can provide documentation for selected items.
     See nvim_lsp or snippets.nvim source for examples.
 
+resolve ~
+    Optional.
+    The `resolve` method can be used to resolve the current selected item.
+    It will useful to you callback all items as quickly and provide
+    documentation for them later.
+
 confirm ~
     Optional.
     A function that gets executed when you confirm a completion item.
