@@ -117,6 +117,7 @@ let g:compe.source.vsnip = v:true
 let g:compe.source.nvim_lsp = v:true
 let g:compe.source.nvim_lua = v:true
 let g:compe.source.spell = v:true
+let g:compe.source.tags = v:true
 let g:compe.source.snippets_nvim = v:true
 ```
 
@@ -141,6 +142,7 @@ require'compe'.setup {
     nvim_lsp = true;
     nvim_lua = true;
     spell = true;
+    tags = true;
     snippets_nvim = true;
   };
 }
@@ -206,7 +208,7 @@ The sources can be configured by `let g:compe.source['source_name'] = { ...confi
 - [vim_lsp](https://github.com/prabirshrestha/vim-lsp)
 - [vim-vsnip](https://github.com/hrsh7th/vim-vsnip)
 - [ultisnips](https://github.com/SirVer/ultisnips)
-- [snippets.nvim](htps://github.com/norcalli/snippets.nvim)
+- [snippets.nvim](https://github.com/norcalli/snippets.nvim)
 
 
 ## Development
