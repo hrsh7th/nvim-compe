@@ -245,8 +245,10 @@ Completion._show = function(start_offset, items)
 
     if not (vim.call('pumvisible') == 0 and #items == 0) then
       local should_preselect = false
-      should_preselect = should_preselect or (Config.get().preselect == 'enable' and items[1].preselect)
-      should_preselect = should_preselect or (Config.get().preselect == 'always')
+      if items[1] then
+        should_preselect = should_preselect or (Config.get().preselect == 'enable' and items[1].preselect)
+        should_preselect = should_preselect or (Config.get().preselect == 'always')
+      end
 
       local completeopt = vim.o.completeopt
       if should_preselect then
