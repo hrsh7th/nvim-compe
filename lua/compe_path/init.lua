@@ -10,7 +10,7 @@ local Source = {}
 Source.get_metadata = function(_)
   return {
     sort = false,
-    priority = 100,
+    priority = 10000,
   }
 end
 
@@ -18,7 +18,7 @@ end
 Source.determine = function(_, context)
   return compe.helper.determine(context, {
     keyword_pattern = ([[/\zs%s*$]]):format(BASENAME_PATTERN),
-    trigger_characters = { '/' }
+    trigger_characters = { '/', '.' }
   })
 end
 
@@ -35,14 +35,18 @@ Source.complete = function(self, args)
     return args.abort()
   end
 
-  self:_candidates(dirname, vim.schedule_wrap(function(err, candidates)
+  self:_candidates(dirname, function(err, candidates)
     if err then
       return args.abort()
     end
+    table.sort(candidates, function(item1, item2)
+      return self:_compare(item1, item2)
+    end)
+
     args.callback({
       items = candidates,
     })
-  end))
+  end)
 end
 
 --- _basename
@@ -60,6 +64,7 @@ Source._dirname = function(self, context)
   if not s then
     return nil
   end
+
   local dirname = string.sub(context.before_line, s + 1, e)
   local prefix = string.sub(context.before_line, 1, s + 1)
 
@@ -69,7 +74,7 @@ Source._dirname = function(self, context)
   elseif prefix:match('%./$') then
     return vim.fn.resolve(buf_dirname .. '/' .. dirname)
   elseif prefix:match('~/$') then
-    return vim.fn.resolve('~/' .. dirname)
+    return vim.fn.expand('~/' .. dirname)
   elseif prefix:match('/$') then
     local accept = true
     -- Ignore HTML closing tags
@@ -96,37 +101,48 @@ Source._stat = function(_, path)
 end
 
 Source._candidates = function(_, dirname, callback)
-  vim.loop.fs_scandir(dirname, function(err, fs)
-    if err then
-      return callback(err, nil)
+  local fs, err = vim.loop.fs_scandir(dirname)
+  if err then
+    return callback(err, nil)
+  end
+
+  local items = {}
+  while true do
+    local name, type, e = vim.loop.fs_scandir_next(fs)
+    if e then
+      return callback(type, nil)
+    end
+    if not name then
+      break
     end
 
-    local items = {}
-    while true do
-      local name, type, e = vim.loop.fs_scandir_next(fs)
-      if e then
-        return callback(type, nil)
-      end
-      if not name then
-        break
-      end
-      if type == 'directory' then
-        table.insert(items, {
+    -- Create items
+    if type == 'directory' then
+      table.insert(items, {
           word = name,
           abbr = '/' .. name,
+          filter_text = '../' .. name,
           menu = '[Dir]'
         })
-      else
-        table.insert(items, {
+    else
+      table.insert(items, {
           word = name,
           abbr = name,
+          filter_text = '..' .. name,
           menu = '[File]'
         })
-      end
     end
-    print(items)
-    callback(nil, items)
-  end)
+  end
+  callback(nil, items)
+end
+
+Source._compare = function(_, item1, item2)
+  if item1.menu == '[Dir]' and item2.menu ~= '[Dir]' then
+    return true
+  elseif item1.menu ~= '[Dir]' and item2.menu == '[Dir]' then
+    return false
+  end
+  return item1.word < item2.word
 end
 
 Source._is_slach_comment = function(_)
