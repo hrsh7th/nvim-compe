@@ -239,29 +239,28 @@ end
 --- _show
 Completion._show = function(start_offset, items)
   vim.schedule(function()
-    if not (vim.call('pumvisible') == 0 and #items == 0) then
-      local completeopt = vim.o.completeopt
-      vim.cmd('set completeopt=menu,menuone,noselect')
-      vim.call('complete', math.max(1, start_offset), items) -- start_offset=0 should close pum with `complete(1, [])`
-      vim.cmd('set completeopt=' .. completeopt)
-    end
     Completion._current_offset = start_offset
     Completion._current_items = items
     Completion._selected_item = nil
 
+    local should_preselect = false
+    should_preselect = items[1] and should_preselect or (Config.get().preselect == 'enable' and items[1].preselect)
+    should_preselect = items[1] and should_preselect or (Config.get().preselect == 'always')
+
+    if not (vim.call('pumvisible') == 0 and #items == 0) then
+      local completeopt = vim.o.completeopt
+      if should_preselect then
+        vim.cmd('set completeopt=menu,menuone,noinsert')
+      else
+        vim.cmd('set completeopt=menu,menuone,noselect')
+      end
+      vim.call('complete', math.max(1, start_offset), items) -- start_offset=0 should close pum with `complete(1, [])`
+      vim.cmd('set completeopt=' .. completeopt)
+    end
+
     -- close documentation if needed.
     if start_offset == 0 or #items == 0 then
       vim.call('compe#documentation#close')
-    end
-
-    -- preselect
-    if items[1] then
-      local should_preselect = false
-      should_preselect = should_preselect or (Config.get().preselect == 'enable' and items[1].preselect)
-      should_preselect = should_preselect or (Config.get().preselect == 'always')
-      if should_preselect then
-        vim.api.nvim_select_popupmenu_item(0, false, false, {})
-      end
     end
   end)
 end
