@@ -316,7 +316,6 @@ Completion for external plugins.
 Make sure you have the corresponding plugin installed.
 
 vim_lsp             vim-lsp completion.
-lamp                vim-lamp completion.
 vsnip               vim-vsnip completion.
 ultisnips           UltiSnips completion.
 snippets_nvim       snippets.nvim completion.
