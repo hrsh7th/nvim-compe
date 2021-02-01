@@ -30,6 +30,8 @@ Auto completion plugin for nvim.
 - Lua source & Vim source
 - Better matching algorithm
 - Support LSP completion features (trigger character, isIncomplete)
+- Effort to avoid flicker
+- Respect VSCode/LSP API design
 
 
 ## Features
