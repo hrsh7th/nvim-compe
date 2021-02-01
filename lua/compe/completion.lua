@@ -243,11 +243,11 @@ Completion._show = function(start_offset, items)
     Completion._current_items = items
     Completion._selected_item = nil
 
-    local should_preselect = false
-    should_preselect = items[1] and should_preselect or (Config.get().preselect == 'enable' and items[1].preselect)
-    should_preselect = items[1] and should_preselect or (Config.get().preselect == 'always')
-
     if not (vim.call('pumvisible') == 0 and #items == 0) then
+      local should_preselect = false
+      should_preselect = should_preselect or (Config.get().preselect == 'enable' and items[1].preselect)
+      should_preselect = should_preselect or (Config.get().preselect == 'always')
+
       local completeopt = vim.o.completeopt
       if should_preselect then
         vim.cmd('set completeopt=menu,menuone,noinsert')
