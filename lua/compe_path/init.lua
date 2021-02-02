@@ -18,15 +18,14 @@ end
 Source.determine = function(_, context)
   return compe.helper.determine(context, {
     keyword_pattern = ([[/\zs%s*$]]):format(BASENAME_PATTERN),
-    trigger_characters = { '/' }
+    trigger_characters = { '/', '.' }
   })
 end
 
 --- complete
 Source.complete = function(self, args)
-  local basename = self:_basename(args.context)
   local dirname = self:_dirname(args.context)
-  if not basename or not dirname then
+  if not dirname then
     return args.abort()
   end
 
@@ -35,7 +34,7 @@ Source.complete = function(self, args)
     return args.abort()
   end
 
-  self:_candidates(basename, dirname, function(err, candidates)
+  self:_candidates(args.input:sub(1, 1) == '.', dirname, function(err, candidates)
     if err then
       return args.abort()
     end
@@ -100,12 +99,11 @@ Source._stat = function(_, path)
   return nil
 end
 
-Source._candidates = function(_, basename, dirname, callback)
+Source._candidates = function(_, include_hidden, dirname, callback)
   local fs, err = vim.loop.fs_scandir(dirname)
   if err then
     return callback(err, nil)
   end
-
 
   local items = {}
 
@@ -118,19 +116,25 @@ Source._candidates = function(_, basename, dirname, callback)
       break
     end
 
+    local accept = false
+    accept = accept or include_hidden
+    accept = accept or name:sub(1, 1) ~= '.'
+
     -- Create items
-    if type == 'directory' then
-      table.insert(items, {
-          word = name,
-          abbr = '/' .. name,
-          menu = '[Dir]'
-        })
-    else
-      table.insert(items, {
-          word = name,
-          abbr = name,
-          menu = '[File]'
-        })
+    if accept then
+      if type == 'directory' then
+        table.insert(items, {
+            word = name,
+            abbr = '/' .. name,
+            menu = '[Dir]'
+          })
+      else
+        table.insert(items, {
+            word = name,
+            abbr = name,
+            menu = '[File]'
+          })
+      end
     end
   end
   callback(nil, items)
