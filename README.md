@@ -174,39 +174,39 @@ inoremap <silent><expr> <C-e>     compe#close('<C-e>')
 
 ## Demo
 
-## Auto Import
+### Auto Import
 
 ![auto import](https://i.imgur.com/GJSKxWK.gif)
 
-## LSP + [rust_analyzer's Magic Completion](https://rust-analyzer.github.io/manual.html#magic-completions)
+### LSP + [rust_analyzer's Magic Completion](https://rust-analyzer.github.io/manual.html#magic-completions)
 
 ![lsp](https://i.imgur.com/pMxHkYG.gif)
 
-## Buffer Source Completion
+### Buffer Source Completion
 
 ![buffer](https://i.imgur.com/qCfeb5d.gif)
 
-## Calc Completion
+### Calc Completion
 
 ![calc](https://i.imgur.com/gfoP9ff.gif)
 
-## Nvim Lua Completion
+### Nvim Lua Completion
 
 ![nvim lua](https://i.imgur.com/zGfVz2M.gif)
 
-## Vsnip Completion
+### Vsnip Completion
 
 ![vsnip](https://i.imgur.com/y2wNDtC.gif)
 
-## Snippets.nvim Completion
+### Snippets.nvim Completion
 
 ![snippets.nvim](https://i.imgur.com/404KJ7C.gif)
 
-## Tag Completion
+### Tag Completion
 
 ![tag](https://i.imgur.com/KOAHcM2.gif)
 
-## Spell Completion
+### Spell Completion
 
 ![spell](https://i.imgur.com/r12rLBS.gif)
 
