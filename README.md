@@ -15,6 +15,15 @@ Auto completion plugin for nvim.
     - [Neovim-specific](#neovim-specific)
     - [External-plugin](#external-plugin)
 - [Demo](#demo)
+  - [Auto Import](#auto-import)
+  - [LSP + Magic Completion](#lsp--rust_analyzers-magic-completion)
+  - [Buffer Source Completion](#buffer-source-completion)
+  - [Calc Completion](#calc-completion)
+  - [Nvim Lua Completion](#nvim-lua-completion)
+  - [Vsnip Completion](#vsnip-completion)
+  - [Snippets.nvim Completion](#snippetsnvim-completion)
+  - [Tag Completion](#tag-completion)
+  - [Spell Completion](#spell-completion)
 
 
 ## Concept
