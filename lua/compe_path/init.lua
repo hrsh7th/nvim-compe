@@ -1,8 +1,7 @@
 local compe = require'compe'
 
-local BASENAME_PATTERN = [[\%([^/\\:\*?<>\|]\)]]
-local BASENAME_REGEX = vim.regex(BASENAME_PATTERN .. '*$')
-local DIRNAME_REGEX = vim.regex(([[\%(/PAT*\)*\ze/PAT*$]]):gsub('PAT', BASENAME_PATTERN))
+local NAME_PATTERN = [[\%([^/\\:\*?<>\|]\)]]
+local DIRNAME_REGEX = vim.regex(([[\%(/PAT*\)*\ze/PAT*$]]):gsub('PAT', NAME_PATTERN))
 
 local Source = {}
 
@@ -17,7 +16,7 @@ end
 --- determine
 Source.determine = function(_, context)
   return compe.helper.determine(context, {
-    keyword_pattern = ([[/\zs%s*$]]):format(BASENAME_PATTERN),
+    keyword_pattern = ([[/\zs%s*$]]):format(NAME_PATTERN),
     trigger_characters = { '/', '.' }
   })
 end
@@ -48,15 +47,6 @@ Source.complete = function(self, args)
   end)
 end
 
---- _basename
-Source._basename = function(_, context)
-  local s, e = BASENAME_REGEX:match_str(context.before_line)
-  if not s then
-    return nil
-  end
-  return string.sub(context.before_line, s + 1, e)
-end
-
 --- _dirname
 Source._dirname = function(self, context)
   local s, e = DIRNAME_REGEX:match_str(context.before_line)
@@ -79,7 +69,7 @@ Source._dirname = function(self, context)
     -- Ignore HTML closing tags
     accept = accept and not prefix:match('</$')
     -- Ignore math calculation
-    accept = accept and not prefix:match('%d%s*/$')
+    accept = accept and not prefix:match('[%d%)]%s*/$')
     -- Ignore / comment
     accept = accept and (not prefix:match('^%s*/$') or not self:_is_slach_comment())
     -- Ignore URL scheme
