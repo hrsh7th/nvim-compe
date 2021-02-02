@@ -246,7 +246,7 @@ end
 
 --- _show
 Completion._show = function(start_offset, items)
-  vim.schedule(function()
+  Async.fast_schedule(function()
     Completion._current_offset = start_offset
     Completion._current_items = items
     Completion._selected_item = nil

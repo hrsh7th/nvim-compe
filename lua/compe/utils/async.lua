@@ -5,17 +5,34 @@ local Async = {}
 Async._base_timer_id = 0
 Async._timers = {}
 
+Async.fast_schedule_wrap = function(callback)
+  return function(...)
+    local args = ...
+    Async.fast_schedule(function()
+      callback(args)
+    end)
+  end
+end
+
+Async.fast_schedule = function(callback)
+  if vim.in_fast_event() then
+    vim.schedule(callback)
+  else
+    callback()
+  end
+end
+
 Async.set_timeout = function(callback, timeout)
   Async._base_timer_id = Async._base_timer_id + 1
 
   if timeout < 0 then
-    vim.schedule(callback)
+    Async.fast_schedule(callback)
     return -1
   end
 
   local timer_id = Async._base_timer_id
   Async._timers[timer_id] = vim.loop.new_timer()
-  Async._timers[timer_id]:start(timeout, 0, vim.schedule_wrap(function()
+  Async._timers[timer_id]:start(timeout, 0, Async.fast_schedule_wrap(function()
     Async.clear_timeout(timer_id)
     callback()
   end))
