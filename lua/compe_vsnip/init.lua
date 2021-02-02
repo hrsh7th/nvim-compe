@@ -31,10 +31,16 @@ function Source.complete(_, context)
   })
 end
 
-function Source.documentation(_, context)
-  context.callback(
-    vim.fn.json_decode(context.completed_item.user_data.compe).vsnip.snippet
-  )
+function Source.documentation(_, args)
+  local document = {}
+  table.insert(document, '```' .. args.context.filetype)
+
+  local decoded= vim.fn['vsnip#to_string'](vim.fn.json_decode(args.completed_item.user_data.compe).vsnip.snippet)
+  for _, line in ipairs(vim.fn.split(decoded, "\n")) do
+    table.insert(document, line)
+  end
+  table.insert(document, '```')
+  args.callback(document)
 end
 
 function Source.confirm(_, context)
