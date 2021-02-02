@@ -174,12 +174,15 @@ Completion._display = function(context)
   local sources = {}
 
   -- Check for processing source.
-  local processing_timeout = -1
+  Async.throttle('display:processing', 0, function() end)
   for _, source in ipairs(Completion.get_sources()) do
     if source.status == 'processing' then
-      processing_timeout = math.max(0, Config.get().source_timeout - source:get_processing_time())
-      if source:get_processing_time() < Config.get().source_timeout then
-        break
+      local processing_timeout = Config.get().source_timeout - source:get_processing_time()
+      if processing_timeout > 0 then
+        Async.throttle('display:processing', processing_timeout, function()
+          Completion._display(context)
+        end)
+        return
       end
     else
       table.insert(sources, source)
@@ -190,18 +193,8 @@ Completion._display = function(context)
     return
   end
 
-  Async.throttle('display:processing', 0, function() end)
-  if processing_timeout > 0 then
-    Async.throttle('display:processing', processing_timeout, function()
-      Completion._display(context)
-    end)
-  end
-
-  local timeout = (vim.call('pumvisible') == 0 or context.manual) and 1 or Config.get().throttle_time
+  local timeout = (vim.call('pumvisible') == 0 or context.manual) and 0 or Config.get().throttle_time
   Async.throttle('display:filter', timeout, function()
-    if Completion:_should_ignore() then
-      return
-    end
 
     -- Gather items and determine start_offset
     local start_offset = 0
