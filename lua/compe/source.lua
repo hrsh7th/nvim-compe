@@ -235,7 +235,7 @@ function Source.get_filtered_items(self, context)
   curr_cache_key = table.concat(curr_cache_key, ':')
 
   local prev_items = (function()
-    if #input == 0 then
+    if #input == 0 or self.incomplete then
       return nil
     end
 
