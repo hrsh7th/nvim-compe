@@ -35,7 +35,7 @@ Source.complete = function(self, args)
     return args.abort()
   end
 
-  self:_candidates(dirname, function(err, candidates)
+  self:_candidates(basename, dirname, function(err, candidates)
     if err then
       return args.abort()
     end
@@ -100,13 +100,15 @@ Source._stat = function(_, path)
   return nil
 end
 
-Source._candidates = function(_, dirname, callback)
+Source._candidates = function(_, basename, dirname, callback)
   local fs, err = vim.loop.fs_scandir(dirname)
   if err then
     return callback(err, nil)
   end
 
+
   local items = {}
+
   while true do
     local name, type, e = vim.loop.fs_scandir_next(fs)
     if e then
@@ -121,14 +123,12 @@ Source._candidates = function(_, dirname, callback)
       table.insert(items, {
           word = name,
           abbr = '/' .. name,
-          filter_text = '../' .. name,
           menu = '[Dir]'
         })
     else
       table.insert(items, {
           word = name,
           abbr = name,
-          filter_text = '..' .. name,
           menu = '[File]'
         })
     end

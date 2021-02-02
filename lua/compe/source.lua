@@ -1,6 +1,6 @@
-local Debug = require'compe.utils.debug'
-local Async = require'compe.utils.async'
+local Cache = require'compe.utils.cache'
 local Config = require'compe.config'
+local Matcher = require'compe.matcher'
 local Context = require'compe.context'
 
 local Source =  {}
@@ -16,6 +16,7 @@ function Source.new(name, source)
   self.name = name
   self.source = source
   self.context = Context.new({})
+  self.revision = 0
   self:clear()
   return self
 end
@@ -177,6 +178,7 @@ function Source.trigger(self, context, callback)
         return
       end
 
+      self.revision = self.revision + 1
       self.items = self.incomplete and #result.items == 0 and self.items or self:normalize_items(context, result.items or {})
       self.status = 'completed'
       self.incomplete = result.incomplete or false
@@ -185,6 +187,7 @@ function Source.trigger(self, context, callback)
       callback()
     end;
     abort = function()
+      self.revision = self.revision + 1
       self.items = {}
       self.status = 'waiting'
       self.incomplete = false
@@ -212,6 +215,22 @@ end
 --- get_start_offset
 function Source.get_start_offset(self)
   return self.keyword_pattern_offset or 0
+end
+
+--- get_filtered_items
+function Source.get_filtered_items(self, context)
+  local cache_group_key = {}
+  table.insert(cache_group_key, 'source.get_filtered_items')
+  table.insert(cache_group_key, self.id)
+
+  local cache_key = {}
+  table.insert(cache_key, self.revision)
+  table.insert(cache_key, context.lnum)
+  table.insert(cache_key, context.col)
+  table.insert(cache_key, context.input)
+  return Cache.readthrough(table.concat(cache_group_key, ':'), table.concat(cache_key, ':'), function()
+    return Matcher.match(context, self)
+  end)
 end
 
 --- get_start_offset

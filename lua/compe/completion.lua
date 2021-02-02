@@ -206,7 +206,7 @@ Completion._display = function(context)
     for _, source in ipairs(sources) do
       local source_start_offset = source:get_start_offset()
       if source_start_offset > 0 then
-        local source_items = Matcher.match(context, source)
+        local source_items = source:get_filtered_items(context)
         if #source_items > 0 then
           start_offset = (start_offset == 0 or start_offset > source_start_offset) and source_start_offset or start_offset
 
