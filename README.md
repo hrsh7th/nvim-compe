@@ -15,6 +15,15 @@ Auto completion plugin for nvim.
     - [Neovim-specific](#neovim-specific)
     - [External-plugin](#external-plugin)
 - [Demo](#demo)
+  - [Auto Import](#auto-import)
+  - [LSP + Magic Completion](#lsp--rust_analyzers-magic-completion)
+  - [Buffer Source Completion](#buffer-source-completion)
+  - [Calc Completion](#calc-completion)
+  - [Nvim Lua Completion](#nvim-lua-completion)
+  - [Vsnip Completion](#vsnip-completion)
+  - [Snippets.nvim Completion](#snippetsnvim-completion)
+  - [Tag Completion](#tag-completion)
+  - [Spell Completion](#spell-completion)
 
 
 ## Concept
@@ -165,5 +174,39 @@ inoremap <silent><expr> <C-e>     compe#close('<C-e>')
 
 ## Demo
 
-TBD
+### Auto Import
+
+![auto import](https://i.imgur.com/GJSKxWK.gif)
+
+### LSP + [rust_analyzer's Magic Completion](https://rust-analyzer.github.io/manual.html#magic-completions)
+
+![lsp](https://i.imgur.com/pMxHkYG.gif)
+
+### Buffer Source Completion
+
+![buffer](https://i.imgur.com/qCfeb5d.gif)
+
+### Calc Completion
+
+![calc](https://i.imgur.com/gfoP9ff.gif)
+
+### Nvim Lua Completion
+
+![nvim lua](https://i.imgur.com/zGfVz2M.gif)
+
+### Vsnip Completion
+
+![vsnip](https://i.imgur.com/y2wNDtC.gif)
+
+### Snippets.nvim Completion
+
+![snippets.nvim](https://i.imgur.com/404KJ7C.gif)
+
+### Tag Completion
+
+![tag](https://i.imgur.com/KOAHcM2.gif)
+
+### Spell Completion
+
+![spell](https://i.imgur.com/r12rLBS.gif)
 
