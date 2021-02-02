@@ -126,18 +126,22 @@ Completion.complete = function(manual)
     return
   end
 
-  -- Restore pum if vim close it automatically (backspace or invalid chars).
   local is_completing = (0 < Completion._current_offset and Completion._current_offset <= context.col)
-  --if is_completing and Completion._context:maybe_backspace(context) and vim.call('pumvisible') == 0 then
-  if is_completing and vim.call('pumvisible') == 0 then
+
+  -- Restore pum if closed it automatically (backspace or invalid chars).
+  local should_restore_pum = false
+  should_restore_pum = should_restore_pum or Completion._context:maybe_backspace(context)
+  should_restore_pum = should_restore_pum or vim.tbl_contains({ '-' }, context.before_char)
+  if is_completing and vim.call('pumvisible') == 0 and should_restore_pum then
     Completion._show(Completion._current_offset, Completion._current_items)
   end
 
   if Config.get().autocomplete or (manual or is_completing) then
     local should_trigger = is_completing or not Completion._context:maybe_backspace(context)
     if should_trigger then
-      Completion._trigger(context)
-      Completion._display(context)
+      if not Completion._trigger(context) then
+        Completion._display(context)
+      end
     end
   end
 
@@ -154,11 +158,9 @@ Completion._trigger = function(context)
   local trigger = false
   for _, source in ipairs(Completion.get_sources()) do
     local status, value = pcall(function()
-      trigger = source:trigger(context, (function(source)
-        return function()
+      trigger = source:trigger(context, function()
           Completion._display(Context.new({}))
-        end
-      end)(source)) or trigger
+      end)
     end)
     if not status then
       Debug.log(value)
@@ -169,22 +171,26 @@ end
 
 --- _display
 Completion._display = function(context)
-  Async.throttle('display:processing', -1, function() end)
+  local sources = {}
 
   -- Check for processing source.
+  local processing_timeout = -1
   for _, source in ipairs(Completion.get_sources()) do
-    local should_wait_processing = true
-    should_wait_processing = should_wait_processing and source.status == 'processing' -- source is processing
-    should_wait_processing = should_wait_processing and source:get_processing_time() < Config.get().source_timeout -- processing timeout
-    if should_wait_processing then
-      local timeout = Config.get().source_timeout - source:get_processing_time()
-      Async.throttle('display:processing', math.max(1, timeout), function()
-        if source.status == 'processing' then
-          Completion._display(Context.new({}))
-        end
-      end)
-      return
+    if source.status == 'processing' then
+      processing_timeout = math.min(Config.get().source_timeout, source:get_processing_time())
+      if source:get_processing_time() < Config.get().source_timeout then
+        break
+      end
+    else
+      table.insert(sources, source)
     end
+  end
+
+  Async.throttle('display:processing', 0, function() end)
+  if processing_timeout > 0 then
+    Async.throttle('display:processing', processing_timeout, function()
+      Completion._display(context)
+    end)
   end
 
   local timeout = (vim.call('pumvisible') == 0 or context.manual) and -1 or Config.get().throttle_time
@@ -197,7 +203,7 @@ Completion._display = function(context)
     local start_offset = 0
     local items = {}
     local items_uniq = {}
-    for _, source in ipairs(Completion.get_sources()) do
+    for _, source in ipairs(sources) do
       local source_start_offset = source:get_start_offset()
       if source_start_offset > 0 then
         local source_items = Matcher.match(context, source)
