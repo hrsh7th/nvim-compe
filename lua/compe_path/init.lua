@@ -1,7 +1,8 @@
 local compe = require'compe'
 
-local NAME_PATTERN = [[\%([^/\\:\*?<>\|]\)]]
-local DIRNAME_REGEX = vim.regex(([[\%(/PAT*\)*\ze/PAT*$]]):gsub('PAT', NAME_PATTERN))
+-- TODO: ' or " or ` is valid as filename
+local NAME_PATTERN = [[\%([^/\\:\*?<>'"`\|]\)]]
+local DIRNAME_REGEX = vim.regex(([[\%(/PAT\+\)*\ze/PAT*$]]):gsub('PAT', NAME_PATTERN))
 
 local Source = {}
 
@@ -71,7 +72,7 @@ Source._dirname = function(self, context)
     -- Ignore math calculation
     accept = accept and not prefix:match('[%d%)]%s*/$')
     -- Ignore / comment
-    accept = accept and (not prefix:match('^%s*/$') or not self:_is_slach_comment())
+    accept = accept and (not prefix:match('^[%s/]*$') or not self:_is_slash_comment())
     -- Ignore URL scheme
     accept = accept and not prefix:match('%a+:/$') and not prefix:match('%a+://$')
     if accept then
@@ -130,6 +131,7 @@ Source._candidates = function(_, include_hidden, dirname, callback)
   callback(nil, items)
 end
 
+--- _compare
 Source._compare = function(_, item1, item2)
   if item1.menu == '[Dir]' and item2.menu ~= '[Dir]' then
     return true
@@ -139,8 +141,13 @@ Source._compare = function(_, item1, item2)
   return item1.word < item2.word
 end
 
-Source._is_slach_comment = function(_)
-  return not not (vim.o.commentstring or ''):match('//|/%*')
+--- _is_slash_comment
+Source._is_slash_comment = function(_)
+  local commentstring = vim.fn.getbufvar('%', '&commentstring') or ''
+  local is_slash_comment = false
+  is_slash_comment = is_slash_comment or commentstring:match('/%*')
+  is_slash_comment = is_slash_comment or commentstring:match('//')
+  return is_slash_comment
 end
 
 return Source
