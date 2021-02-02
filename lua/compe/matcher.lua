@@ -6,12 +6,10 @@ local Matcher = {}
 Matcher.WORD_BOUNDALY_ORDER_FACTOR = 5
 
 --- match
-Matcher.match = function(context, source)
-  local input = context:get_input(source:get_start_offset())
-
+Matcher.match = function(input, items)
   -- filter
   local matches = {}
-  for i, item in ipairs(source.items) do
+  for i, item in ipairs(items) do
     local word = item.original_word
     if #input > 0 then
       if item.filter_text and #item.filter_text > 0 then
@@ -107,7 +105,7 @@ Matcher.score = function(input, word)
 
   -- Check first char matching (special check for completion)
   if not Config.get().allow_prefix_unmatch then
-    if not Character.match(string.byte(input, 1), string.byte(word, 1)) then
+    if not Character.match(string.byte(input, 1, 1), string.byte(word, 1, 1)) then
       return 0, false
     end
   end

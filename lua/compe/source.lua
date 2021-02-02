@@ -1,6 +1,6 @@
-local Debug = require'compe.utils.debug'
-local Async = require'compe.utils.async'
+local Cache = require'compe.utils.cache'
 local Config = require'compe.config'
+local Matcher = require'compe.matcher'
 local Context = require'compe.context'
 
 local Source =  {}
@@ -16,6 +16,7 @@ function Source.new(name, source)
   self.name = name
   self.source = source
   self.context = Context.new({})
+  self.revision = 0
   self:clear()
   return self
 end
@@ -160,7 +161,7 @@ function Source.trigger(self, context, callback)
   self.is_triggered_by_character = is_same_offset and self.is_triggered_by_character or (state.trigger_character_offset > 0 and not string.match(context.before_char, '%w+'))
 
   self.items = (is_same_offset and self.incomplete) and self.items or {}
-  self.status = (is_same_offset and self.incomplete) and self.status or 'processing'
+  self.status = 'processing'
   self.keyword_pattern_offset = state.keyword_pattern_offset
   self.trigger_character_offset = state.trigger_character_offset
   self.context = context
@@ -177,6 +178,7 @@ function Source.trigger(self, context, callback)
         return
       end
 
+      self.revision = self.revision + 1
       self.items = self.incomplete and #result.items == 0 and self.items or self:normalize_items(context, result.items or {})
       self.status = 'completed'
       self.incomplete = result.incomplete or false
@@ -185,6 +187,7 @@ function Source.trigger(self, context, callback)
       callback()
     end;
     abort = function()
+      self.revision = self.revision + 1
       self.items = {}
       self.status = 'waiting'
       self.incomplete = false
@@ -214,7 +217,48 @@ function Source.get_start_offset(self)
   return self.keyword_pattern_offset or 0
 end
 
---- get_start_offset
+--- get_filtered_items
+function Source.get_filtered_items(self, context)
+  local start_offset = self:get_start_offset()
+  local input = context:get_input(start_offset)
+
+  local cache_group_key = {}
+  table.insert(cache_group_key, 'source.get_filtered_items')
+  table.insert(cache_group_key, self.id)
+  cache_group_key = table.concat(cache_group_key, ':')
+
+  local curr_cache_key = {}
+  table.insert(curr_cache_key, self.revision)
+  table.insert(curr_cache_key, context.lnum)
+  table.insert(curr_cache_key, start_offset)
+  table.insert(curr_cache_key, input)
+  curr_cache_key = table.concat(curr_cache_key, ':')
+
+  local prev_items = (function()
+    if #input == 0 or self.incomplete then
+      return nil
+    end
+
+    local prev_cache_key = {}
+    table.insert(prev_cache_key, self.revision)
+    table.insert(prev_cache_key, context.lnum)
+    table.insert(prev_cache_key, start_offset)
+    table.insert(prev_cache_key, input:sub(1, -2))
+    prev_cache_key = table.concat(prev_cache_key, ':')
+    return Cache.readthrough(cache_group_key, prev_cache_key, function()
+      return nil
+    end)
+  end)()
+
+  return Cache.readthrough(cache_group_key, curr_cache_key, function()
+    if not prev_items then
+      return Matcher.match(input, self.items)
+    end
+    return Matcher.match(input, prev_items or {})
+  end)
+end
+
+--- get_processing_time
 function Source.get_processing_time(self)
   if self.status == 'processing' then
     return vim.loop.now() - self.context.time
