@@ -177,13 +177,17 @@ Completion._display = function(context)
   local processing_timeout = -1
   for _, source in ipairs(Completion.get_sources()) do
     if source.status == 'processing' then
-      processing_timeout = math.min(Config.get().source_timeout, source:get_processing_time())
+      processing_timeout = math.max(0, Config.get().source_timeout - source:get_processing_time())
       if source:get_processing_time() < Config.get().source_timeout then
         break
       end
     else
       table.insert(sources, source)
     end
+  end
+
+  if #sources == 0 then
+    return
   end
 
   Async.throttle('display:processing', 0, function() end)
@@ -193,7 +197,7 @@ Completion._display = function(context)
     end)
   end
 
-  local timeout = (vim.call('pumvisible') == 0 or context.manual) and -1 or Config.get().throttle_time
+  local timeout = (vim.call('pumvisible') == 0 or context.manual) and 1 or Config.get().throttle_time
   Async.throttle('display:filter', timeout, function()
     if Completion:_should_ignore() then
       return

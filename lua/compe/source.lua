@@ -219,21 +219,46 @@ end
 
 --- get_filtered_items
 function Source.get_filtered_items(self, context)
+  local start_offset = self:get_start_offset()
+  local input = context:get_input(start_offset)
+
   local cache_group_key = {}
   table.insert(cache_group_key, 'source.get_filtered_items')
   table.insert(cache_group_key, self.id)
+  cache_group_key = table.concat(cache_group_key, ':')
 
-  local cache_key = {}
-  table.insert(cache_key, self.revision)
-  table.insert(cache_key, context.lnum)
-  table.insert(cache_key, context.col)
-  table.insert(cache_key, context.input)
-  return Cache.readthrough(table.concat(cache_group_key, ':'), table.concat(cache_key, ':'), function()
-    return Matcher.match(context, self)
+  local curr_cache_key = {}
+  table.insert(curr_cache_key, self.revision)
+  table.insert(curr_cache_key, context.lnum)
+  table.insert(curr_cache_key, start_offset)
+  table.insert(curr_cache_key, input)
+  curr_cache_key = table.concat(curr_cache_key, ':')
+
+  local prev_items = (function()
+    if #input == 0 then
+      return nil
+    end
+
+    local prev_cache_key = {}
+    table.insert(prev_cache_key, self.revision)
+    table.insert(prev_cache_key, context.lnum)
+    table.insert(prev_cache_key, start_offset)
+    table.insert(prev_cache_key, input:sub(1, -2))
+    prev_cache_key = table.concat(prev_cache_key, ':')
+    return Cache.readthrough(cache_group_key, prev_cache_key, function()
+      return nil
+    end)
+  end)()
+
+  return Cache.readthrough(cache_group_key, curr_cache_key, function()
+    if not prev_items then
+      return Matcher.match(input, self.items)
+    end
+    return Matcher.match(input, prev_items or {})
   end)
 end
 
---- get_start_offset
+--- get_processing_time
 function Source.get_processing_time(self)
   if self.status == 'processing' then
     return vim.loop.now() - self.context.time
