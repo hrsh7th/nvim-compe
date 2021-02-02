@@ -105,7 +105,7 @@ Matcher.score = function(input, word)
 
   -- Check first char matching (special check for completion)
   if not Config.get().allow_prefix_unmatch then
-    if not Character.match(string.byte(input, 1), string.byte(word, 1)) then
+    if not Character.match(string.byte(input, 1, 1), string.byte(word, 1, 1)) then
       return 0, false
     end
   end
