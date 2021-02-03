@@ -243,9 +243,15 @@ function Source.get_filtered_items(self, context)
     table.insert(prev_cache_key, self.revision)
     table.insert(prev_cache_key, context.lnum)
     table.insert(prev_cache_key, start_offset)
-    table.insert(prev_cache_key, input:sub(1, -2))
-    prev_cache_key = table.concat(prev_cache_key, ':')
-    return Cache.get(cache_group_key, prev_cache_key)
+    for i = #input, 1, -1 do
+      table.insert(prev_cache_key, input:sub(1, i))
+      local prev_items = Cache.get(cache_group_key, table.concat(prev_cache_key, ':'))
+      if prev_items then
+        return prev_items
+      end
+      table.remove(prev_cache_key, #prev_cache_key)
+    end
+    return nil
   end)()
 
   return Cache.ensure(cache_group_key, curr_cache_key, function()

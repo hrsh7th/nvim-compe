@@ -195,7 +195,6 @@ Completion._display = function(context)
 
   local timeout = (vim.call('pumvisible') == 0 or context.manual) and 0 or Config.get().throttle_time
   Async.throttle('display:filter', timeout, function()
-
     -- Gather items and determine start_offset
     local start_offset = 0
     local items = {}
