@@ -137,7 +137,7 @@ inoremap <silent><expr> <C-e>     compe#close('<C-e>')
 If you use [cohama/lexima.vim](https://github.com/cohama/lexima.vim)
 
 ```viml
-" NOTE: Order is important.
+" NOTE: Order is important. You can't lazy loading lexima.vim.
 let g:lexima_no_default_rules = v:true
 call lexima#set_default_rules()
 inoremap <silent><expr> <C-Space> compe#complete()
