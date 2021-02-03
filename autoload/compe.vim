@@ -47,11 +47,14 @@ function! s:confirm_state(state) abort
   return "\<Ignore>"
 endfunction
 function! compe#confirm(...) abort
-  if &completeopt !=# 'menu,menuone,noselect'
-    echohl ErrorMsg
-    echomsg '[nvim-compe] You must set `set completeopt=menu,menuone,noselect` in your vimrc.'
-    echohl None
-  endif
+  let l:completeopts = split(&completeopt, ',')
+  for l:opt in ['menu', 'menuone', 'noselect']
+    if index(l:completeopts, l:opt) == -1
+      echohl ErrorMsg
+      echomsg '[nvim-compe] You must set `set completeopt=menu,menuone,noselect` in your vimrc.'
+      echohl None
+    endif
+  endfor
 
   let l:fallback = get(a:000, 0, v:null)
   if mode()[0] ==# 'i' && complete_info(['selected']).selected != -1
