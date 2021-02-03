@@ -1,6 +1,7 @@
 local Debug = require'compe.utils.debug'
 local Async = require'compe.utils.async'
 local Cache = require'compe.utils.cache'
+local String = require'compe.utils.string'
 local Config = require'compe.config'
 local Context = require'compe.context'
 local Matcher = require'compe.matcher'
@@ -213,6 +214,11 @@ Completion._display = function(context)
               items_uniq[item.original_word] = true
               item.word = gap .. item.original_word
               item.abbr = string.rep(' ', #gap) .. item.original_abbr
+              item.kind = item.original_kind or ''
+
+              -- trim to specified width.
+              item.abbr = String.trim(item.abbr, Config.get().max_abbr_width)
+              item.kind = String.trim(item.kind, Config.get().max_kind_width)
               table.insert(items, item)
             end
           end

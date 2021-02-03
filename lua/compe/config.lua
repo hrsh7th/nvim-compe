@@ -10,55 +10,19 @@ Config._config = {
 
 Config._bufnrs = {}
 
-Config._normalize = function(config)
-  -- normalize options
-  if config.enabled == nil then
-    config.enabled = true
-  else
-    config.enabled = Config._true(config.enabled)
-  end
-  config.debug = Config._true(config.debug)
-  config.min_length = config.min_length or 1
-  config.preselect = config.preselect or 'enable'
-  config.throttle_time = config.throttle_time or THROTTLE_TIME
-  config.source_timeout = config.source_timeout or SOURCE_TIMEOUT
-  config.incomplete_delay = config.incomplete_delay or INCOMPLETE_DELAY
-  config.allow_prefix_unmatch = Config._true(config.allow_prefix_unmatch)
-  if config.autocomplete == nil then
-    config.autocomplete = true
-  else
-    config.autocomplete = Config._true(config.autocomplete)
-  end
-
-  -- normalize source metadata
-  if config.source then
-    for name, metadata in pairs(config.source) do
-      if type(metadata) ~= 'table' then
-        config.source[name] = { disabled = not Config._true(metadata) }
-      else
-        config.source[name].disabled = config.source[name].disabled or false
-      end
-    end
-  else
-    config.source = {}
-  end
-
-  return config
-end
-
 Config.setup = function(config, bufnr)
   if bufnr == nil then
+    -- global config
     Config._config = Config._normalize(config)
   else
+    -- buffer config
     for key, value in pairs(Config._config) do
       if config[key] == nil then
         config[key] = value
       end
     end
 
-    if bufnr == 0 then
-      bufnr = vim.api.nvim_get_current_buf()
-    end
+    bufnr = (bufnr == 0 and vim.api.nvim_get_current_buf()) or bufnr
     Config._bufnrs[bufnr] = Config._normalize(config)
   end
 end
@@ -76,7 +40,40 @@ Config.is_source_enabled = function(source_name)
   return config.source[source_name] and not config.source[source_name].disabled
 end
 
-Config._true = function(v)
+Config._normalize = function(config)
+  -- normalize options
+  config.enabled = Config._bool(config.enabled, true)
+  config.debug = Config._bool(config.debug, false)
+  config.min_length = config.min_length or 1
+  config.preselect = config.preselect or 'enable'
+  config.throttle_time = config.throttle_time or THROTTLE_TIME
+  config.source_timeout = config.source_timeout or SOURCE_TIMEOUT
+  config.incomplete_delay = config.incomplete_delay or INCOMPLETE_DELAY
+  config.allow_prefix_unmatch = Config._bool(config.allow_prefix_unmatch, false)
+  config.max_abbr_width = config.max_abbr_width or 100
+  config.max_kind_width = config.max_kind_width or 100
+  config.autocomplete = Config._bool(config.autocomplete, true)
+
+  -- normalize source metadata
+  if config.source then
+    for name, metadata in pairs(config.source) do
+      if type(metadata) ~= 'table' then
+        config.source[name] = { disabled = not Config._bool(metadata, false) }
+      else
+        config.source[name].disabled = Config._bool(config.source[name].disabled, false)
+      end
+    end
+  else
+    config.source = {}
+  end
+
+  return config
+end
+
+Config._bool = function(v, def)
+  if v == nil then
+    return def
+  end
   return v == true or v == 1
 end
 

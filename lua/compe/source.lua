@@ -312,8 +312,8 @@ function Source.normalize_items(self, _, items)
     -- Restore original properties
     item.original_word = item.word
     item.original_abbr = item.abbr
-    item.original_menu = item.menu
     item.original_kind = item.kind
+    item.original_menu = item.menu
     item.original_dup = metadata.dup == nil and 1 or metadata.dup
 
     table.insert(normalized, item)
