@@ -171,6 +171,7 @@ inoremap <silent><expr> <C-e>     compe#close('<C-e>')
 #### External-plugin
 
 - [vim_lsp](https://github.com/prabirshrestha/vim-lsp)
+- [vim_lsc](https://github.com/natebosch/vim-lsc)
 - [vim-vsnip](https://github.com/hrsh7th/vim-vsnip)
 - [ultisnips](https://github.com/SirVer/ultisnips)
 - [snippets.nvim](https://github.com/norcalli/snippets.nvim)
