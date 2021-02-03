@@ -43,12 +43,11 @@ function Source.complete(self, args)
     params.context.triggerCharacter = args.context.before_char
   end
 
-  self.client.request('textDocument/completion', params, function(err, _, result)
-    if err or not result then return args.abort() end
-    args.callback({
-      items = self:_convert(params.position, result);
-      incomplete = result.isIncomplete or false;
-    })
+  self.client.request('textDocument/completion', params, function(err, _, response)
+    if err or not response then
+      return args.abort()
+    end
+    args.callback(compe.helper.convert_lsp(params.position, response))
   end)
 end
 
@@ -112,55 +111,6 @@ function Source._create_document(self, filetype, completion_item)
     end
   end
   return document
-end
-
---- _convert
-function Source._convert(_, request_position, result)
-  local completion_items = vim.tbl_islist(result or {}) and result or result.items or {}
-
-  local complete_items = {}
-  for _, completion_item in pairs(completion_items) do
-    local label = completion_item.label
-    local insert_text = completion_item.insertText or label
-
-    local word = ''
-    local abbr = ''
-    if completion_item.insertTextFormat == 2 then
-      word = label
-      abbr = label
-
-      local text = word
-      if completion_item.textEdit ~= nil then
-        text = completion_item.textEdit.newText or text
-      elseif completion_item.insertText ~= nil then
-        text = completion_item.insertText or text
-      end
-      if word ~= text then
-        abbr = abbr .. '~'
-      end
-      word = string.match(text, '[^%s=%(%$"\']+')
-    else
-      word = insert_text
-      abbr = label
-    end
-    word = string.gsub(word, '^%s*|%s*$', '')
-
-    table.insert(complete_items, {
-      word = word;
-      abbr = abbr;
-      preselect = completion_item.preselect or false;
-      kind = protocol.CompletionItemKind[completion_item.kind] or nil;
-      user_data = {
-        compe = {
-          request_position = request_position;
-          completion_item = completion_item;
-        };
-      };
-      filter_text = completion_item.filterText or nil;
-      sort_text = completion_item.sortText or nil;
-    })
-  end
-  return complete_items
 end
 
 --- _get_paths
