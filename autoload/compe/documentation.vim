@@ -11,6 +11,7 @@ call s:window.set_bufnr(s:Buffer.create())
 call setbufvar(s:window.get_bufnr(), '&buftype', 'nofile')
 call setbufvar(s:window.get_bufnr(), '&bufhidden', 'hide')
 call setbufvar(s:window.get_bufnr(), '&buflisted', 0)
+call setbufvar(s:window.get_bufnr(), '&swapfile', 0)
 
 "
 " compe#documentation#show
