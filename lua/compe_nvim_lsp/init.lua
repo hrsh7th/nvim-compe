@@ -5,9 +5,11 @@ local source_ids = {}
 
 return {
   attach = function()
-    vim.fn.execute('augroup compe_nvim_lsp')
-    vim.fn.execute('autocmd InsertEnter * lua require"compe_nvim_lsp".register()')
-    vim.fn.execute('augroup END')
+    vim.api.nvim_exec([[
+      augroup compe_nvim_lsp
+      autocmd InsertEnter * lua require"compe_nvim_lsp".register()
+      augroup END
+    ]], false)
   end;
   register = function()
     -- unregister
@@ -16,7 +18,7 @@ return {
     end
 
     -- register
-    local filetype = vim.fn.getbufvar('%', '&filetype')
+    local filetype = vim.bo.filetype
     for id, client in pairs(vim.lsp.buf_get_clients(0)) do
       table.insert(source_ids, compe.register_source('nvim_lsp', Source.new(client, filetype)))
     end

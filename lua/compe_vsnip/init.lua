@@ -17,7 +17,7 @@ function Source.determine(_, context)
 end
 
 function Source.complete(_, context)
-  local items = vim.fn['vsnip#get_complete_items'](vim.fn.bufnr('%'))
+  local items = vim.fn['vsnip#get_complete_items'](vim.api.nvim_get_current_buf())
 
   local add_user_data = function(item)
     item.user_data = { compe = item.user_data }
@@ -36,7 +36,7 @@ function Source.documentation(_, args)
   table.insert(document, '```' .. args.context.filetype)
 
   local decoded= vim.fn['vsnip#to_string'](vim.fn.json_decode(args.completed_item.user_data.compe).vsnip.snippet)
-  for _, line in ipairs(vim.fn.split(decoded, "\n")) do
+  for _, line in ipairs(vim.split(decoded, "\n")) do
     table.insert(document, line)
   end
   table.insert(document, '```')

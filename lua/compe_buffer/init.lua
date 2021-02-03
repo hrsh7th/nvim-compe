@@ -73,7 +73,7 @@ function Source._get_buffers(self)
     if not self.buffers[buf] then
       local buffer = Buffer.new(
         buf,
-        compe.helper.get_keyword_pattern(vim.fn.getbufvar(buf, '&filetype')),
+        compe.helper.get_keyword_pattern(vim.bo.filetype),
         compe.helper.get_default_pattern()
       )
       buffer:index()
