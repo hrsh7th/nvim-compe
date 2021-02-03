@@ -30,7 +30,7 @@ end
 
 --- get_sources
 Completion.get_sources = function()
-  return Cache.readthrough('Completion.get_sources', Completion._get_sources_cache_key, function()
+  return Cache.ensure('Completion.get_sources', Completion._get_sources_cache_key, function()
     local sources = {}
     for _, source in pairs(Completion._sources) do
       if Config.is_source_enabled(source.name) then

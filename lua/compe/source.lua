@@ -245,16 +245,14 @@ function Source.get_filtered_items(self, context)
     table.insert(prev_cache_key, start_offset)
     table.insert(prev_cache_key, input:sub(1, -2))
     prev_cache_key = table.concat(prev_cache_key, ':')
-    return Cache.readthrough(cache_group_key, prev_cache_key, function()
-      return nil
-    end)
+    return Cache.get(cache_group_key, prev_cache_key)
   end)()
 
-  return Cache.readthrough(cache_group_key, curr_cache_key, function()
-    if not prev_items then
-      return Matcher.match(input, self.items)
+  return Cache.ensure(cache_group_key, curr_cache_key, function()
+    if type(prev_items) == 'table' then
+      return Matcher.match(input, prev_items)
     end
-    return Matcher.match(input, prev_items or {})
+    return Matcher.match(input, self.items)
   end)
 end
 

@@ -1,17 +1,32 @@
 local Cache = {}
 
-Cache._readthrough = {}
+Cache._cache = {}
 
-Cache.readthrough = function(id, key, callback)
-  local cache = Cache._readthrough[id]
-  if cache and cache.key == key then
-    return cache.result
+Cache.get = function(id, key)
+  local cache = Cache._cache[id]
+  if cache then
+    if cache.key == key then
+      return cache.value
+    end
   end
-  Cache._readthrough[id] = {
-    key = key;
-    result = callback();
+  return nil
+end
+
+Cache.set = function(id, key, value)
+  Cache._cache[id] = {
+    key = key,
+    value = value,
   }
-  return Cache._readthrough[id].result
+end
+
+Cache.ensure = function(id, key, callback)
+  local value = Cache.get(id, key)
+  if value ~= nil then
+    return value
+  end
+  local value = callback()
+  Cache.set(id, key, value)
+  return value
 end
 
 return Cache
