@@ -67,16 +67,16 @@ Source._dirname = function(self, context)
     return vim.fn.expand('~/' .. dirname)
   elseif prefix:match('/$') then
     local accept = true
+    -- Ignore URL components
+    accept = accept and not prefix:match('%a/$')
+    -- Ignore URL scheme
+    accept = accept and not prefix:match('%a+:/$') and not prefix:match('%a+://$')
     -- Ignore HTML closing tags
     accept = accept and not prefix:match('</$')
     -- Ignore math calculation
     accept = accept and not prefix:match('[%d%)]%s*/$')
     -- Ignore / comment
     accept = accept and (not prefix:match('^[%s/]*$') or not self:_is_slash_comment())
-    -- Ignore URL scheme
-    accept = accept and not prefix:match('%a+:/$') and not prefix:match('%a+://$')
-    -- Ignore URL components
-    accept = accept and not prefix:match('%a/$')
     if accept then
       return vim.fn.resolve('/' .. dirname)
     end
