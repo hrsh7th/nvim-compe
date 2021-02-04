@@ -251,8 +251,20 @@ incomplete_delay ~
       Type: |Number|
       Default: 400
 
-allow_prefix_unmatch ~
-    TODO
+max_abbr_width ~
+    Width for truncate too long abbr. If you specify 0, it will be removed.
+    Type: |Number|
+    Default: 100
+
+max_kind_width ~
+    Width for truncate too long kind. If you specify 0, it will be removed.
+    Type: |Number|
+    Default: 100
+
+max_menu_width ~
+    Width for truncate too long menu. If you specify 0, it will be removed.
+    Type: |Number|
+    Default: 100
 
 source ~
     Source configuration. Required.
@@ -338,7 +350,9 @@ Vimscript:
   let g:compe.throttle_time = 80
   let g:compe.source_timeout = 200
   let g:compe.incomplete_delay = 400
-  let g:compe.allow_prefix_unmatch = v:false
+  let g:compe.max_abbr_width = 100
+  let g:compe.max_kind_width = 100
+  let g:compe.max_menu_width = 100
 
   let g:compe.source = {}
   let g:compe.source.path = v:true
@@ -362,7 +376,9 @@ Lua:
     throttle_time = 80;
     source_timeout = 200;
     incomplete_delay = 400;
-    allow_prefix_unmatch = false;
+    max_abbr_width = 100;
+    max_kind_width = 100;
+    max_menu_width = 100;
 
     source = {
       path = true;
@@ -406,6 +422,7 @@ documentation ~
     Optional.
     You can provide documentation for selected items.
     See nvim_lsp or snippets.nvim source for examples.
+    NOTE: This method will be deprecated.
 
 resolve ~
     Optional.

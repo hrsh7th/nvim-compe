@@ -70,7 +70,7 @@ Using Lua
 vim.o.completeopt = "menu,menuone,noselect"
 ```
 
-The `enabled` and `source` options are required if you want to enable but others can be omitted.
+The `source` option is required if you want to enable but others can be omitted.
 
 #### Vim script Config
 ```viml
@@ -83,7 +83,9 @@ let g:compe.preselect = 'enable'
 let g:compe.throttle_time = 80
 let g:compe.source_timeout = 200
 let g:compe.incomplete_delay = 400
-let g:compe.allow_prefix_unmatch = v:false
+let g:compe.max_abbr_width = 100
+let g:compe.max_kind_width = 100
+let g:compe.max_menu_width = 100
 
 let g:compe.source = {}
 let g:compe.source.path = v:true
@@ -108,7 +110,9 @@ require'compe'.setup {
   throttle_time = 80;
   source_timeout = 200;
   incomplete_delay = 400;
-  allow_prefix_unmatch = false;
+  max_abbr_width = 100;
+  max_kind_width = 100;
+  max_menu_width = 100;
 
   source = {
     path = true;
