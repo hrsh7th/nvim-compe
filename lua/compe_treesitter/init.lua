@@ -1,7 +1,7 @@
 local ts_exists = pcall(require, "nvim-treesitter")
-local ts_locals = require('nvim-treesitter.locals')
-local parsers = require('nvim-treesitter.parsers')
-local ts_utils = require('nvim-treesitter.ts_utils')
+local _, ts_locals = pcall(require, 'nvim-treesitter.locals')
+local _, parsers = pcall(require, 'nvim-treesitter.parsers')
+local _, ts_utils = pcall(require, 'nvim-treesitter.ts_utils')
 local compe = require('compe')
 
 local Source = {}
