@@ -332,6 +332,7 @@ vim_lsc             vim-lsc completion.
 vsnip               vim-vsnip completion.
 ultisnips           UltiSnips completion.
 snippets_nvim       snippets.nvim completion.
+nvim_treesitter     nvim-treesitter completion.
 
 
 ------------------------------------------------------------------------------
