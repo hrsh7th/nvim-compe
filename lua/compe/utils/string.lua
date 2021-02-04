@@ -5,7 +5,7 @@ String.trim = function(text, width)
     return ''
   end
 
-  text = text or ''
+  text = '' .. (text or '')
   if #text > width then
     return string.sub(text, 1, width + 1) .. '...'
   end

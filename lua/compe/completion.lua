@@ -127,7 +127,7 @@ Completion.complete = function(manual)
     return
   end
 
-  local is_completing = (0 < Completion._current_offset and Completion._current_offset <= context.col)
+  local is_completing = Completion._is_completing(context)
 
   -- Restore pum if closed it automatically (backspace or invalid chars).
   local should_restore_pum = false
@@ -194,7 +194,7 @@ Completion._display = function(context)
     return
   end
 
-  local timeout = (vim.call('pumvisible') == 0 or context.manual) and 0 or Config.get().throttle_time
+  local timeout = Completion._is_completing(context) and Config.get().throttle_time or 0
   Async.throttle('display:filter', timeout, function()
     -- Gather items and determine start_offset
     local start_offset = 0
@@ -282,6 +282,11 @@ Completion._should_ignore = function()
   should_ignore = should_ignore or string.sub(vim.call('mode'), 1, 1) ~= 'i'
   should_ignore = should_ignore or vim.call('getbufvar', '%', '&buftype') == 'prompt'
   return should_ignore
+end
+
+--- _is_completing
+Completion._is_completing = function(context)
+  return (0 < Completion._current_offset and Completion._current_offset <= context.col)
 end
 
 return Completion
