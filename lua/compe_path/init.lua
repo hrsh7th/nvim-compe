@@ -143,8 +143,8 @@ end
 
 --- _is_slash_comment
 Source._is_slash_comment = function(_)
-  local commentstring = vim.fn.getbufvar('%', '&commentstring') or ''
-  local no_filetype = vim.fn.getbufvar('%', '&filetype') == ''
+  local commentstring = vim.bo.commentstring or ''
+  local no_filetype = vim.bo.filetype == ''
   local is_slash_comment = false
   is_slash_comment = is_slash_comment or commentstring:match('/%*')
   is_slash_comment = is_slash_comment or commentstring:match('//')
