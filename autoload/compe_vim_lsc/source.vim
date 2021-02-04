@@ -1,4 +1,4 @@
-let s:MarkupContent = vital#lamp#import('VS.LSP.MarkupContent')
+let s:MarkupContent = vital#compe#import('VS.LSP.MarkupContent')
 
 let s:source_ids = []
 
