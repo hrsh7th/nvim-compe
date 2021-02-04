@@ -20,7 +20,7 @@ return {
 
     -- register
     local filetype = vim.bo.filetype
-    for id, client in pairs(vim.lsp.buf_get_clients(0)) do
+    for _, client in pairs(vim.lsp.buf_get_clients(0)) do
       table.insert(source_ids, compe.register_source('nvim_lsp', Source.new(client, filetype)))
     end
   end;
