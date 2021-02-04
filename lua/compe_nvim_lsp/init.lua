@@ -16,6 +16,7 @@ return {
     for _, source_id in ipairs(source_ids) do
       compe.unregister_source(source_id)
     end
+    source_ids = {}
 
     -- register
     local filetype = vim.bo.filetype
