@@ -14,6 +14,7 @@ Auto completion plugin for nvim.
     - [Common](#common)
     - [Neovim-specific](#neovim-specific)
     - [External-plugin](#external-plugin)
+- [FAQ](#faq)
 - [Demo](#demo)
   - [Auto Import](#auto-import)
   - [LSP + Magic Completion](#lsp--rust_analyzers-magic-completion)
@@ -179,6 +180,27 @@ inoremap <silent><expr> <C-e>     compe#close('<C-e>')
 - [vim-vsnip](https://github.com/hrsh7th/vim-vsnip)
 - [ultisnips](https://github.com/SirVer/ultisnips)
 - [snippets.nvim](https://github.com/norcalli/snippets.nvim)
+
+
+## FAQ
+
+#### How to use LSP snippet?
+
+1. Set `snippetSupport=true` for LSP capabilities.
+
+```lua
+local capabilities = vim.lsp.protocol.make_client_capabilities()
+capabilities.textDocument.completion.completionItem.snippetSupport = true
+
+require'lspconfig'.rust_analyzer.setup {
+  capabilities = capabilities,
+}
+```
+
+2. Install `vim-vsnip`
+
+`Plug 'hrsh7th/vim-vsnip'`
+
 
 ## Demo
 
