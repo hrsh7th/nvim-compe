@@ -4,12 +4,10 @@ local INCOMPLETE_DELAY = 400
 
 local Config = {}
 
-Config._config = {
-  enabled = true;
-}
-
+Config._config = {}
 Config._bufnrs = {}
 
+--- setup
 Config.setup = function(config, bufnr)
   if bufnr == nil then
     -- global config
@@ -27,19 +25,23 @@ Config.setup = function(config, bufnr)
   end
 end
 
+--- get
 Config.get = function()
   return Config._bufnrs[vim.api.nvim_get_current_buf()] or Config._config
 end
 
+--- get_metadata
 Config.get_metadata = function(source_name)
   return Config.get().source[source_name]
 end
 
+--- is_source_enabled
 Config.is_source_enabled = function(source_name)
   local config = Config.get()
   return config.source[source_name] and not config.source[source_name].disabled
 end
 
+--- _normalize
 Config._normalize = function(config)
   -- normalize options
   config.enabled = Config._bool(config.enabled, true)
@@ -52,6 +54,7 @@ Config._normalize = function(config)
   config.allow_prefix_unmatch = Config._bool(config.allow_prefix_unmatch, false)
   config.max_abbr_width = config.max_abbr_width or 100
   config.max_kind_width = config.max_kind_width or 100
+  config.max_menu_width = config.max_menu_width or 100
   config.autocomplete = Config._bool(config.autocomplete, true)
 
   -- normalize source metadata
@@ -70,6 +73,7 @@ Config._normalize = function(config)
   return config
 end
 
+--- _bool
 Config._bool = function(v, def)
   if v == nil then
     return def

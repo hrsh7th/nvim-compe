@@ -215,10 +215,12 @@ Completion._display = function(context)
               item.word = gap .. item.original_word
               item.abbr = string.rep(' ', #gap) .. item.original_abbr
               item.kind = item.original_kind or ''
+              item.menu = item.original_menu or ''
 
               -- trim to specified width.
               item.abbr = String.trim(item.abbr, Config.get().max_abbr_width)
               item.kind = String.trim(item.kind, Config.get().max_kind_width)
+              item.menu = String.trim(item.menu, Config.get().max_menu_width)
               table.insert(items, item)
             end
           end
