@@ -75,6 +75,8 @@ Source._dirname = function(self, context)
     accept = accept and (not prefix:match('^[%s/]*$') or not self:_is_slash_comment())
     -- Ignore URL scheme
     accept = accept and not prefix:match('%a+:/$') and not prefix:match('%a+://$')
+    -- Ignore URL components
+    accept = accept and not prefix:match('%a/$')
     if accept then
       return vim.fn.resolve('/' .. dirname)
     end
