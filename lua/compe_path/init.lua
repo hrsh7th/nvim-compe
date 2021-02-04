@@ -3,6 +3,12 @@ local compe = require'compe'
 -- TODO: ' or " or ` is valid as filename
 local NAME_PATTERN = [[\%([^/\\:\*?<>'"`\|]\)]]
 local DIRNAME_REGEX = vim.regex(([[\%(/PAT\+\)*\ze/PAT*$]]):gsub('PAT', NAME_PATTERN))
+local MENU = {
+  DIR = '[Dir]',
+  FILE = '[File]',
+  DIR_LINK = '[Dir*]',
+  FILE_LINK = '[File*]',
+}
 
 local Source = {}
 
@@ -117,16 +123,31 @@ Source._candidates = function(_, include_hidden, dirname, callback)
     if accept then
       if type == 'directory' then
         table.insert(items, {
+          word = name,
+          abbr = '/' .. name,
+          menu = MENU.DIR,
+        })
+      elseif type == 'link' then
+        local stat = vim.loop.fs_stat(dirname .. '/' .. name)
+        if stat.type == 'directory' then
+          table.insert(items, {
             word = name,
             abbr = '/' .. name,
-            menu = '[Dir]'
+            menu = MENU.DIR_LINK,
           })
-      else
-        table.insert(items, {
+        else
+          table.insert(items, {
             word = name,
             abbr = name,
-            menu = '[File]'
+            menu = MENU.FILE_LINK,
           })
+        end
+      else
+        table.insert(items, {
+          word = name,
+          abbr = name,
+          menu = MENU.FILE,
+        })
       end
     end
   end
@@ -134,13 +155,18 @@ Source._candidates = function(_, include_hidden, dirname, callback)
 end
 
 --- _compare
-Source._compare = function(_, item1, item2)
-  if item1.menu == '[Dir]' and item2.menu ~= '[Dir]' then
+Source._compare = function(self, item1, item2)
+  if self:_is_dir_item(item1) and not self:_is_dir_item(item2) then
     return true
-  elseif item1.menu ~= '[Dir]' and item2.menu == '[Dir]' then
+  elseif not self:_is_dir_item(item1) and self:_is_dir_item(item2) then
     return false
   end
   return item1.word < item2.word
+end
+
+--- _is_dir_item
+Source._is_dir_item = function(_, item)
+  return item.menu == MENU.DIR or item.menu == MENU.DIR_LINK
 end
 
 --- _is_slash_comment
