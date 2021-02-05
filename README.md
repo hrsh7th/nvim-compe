@@ -3,18 +3,21 @@
 Auto completion plugin for nvim.
 
 ## Table Of Contents
+
 - [Concept](#concept)
 - [Features](#features)
 - [Usage](#usage)
   - [Prerequisite](#prerequisite)
-  - [Vim script Config](#vim-script-config)
-  - [Lua Config](#lua-config)
+    - [Vim script Config](#vim-script-config)
+    - [Lua Config](#lua-config)
   - [Mappings](#mappings)
-- [Built-in Sources](#built-in-sources)
-    - [Common](#common)
-    - [Neovim-specific](#neovim-specific)
-    - [External-plugin](#external-plugin)
+- [Built-in sources](#built-in-sources)
+  - [Common](#common)
+  - [Neovim-specific](#neovim-specific)
+  - [External-plugin](#external-plugin)
 - [FAQ](#faq)
+  - [How to use LSP snippet?](#how-to-use-lsp-snippet-)
+  - [How to use tab to navigate completion menu?](#how-to-use-tab-to-navigate-completion-menu-)
 - [Demo](#demo)
   - [Auto Import](#auto-import)
   - [LSP + Magic Completion](#lsp--rust_analyzers-magic-completion)
@@ -27,7 +30,6 @@ Auto completion plugin for nvim.
   - [Tag Completion](#tag-completion)
   - [Spell Completion](#spell-completion)
 
-
 ## Concept
 
 - Lua source & Vim source
@@ -36,11 +38,11 @@ Auto completion plugin for nvim.
 - Effort to avoid flicker
 - Respect VSCode/LSP API design
 
-
 ## Features
 
 - VSCode compatible expansion handling
-  - rust-analyzer's [Magic completion](https://rust-analyzer.github.io/manual.html#magic-completions)
+  - rust-analyzer's
+    [Magic completion](https://rust-analyzer.github.io/manual.html#magic-completions)
   - vscode-html-languageserver-bin's closing tag completion
   - Other complex expansion are supported
 - Flexible Custom Source API
@@ -48,17 +50,19 @@ Auto completion plugin for nvim.
 - Better fuzzy matching algorithm
   - `gu` can be matched `get_user`
   - `fmodify` can be matched `fnamemodify`
-  - See [matcher.lua](./lua/compe/matcher.lua#L57) for implementation details if you're interested
+  - See [matcher.lua](./lua/compe/matcher.lua#L57) for implementation details
 - Buffer source carefully crafted
-  - The buffer source will index buffer words by filetype specific regular expression if needed
+  - The buffer source will index buffer words by filetype specific regular
+    expression if needed
 
 ## Usage
 
-Detailed docs in [here](./doc/compe.txt)
+Detailed docs in [here](./doc/compe.txt) or `:help compe`.
 
 ### Prerequisite
 
-You must set `completeopt` to `menu,menuone,noselect` which can be easily done as follows.
+You must set `completeopt` to `menu,menuone,noselect` which can be easily done
+as follows.
 
 Using Vim script
 
@@ -75,6 +79,7 @@ vim.o.completeopt = "menu,menuone,noselect"
 The `source` option is required if you want to enable but others can be omitted.
 
 #### Vim script Config
+
 ```viml
 let g:compe = {}
 let g:compe.enabled = v:true
@@ -103,6 +108,7 @@ let g:compe.source.treesitter = v:true
 ```
 
 #### Lua Config
+
 ```lua
 require'compe'.setup {
   enabled = true;
@@ -163,7 +169,7 @@ inoremap <silent><expr> <C-e>     compe#close('<C-e>')
 
 ## Built-in sources
 
-#### Common
+### Common
 
 - buffer
 - path
@@ -171,12 +177,12 @@ inoremap <silent><expr> <C-e>     compe#close('<C-e>')
 - spell
 - calc
 
-#### Neovim-specific
+### Neovim-specific
 
 - nvim_lsp
 - nvim_lua
 
-#### External-plugin
+### External-plugin
 
 - [vim_lsp](https://github.com/prabirshrestha/vim-lsp)
 - [vim_lsc](https://github.com/natebosch/vim-lsc)
@@ -185,30 +191,31 @@ inoremap <silent><expr> <C-e>     compe#close('<C-e>')
 - [snippets.nvim](https://github.com/norcalli/snippets.nvim)
 - [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter)
 
-
 ## FAQ
 
-#### How to use LSP snippet?
+### How to use LSP snippet?
 
 1. Set `snippetSupport=true` for LSP capabilities.
 
-```lua
-local capabilities = vim.lsp.protocol.make_client_capabilities()
-capabilities.textDocument.completion.completionItem.snippetSupport = true
+   ```lua
+   local capabilities = vim.lsp.protocol.make_client_capabilities()
+   capabilities.textDocument.completion.completionItem.snippetSupport = true
 
-require'lspconfig'.rust_analyzer.setup {
-  capabilities = capabilities,
-}
-```
+   require'lspconfig'.rust_analyzer.setup {
+     capabilities = capabilities,
+   }
+   ```
 
 2. Install `vim-vsnip`
 
-`Plug 'hrsh7th/vim-vsnip'`
+   `Plug 'hrsh7th/vim-vsnip'`
 
-#### How to use tab to navigate completion menu?
+### How to use tab to navigate completion menu?
 
-`Tab` and `S-Tab` keys need to be mapped to `<C-n>` and `<C-p>` when completion menu is visible.
-Following example will use `Tab` and `S-Tab` (shift+tab) to navigate completion menu and jump between [vim-vsnip](https://github.com/hrsh7th/vim-vsnip) placeholders when possible:
+`Tab` and `S-Tab` keys need to be mapped to `<C-n>` and `<C-p>` when completion
+menu is visible. Following example will use `Tab` and `S-Tab` (shift+tab) to
+navigate completion menu and jump between
+[vim-vsnip](https://github.com/hrsh7th/vim-vsnip) placeholders when possible:
 
 ```lua
 local t = function(str)
@@ -284,4 +291,3 @@ map("s", "<S-Tab>", "v:lua.s_tab_complete()", {expr = true})
 ### Spell Completion
 
 ![spell](https://i.imgur.com/r12rLBS.gif)
-
