@@ -99,6 +99,7 @@ let g:compe.source.nvim_lua = v:true
 let g:compe.source.spell = v:true
 let g:compe.source.tags = v:true
 let g:compe.source.snippets_nvim = v:true
+let g:compe.source.treesitter = v:true
 ```
 
 #### Lua Config
@@ -126,6 +127,7 @@ require'compe'.setup {
     spell = true;
     tags = true;
     snippets_nvim = true;
+    treesitter = true;
   };
 }
 ```
