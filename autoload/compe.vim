@@ -70,6 +70,14 @@ function! compe#confirm(...) abort
 endfunction
 
 "
+" compe#reduce
+"
+function! compe#reduce() abort
+  call luaeval('require"compe"._reduce()')
+  return "\<Ignore>"
+endfunction
+
+"
 " compe#close
 "
 function! compe#close(...) abort

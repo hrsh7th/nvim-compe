@@ -81,6 +81,12 @@ compe._close = enable(function()
   return ''
 end)
 
+--- _reduce
+compe._reduce = enable(function()
+  Completion.reduce()
+  return ''
+end)
+
 --- _register_vim_source
 compe._register_vim_source = function(name, bridge_id, methods)
   local source = Source.new(name, VimBridge.new(bridge_id, methods))

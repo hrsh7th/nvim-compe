@@ -15,6 +15,7 @@ Completion._context = Context.new({})
 Completion._current_offset = 0
 Completion._current_items = {}
 Completion._selected_item = nil
+Completion._reduce = 0
 Completion._history = {}
 
 --- register_source
@@ -71,7 +72,14 @@ Completion.close = function()
   end
 
   Completion._show(0, {})
+  Completion._reduce = 0
   Completion._context = Context.new({})
+end
+
+--- reduce
+Completion.reduce = function()
+  Completion._reduce = Completion._reduce + 1
+  Completion._display(Context.new({}))
 end
 
 --- confirm
@@ -200,6 +208,7 @@ Completion._display = function(context)
     local start_offset = 0
     local items = {}
     local items_uniq = {}
+    local reduce_index = 0
     for _, source in ipairs(sources) do
       local source_start_offset = source:get_start_offset()
       if source_start_offset > 0 then
@@ -207,25 +216,28 @@ Completion._display = function(context)
         if #source_items > 0 then
           start_offset = (start_offset == 0 or start_offset > source_start_offset) and source_start_offset or start_offset
 
-          -- Fix start_offset gap.
-          local gap = string.sub(context.before_line, start_offset, source_start_offset - 1)
-          for _, item in ipairs(source_items) do
-            if items_uniq[item.original_word] == nil or item.original_dup == 1 then
-              items_uniq[item.original_word] = true
-              item.word = gap .. item.original_word
-              item.abbr = string.rep(' ', #gap) .. item.original_abbr
-              item.kind = item.original_kind or ''
-              item.menu = item.original_menu or ''
+          reduce_index = reduce_index + 1
+          if Completion._reduce < reduce_index then
+            -- Fix start_offset gap.
+            local gap = string.sub(context.before_line, start_offset, source_start_offset - 1)
+            for _, item in ipairs(source_items) do
+              if items_uniq[item.original_word] == nil or item.original_dup == 1 then
+                items_uniq[item.original_word] = true
+                item.word = gap .. item.original_word
+                item.abbr = string.rep(' ', #gap) .. item.original_abbr
+                item.kind = item.original_kind or ''
+                item.menu = item.original_menu or ''
 
-              -- trim to specified width.
-              item.abbr = String.trim(item.abbr, Config.get().max_abbr_width)
-              item.kind = String.trim(item.kind, Config.get().max_kind_width)
-              item.menu = String.trim(item.menu, Config.get().max_menu_width)
-              table.insert(items, item)
+                -- trim to specified width.
+                item.abbr = String.trim(item.abbr, Config.get().max_abbr_width)
+                item.kind = String.trim(item.kind, Config.get().max_kind_width)
+                item.menu = String.trim(item.menu, Config.get().max_menu_width)
+                table.insert(items, item)
+              end
             end
-          end
-          if source.is_triggered_by_character then
-            break
+            if source.is_triggered_by_character then
+              break
+            end
           end
         end
       end
