@@ -210,7 +210,7 @@ Completion._display = function(context)
           -- Fix start_offset gap.
           local gap = string.sub(context.before_line, start_offset, source_start_offset - 1)
           for _, item in ipairs(source_items) do
-            if items_uniq[item.original_word] == nil or item.original_dup ~= true then
+            if items_uniq[item.original_word] == nil or item.original_dup == 1 then
               items_uniq[item.original_word] = true
               item.word = gap .. item.original_word
               item.abbr = string.rep(' ', #gap) .. item.original_abbr

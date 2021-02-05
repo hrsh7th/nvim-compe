@@ -1,4 +1,5 @@
 local Cache = require'compe.utils.cache'
+local Boolean = require'compe.utils.boolean'
 local Config = require'compe.config'
 local Matcher = require'compe.matcher'
 local Context = require'compe.context'
@@ -302,7 +303,7 @@ function Source.normalize_items(self, _, items)
     item.source_id = self.id
     item.priority = metadata.priority or 0
     item.asis = string.find(item.abbr, item.word, 1, true) == 1
-    item.sort = metadata.sort == nil or metadata.sort == true
+    item.sort = Boolean.get(metadata.sort, true)
 
     -- Matcher related properties (will be overwrote)
     item.index = 0
@@ -314,7 +315,7 @@ function Source.normalize_items(self, _, items)
     item.original_abbr = item.abbr
     item.original_kind = item.kind
     item.original_menu = item.menu
-    item.original_dup = metadata.dup == nil and 1 or metadata.dup
+    item.original_dup = Boolean.get(metadata.dup, true) and 1 or 0
 
     table.insert(normalized, item)
   end

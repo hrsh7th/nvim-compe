@@ -1,3 +1,5 @@
+local Boolean = require'compe.utils.boolean'
+
 local THROTTLE_TIME = 100
 local SOURCE_TIMEOUT = 200
 local INCOMPLETE_DELAY = 400
@@ -44,26 +46,26 @@ end
 --- _normalize
 Config._normalize = function(config)
   -- normalize options
-  config.enabled = Config._bool(config.enabled, true)
-  config.debug = Config._bool(config.debug, false)
+  config.enabled = Boolean.get(config.enabled, true)
+  config.debug = Boolean.get(config.debug, false)
   config.min_length = config.min_length or 1
   config.preselect = config.preselect or 'enable'
   config.throttle_time = config.throttle_time or THROTTLE_TIME
   config.source_timeout = config.source_timeout or SOURCE_TIMEOUT
   config.incomplete_delay = config.incomplete_delay or INCOMPLETE_DELAY
-  config.allow_prefix_unmatch = Config._bool(config.allow_prefix_unmatch, false)
+  config.allow_prefix_unmatch = Boolean.get(config.allow_prefix_unmatch, false)
   config.max_abbr_width = config.max_abbr_width or 100
   config.max_kind_width = config.max_kind_width or 100
   config.max_menu_width = config.max_menu_width or 100
-  config.autocomplete = Config._bool(config.autocomplete, true)
+  config.autocomplete = Boolean.get(config.autocomplete, true)
 
   -- normalize source metadata
   if config.source then
     for name, metadata in pairs(config.source) do
       if type(metadata) ~= 'table' then
-        config.source[name] = { disabled = not Config._bool(metadata, false) }
+        config.source[name] = { disabled = not Boolean.get(metadata, false) }
       else
-        config.source[name].disabled = Config._bool(config.source[name].disabled, false)
+        config.source[name].disabled = Boolean.get(config.source[name].disabled, false)
       end
     end
   else
@@ -71,14 +73,6 @@ Config._normalize = function(config)
   end
 
   return config
-end
-
---- _bool
-Config._bool = function(v, def)
-  if v == nil then
-    return def
-  end
-  return v == true or v == 1
 end
 
 return Config
