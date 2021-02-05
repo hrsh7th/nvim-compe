@@ -23,6 +23,7 @@ Auto completion plugin for nvim.
   - [Nvim Lua Completion](#nvim-lua-completion)
   - [Vsnip Completion](#vsnip-completion)
   - [Snippets.nvim Completion](#snippetsnvim-completion)
+  - [Treesitter Completion](#treesitter-completion)
   - [Tag Completion](#tag-completion)
   - [Spell Completion](#spell-completion)
 
@@ -180,6 +181,7 @@ inoremap <silent><expr> <C-e>     compe#close('<C-e>')
 - [vim-vsnip](https://github.com/hrsh7th/vim-vsnip)
 - [ultisnips](https://github.com/SirVer/ultisnips)
 - [snippets.nvim](https://github.com/norcalli/snippets.nvim)
+- [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter)
 
 
 ## FAQ
@@ -231,6 +233,10 @@ require'lspconfig'.rust_analyzer.setup {
 ### Snippets.nvim Completion
 
 ![snippets.nvim](https://i.imgur.com/404KJ7C.gif)
+
+### Treesitter Completion
+
+![treesitter.nvim](https://i.imgur.com/In7Kswu.gif)
 
 ### Tag Completion
 
