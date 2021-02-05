@@ -282,6 +282,7 @@ Completion._show = function(start_offset, items)
 
     -- close documentation if needed.
     if start_offset == 0 or #items == 0 then
+      Completion._reduce = 0
       vim.call('compe#documentation#close')
     end
   end)

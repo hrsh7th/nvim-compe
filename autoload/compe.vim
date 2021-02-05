@@ -61,10 +61,8 @@ function! compe#confirm(...) abort
     call feedkeys("\<Plug>(compe-confirm-before)", '')
     call feedkeys("\<C-y>", 'n')
     call feedkeys("\<Plug>(compe-confirm-after)", '')
-  elseif type(l:fallback) == v:t_string
-    call feedkeys(l:fallback, 'n')
-  elseif type(l:fallback) == v:t_dict
-    call feedkeys(get(l:fallback, 'keys', ''), get(l:fallback, 'mode', ''))
+  else
+    call s:fallback(get(a:000, 0, v:null))
   endif
   return "\<Ignore>"
 endfunction
@@ -72,8 +70,12 @@ endfunction
 "
 " compe#reduce
 "
-function! compe#reduce() abort
-  call luaeval('require"compe"._reduce()')
+function! compe#reduce(...) abort
+  if empty(v:completed_item) && pumvisible()
+    call luaeval('require"compe"._reduce()')
+  else
+    call s:fallback(get(a:000, 0, v:null))
+  endif
   return "\<Ignore>"
 endfunction
 
@@ -83,13 +85,8 @@ endfunction
 function! compe#close(...) abort
   if mode()[0] ==# 'i' && pumvisible()
     return "\<C-e>\<C-r>=luaeval('require\"compe\"._close()')\<CR>"
-  endif
-
-  let l:fallback = get(a:000, 0, v:null)
-  if type(l:fallback) == v:t_string
-    call feedkeys(l:fallback, 'n')
-  elseif type(l:fallback) == v:t_dict
-    call feedkeys(get(l:fallback, 'keys', ''), get(l:fallback, 'mode', ''))
+  else
+    call s:fallback(get(a:000, 0, v:null))
   endif
   return "\<Ignore>"
 endfunction
@@ -117,4 +114,15 @@ endfunction
 "
 function! compe#_is_confirming() abort
   return s:confirming
+endfunction
+
+"
+" fallback
+"
+function! s:fallback(fallback) abort
+  if type(a:fallback) == v:t_string
+    call feedkeys(a:fallback, 'n')
+  elseif type(a:fallback) == v:t_dict
+    call feedkeys(get(a:fallback, 'keys', ''), get(a:fallback, 'mode', ''))
+  endif
 endfunction
