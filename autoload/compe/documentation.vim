@@ -18,6 +18,10 @@ call setbufvar(s:window.get_bufnr(), '&swapfile', 0)
 " compe#documentation#show
 "
 function! compe#documentation#open(document) abort
+  if getcmdwintype() !=# ''
+    return
+  endif
+
   let l:ctx = {}
   function! l:ctx.callback(document) abort
     let l:document = split(s:MarkupContent.normalize(a:document), "\n", v:true)
@@ -51,7 +55,7 @@ endfunction
 " compe#documentation#close
 "
 function! compe#documentation#close() abort
-  call s:window.close()
+  call timer_start(0, { -> s:window.close() })
 endfunction
 
 "
