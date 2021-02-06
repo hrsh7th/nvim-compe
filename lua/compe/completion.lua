@@ -170,26 +170,26 @@ end
 
 --- _display
 Completion._display = function(context)
+  local sources = {}
+
+  -- Check for processing source.
+  Async.debounce('display:processing', 0, function() end)
+  for _, source in ipairs(Completion.get_sources()) do
+    if source.status == 'processing' then
+      local processing_timeout = Config.get().source_timeout - source:get_processing_time()
+      if processing_timeout > 0 then
+        Async.debounce('display:processing', processing_timeout, function()
+          Completion._display(context)
+        end)
+        return
+      end
+    else
+      table.insert(sources, source)
+    end
+  end
+
   local timeout = Completion._is_completing(context) and Config.get().throttle_time or 0
   Async.throttle('display:filter', timeout, function()
-    local sources = {}
-
-    -- Check for processing source.
-    Async.debounce('display:processing', 0, function() end)
-    for _, source in ipairs(Completion.get_sources()) do
-      if source.status == 'processing' then
-        local processing_timeout = Config.get().source_timeout - source:get_processing_time()
-        if processing_timeout > 0 then
-          Async.debounce('display:processing', processing_timeout, function()
-            Completion._display(context)
-          end)
-          return
-        end
-      else
-        table.insert(sources, source)
-      end
-    end
-
     -- Gather items and determine start_offset
     local start_offset = 0
     local items = {}
