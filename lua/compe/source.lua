@@ -1,4 +1,5 @@
 local Cache = require'compe.utils.cache'
+local Async = require'compe.utils.async'
 local Boolean = require'compe.utils.boolean'
 local Config = require'compe.config'
 local Matcher = require'compe.matcher'
@@ -33,7 +34,6 @@ function Source.clear(self)
   self.trigger_character_offset = 0
   self.is_triggered_by_character = false
   self.incomplete = false
-  self.documentation_id = 0
 end
 
 --- confirm
@@ -71,9 +71,6 @@ end
 
 --- documentation
 function Source.documentation(self, completed_item)
-  self.documentation_id = self.documentation_id + 1
-
-  local documentation_id = self.documentation_id
   if self.source.documentation then
     self:resolve({
       completed_item = completed_item,
@@ -81,23 +78,21 @@ function Source.documentation(self, completed_item)
         self.source:documentation({
           completed_item = completed_item;
           context = Context.new({});
-          callback = vim.schedule_wrap(function(document)
-            if self.documentation_id == documentation_id then
-              if document and #document ~= 0 then
-                vim.call('compe#documentation#open', document)
-              else
-                vim.call('compe#documentation#close')
-              end
+          callback = Async.guard('Source.documentation#callback', Async.fast_schedule_wrap(function(document)
+            if document and #document ~= 0 then
+              vim.call('compe#documentation#open', document)
+            else
+              vim.call('compe#documentation#close')
             end
-          end);
-          abort = vim.schedule_wrap(function()
+          end));
+          abort = Async.guard('Source.documentation#abort', Async.fast_schedule_wrap(function()
             vim.call('compe#documentation#close')
-          end);
+          end));
         })
       end
     })
   else
-    vim.schedule(function()
+    Async.fast_schedule(function()
       vim.call('compe#documentation#close')
     end)
   end
@@ -174,11 +169,7 @@ function Source.trigger(self, context, callback)
     keyword_pattern_offset = self.keyword_pattern_offset;
     trigger_character_offset = self.trigger_character_offset;
     incomplete = self.incomplete;
-    callback = function(result)
-      if context ~= self.context then
-        return
-      end
-
+    callback = Async.fast_schedule_wrap(function(result)
       self.revision = self.revision + 1
       self.items = self.incomplete and #result.items == 0 and self.items or self:normalize_items(context, result.items or {})
       self.status = 'completed'
@@ -186,8 +177,8 @@ function Source.trigger(self, context, callback)
       self.keyword_pattern_offset = result.keyword_pattern_offset or self.keyword_pattern_offset
       self.trigger_character_offset = result.trigger_character_offset or self.trigger_character_offset
       callback()
-    end;
-    abort = function()
+    end);
+    abort = Async.fast_schedule_wrap(function()
       self.revision = self.revision + 1
       self.items = {}
       self.status = 'waiting'
@@ -195,7 +186,7 @@ function Source.trigger(self, context, callback)
       self.keyword_pattern_offset = 0
       self.trigger_character_offset = 0
       callback()
-    end;
+    end);
   })
   return true
 end
@@ -272,9 +263,6 @@ function Source.get_processing_time(self)
 end
 
 --- normalize_items
--- This method add special attributes for each items.
--- * priority
--- * asis
 function Source.normalize_items(self, _, items)
   local metadata = self:get_metadata()
 
@@ -302,7 +290,6 @@ function Source.normalize_items(self, _, items)
     item.item_id = self.item_id
     item.source_id = self.id
     item.priority = metadata.priority or 0
-    item.asis = string.find(item.abbr, item.word, 1, true) == 1
     item.sort = Boolean.get(metadata.sort, true)
 
     -- Matcher related properties (will be overwrote)

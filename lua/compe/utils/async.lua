@@ -1,10 +1,12 @@
-local throttle_timer = {}
-
 local Async = {}
 
 Async._base_timer_id = 0
 Async._timers = {}
+Async._throttles = {}
+Async._debounces = {}
+Async._guards = {}
 
+-- fast_schedule_wrap
 Async.fast_schedule_wrap = function(callback)
   return function(...)
     local args = ...
@@ -14,6 +16,7 @@ Async.fast_schedule_wrap = function(callback)
   end
 end
 
+-- fast_schedule
 Async.fast_schedule = function(callback)
   if vim.in_fast_event() then
     vim.schedule(callback)
@@ -22,10 +25,11 @@ Async.fast_schedule = function(callback)
   end
 end
 
+-- set_timeout
 Async.set_timeout = function(callback, timeout)
   Async._base_timer_id = Async._base_timer_id + 1
 
-  if timeout < 0 then
+  if timeout <= 0 then
     Async.fast_schedule(callback)
     return -1
   end
@@ -39,6 +43,7 @@ Async.set_timeout = function(callback, timeout)
   return timer_id
 end
 
+-- clear_timeout
 Async.clear_timeout = function(timer_id)
   if Async._timers[timer_id] then
     Async._timers[timer_id]:stop()
@@ -47,19 +52,40 @@ Async.clear_timeout = function(timer_id)
   end
 end
 
+--- throttle
 Async.throttle = function(id, timeout, callback)
-  throttle_timer[id] = throttle_timer[id] or {
+  Async._throttles[id] = Async._throttles[id] or {
     timer_id = -1;
     now = vim.loop.now();
   }
 
-  local state = throttle_timer[id]
+  local state = Async._throttles[id]
   Async.clear_timeout(state.timer_id)
   state.timer_id = Async.set_timeout(function()
-    throttle_timer[id] = nil
     callback()
   end, timeout - (vim.loop.now() - state.now))
   state.now = vim.loop.now()
+end
+
+--- debounce
+Async.debounce = function(id, timeout, callback)
+  Async.clear_timeout(Async._debounces[id])
+  Async._debounces[id] = Async.set_timeout(function()
+    callback()
+  end, timeout)
+end
+
+--- guard
+Async.guard = function(id, callback)
+  Async._guards[id] = Async._guards[id] or 0
+  Async._guards[id] = Async._guards[id] + 1
+
+  local guard = Async._guards[id]
+  return function(...)
+    if Async._guards[id] == guard then
+      callback(...)
+    end
+  end
 end
 
 return Async

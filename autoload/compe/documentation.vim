@@ -18,29 +18,33 @@ call setbufvar(s:window.get_bufnr(), '&swapfile', 0)
 " compe#documentation#show
 "
 function! compe#documentation#open(document) abort
-  let l:document = split(s:MarkupContent.normalize(a:document), "\n", v:true)
-  call deletebufline(s:window.get_bufnr(), 1, '$')
-  call setbufline(s:window.get_bufnr(), 1, l:document)
+  let l:ctx = {}
+  function! l:ctx.callback(document) abort
+    let l:document = split(s:MarkupContent.normalize(a:document), "\n", v:true)
+    silent call deletebufline(s:window.get_bufnr(), 1, '$')
+    silent call setbufline(s:window.get_bufnr(), 1, l:document)
 
-  let l:size = s:window.get_size({
-  \   'maxwidth': float2nr(&columns * 0.4),
-  \   'maxheight': float2nr(&lines * 0.3),
-  \ })
-
-  let l:pos = s:get_screenpos(pum_getpos(), l:size)
-  if empty(l:pos)
-    return s:window.close()
-  endif
-
-  if pumvisible()
-    call s:window.open({
-    \   'row': l:pos[0] + 1,
-    \   'col': l:pos[1] + 1,
-    \   'width': l:size.width,
-    \   'height': l:size.height,
+    let l:size = s:window.get_size({
+    \   'maxwidth': float2nr(&columns * 0.4),
+    \   'maxheight': float2nr(&lines * 0.3),
     \ })
-    call s:Window.do(s:window.get_winid(), { -> s:Markdown.apply() })
-  endif
+
+    let l:pos = s:get_screenpos(pum_getpos(), l:size)
+    if empty(l:pos)
+      return s:window.close()
+    endif
+
+    if pumvisible()
+      noautocmd silent call s:window.open({
+      \   'row': l:pos[0] + 1,
+      \   'col': l:pos[1] + 1,
+      \   'width': l:size.width,
+      \   'height': l:size.height,
+      \ })
+      noautocmd silent call s:Window.do(s:window.get_winid(), { -> s:Markdown.apply() })
+    endif
+  endfunction
+  call timer_start(0, { -> l:ctx.callback(a:document) })
 endfunction
 
 "

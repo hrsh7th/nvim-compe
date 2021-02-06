@@ -72,18 +72,16 @@ Completion.close = function()
 
   Completion._show(0, {})
   Completion._context = Context.new({})
+  Completion._selected_item = nil
 end
 
 --- confirm
 Completion.confirm = function()
   local completed_item = Completion._selected_item
-
-  if completed_item and completed_item.abbr then
+  if completed_item then
     Completion._history[completed_item.abbr] = Completion._history[completed_item.abbr] or 0
     Completion._history[completed_item.abbr] = Completion._history[completed_item.abbr] + 1
-  end
 
-  if completed_item then
     for _, source in ipairs(Completion.get_sources()) do
       if source.id == completed_item.source_id then
         source:confirm(completed_item)
@@ -172,30 +170,26 @@ end
 
 --- _display
 Completion._display = function(context)
-  local sources = {}
-
-  -- Check for processing source.
-  Async.throttle('display:processing', 0, function() end)
-  for _, source in ipairs(Completion.get_sources()) do
-    if source.status == 'processing' then
-      local processing_timeout = Config.get().source_timeout - source:get_processing_time()
-      if processing_timeout > 0 then
-        Async.throttle('display:processing', processing_timeout, function()
-          Completion._display(context)
-        end)
-        return
-      end
-    else
-      table.insert(sources, source)
-    end
-  end
-
-  if #sources == 0 then
-    return
-  end
-
   local timeout = Completion._is_completing(context) and Config.get().throttle_time or 0
   Async.throttle('display:filter', timeout, function()
+    local sources = {}
+
+    -- Check for processing source.
+    Async.debounce('display:processing', 0, function() end)
+    for _, source in ipairs(Completion.get_sources()) do
+      if source.status == 'processing' then
+        local processing_timeout = Config.get().source_timeout - source:get_processing_time()
+        if processing_timeout > 0 then
+          Async.debounce('display:processing', processing_timeout, function()
+            Completion._display(context)
+          end)
+          return
+        end
+      else
+        table.insert(sources, source)
+      end
+    end
+
     -- Gather items and determine start_offset
     local start_offset = 0
     local items = {}
@@ -249,7 +243,6 @@ Completion._show = function(start_offset, items)
   Async.fast_schedule(function()
     Completion._current_offset = start_offset
     Completion._current_items = items
-    Completion._selected_item = nil
 
     if not (vim.call('pumvisible') == 0 and #items == 0) then
       local should_preselect = false
