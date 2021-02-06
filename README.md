@@ -208,7 +208,9 @@ inoremap <silent><expr> <C-e>     compe#close('<C-e>')
 
 2. Install `vim-vsnip`
 
-   `Plug 'hrsh7th/vim-vsnip'`
+   ```viml
+   Plug 'hrsh7th/vim-vsnip'
+   ```
 
 ### How to use tab to navigate completion menu?
 
@@ -244,10 +246,10 @@ _G.s_tab_complete = function()
   end
 end
 
-map("i", "<Tab>", "v:lua.tab_complete()", {expr = true})
-map("s", "<Tab>", "v:lua.tab_complete()", {expr = true})
-map("i", "<S-Tab>", "v:lua.s_tab_complete()", {expr = true})
-map("s", "<S-Tab>", "v:lua.s_tab_complete()", {expr = true})
+vim.api.nvim_set_keymap("i", "<Tab>", "v:lua.tab_complete()", {expr = true})
+vim.api.nvim_set_keymap("s", "<Tab>", "v:lua.tab_complete()", {expr = true})
+vim.api.nvim_set_keymap("i", "<S-Tab>", "v:lua.s_tab_complete()", {expr = true})
+vim.api.nvim_set_keymap("s", "<S-Tab>", "v:lua.s_tab_complete()", {expr = true})
 ```
 
 ## Demo
