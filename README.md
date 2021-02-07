@@ -56,6 +56,18 @@ Auto completion plugin for nvim.
   - The buffer source will index buffer words by filetype specific regular
     expression if needed
 
+## Install
+
+In general:
+   ```viml
+   Plug 'hrsh7th/nvim-compe'
+   ```
+
+If you want to use TabNine:
+   ```viml
+   Plug 'hrsh7th/nvim-compe', { 'do': './install_tabnine.sh' }
+   ```
+
 ## Usage
 
 Detailed docs in [here](./doc/compe.txt) or `:help compe`.
@@ -107,6 +119,7 @@ let g:compe.source.spell = v:true
 let g:compe.source.tags = v:true
 let g:compe.source.snippets_nvim = v:true
 let g:compe.source.treesitter = v:true
+let g:compe.source.tabnine = v:true
 ```
 
 #### Lua Config
@@ -137,6 +150,7 @@ require'compe'.setup {
     tags = true;
     snippets_nvim = true;
     treesitter = true;
+    tabnine = true;
   };
 }
 ```
@@ -197,6 +211,7 @@ inoremap <silent><expr> <C-d>     compe#scroll({ 'delta': -4 })
 - [ultisnips](https://github.com/SirVer/ultisnips)
 - [snippets.nvim](https://github.com/norcalli/snippets.nvim)
 - [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter)
+- [tabnine]
 
 ## FAQ
 
