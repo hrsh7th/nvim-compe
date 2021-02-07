@@ -19,12 +19,11 @@ end
 function Source.complete(_, context)
   local items = vim.fn['vsnip#get_complete_items'](vim.api.nvim_get_current_buf())
 
-  local add_user_data = function(item)
+  for _, item in ipairs(items) do
     item.user_data = { compe = item.user_data }
-    return item
+    item.kind = nil
+    item.menu = nil
   end
-
-  vim.tbl_map(function(item) return add_user_data(item) end, items)
 
   context.callback({
     items = items
@@ -35,7 +34,7 @@ function Source.documentation(_, args)
   local document = {}
   table.insert(document, '```' .. args.context.filetype)
 
-  local decoded= vim.fn['vsnip#to_string'](vim.fn.json_decode(args.completed_item.user_data.compe).vsnip.snippet)
+  local decoded = vim.fn['vsnip#to_string'](vim.fn.json_decode(args.completed_item.user_data.compe).vsnip.snippet)
   for _, line in ipairs(vim.split(decoded, "\n")) do
     table.insert(document, line)
   end
