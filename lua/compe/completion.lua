@@ -60,19 +60,7 @@ end
 --- leave_insert
 Completion.leave_insert = function()
   Completion.close()
-end
-
---- close
-Completion.close = function()
-  VimBridge.clear()
-
-  for _, source in ipairs(Completion.get_sources()) do
-    source:clear()
-  end
-
-  Completion._show(0, {})
-  Completion._context = Context.new({})
-  Completion._selected_item = nil
+  Completion._get_sources_cache_key = Completion._get_sources_cache_key + 1
 end
 
 --- confirm
@@ -110,6 +98,18 @@ Completion.select = function(index)
       end
     end
   end
+end
+
+--- close
+Completion.close = function()
+  for _, source in ipairs(Completion.get_sources()) do
+    source:clear()
+  end
+
+  VimBridge.clear()
+  Completion._show(0, {})
+  Completion._context = Context.new({})
+  Completion._selected_item = nil
 end
 
 --- complete

@@ -62,9 +62,9 @@ Async.throttle = function(id, timeout, callback)
   local state = Async._throttles[id]
   Async.clear_timeout(state.timer_id)
   state.timer_id = Async.set_timeout(function()
+    state.now = vim.loop.now()
     callback()
   end, timeout - (vim.loop.now() - state.now))
-  state.now = vim.loop.now()
 end
 
 --- debounce
