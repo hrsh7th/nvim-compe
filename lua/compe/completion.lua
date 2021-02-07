@@ -188,7 +188,7 @@ Completion._display = function(context)
     end
   end
 
-  local timeout = Completion._is_completing(context) and Config.get().throttle_time or 0
+  local timeout = Completion._is_completing(context) and Config.get().throttle_time or 10
   Async.throttle('display:filter', timeout, function()
     -- Gather items and determine start_offset
     local start_offset = 0
