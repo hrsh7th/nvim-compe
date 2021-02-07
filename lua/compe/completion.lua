@@ -178,6 +178,7 @@ Completion._display = function(context)
     if source.status == 'processing' then
       local processing_timeout = Config.get().source_timeout - source:get_processing_time()
       if processing_timeout > 0 then
+        Async.throttle('display:filter', 0, function() end)
         Async.debounce('display:processing', processing_timeout, function()
           Completion._display(context)
         end)
