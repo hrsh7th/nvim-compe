@@ -269,6 +269,11 @@ max_menu_width ~
     Type: |Number|
     Default: 100
 
+documentation ~
+    Documentation behaviour.
+      Type: |Boolean|
+      Default: true
+
 source ~
     Source configuration. Required.
       Type: |Dictionary| of:
@@ -361,6 +366,7 @@ Vimscript:
   let g:compe.max_abbr_width = 100
   let g:compe.max_kind_width = 100
   let g:compe.max_menu_width = 100
+  let g:compe.documentation = v:true
 
   let g:compe.source = {}
   let g:compe.source.path = v:true
@@ -387,6 +393,7 @@ Lua:
     max_abbr_width = 100;
     max_kind_width = 100;
     max_menu_width = 100;
+    documentation = true;
 
     source = {
       path = true;

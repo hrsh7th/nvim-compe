@@ -58,6 +58,7 @@ Config._normalize = function(config)
   config.max_kind_width = config.max_kind_width or 100
   config.max_menu_width = config.max_menu_width or 100
   config.autocomplete = Boolean.get(config.autocomplete, true)
+  config.documentation = Boolean.get(config.documentation, true)
 
   -- normalize source metadata
   if config.source then

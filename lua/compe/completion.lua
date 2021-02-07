@@ -91,10 +91,12 @@ Completion.select = function(index)
   if completed_item then
     Completion._selected_item = completed_item
 
-    for _, source in ipairs(Completion.get_sources()) do
-      if source.id == completed_item.source_id then
-        source:documentation(completed_item)
-        break
+    if Config.get().documentation then
+      for _, source in ipairs(Completion.get_sources()) do
+        if source.id == completed_item.source_id then
+          source:documentation(completed_item)
+          break
+        end
       end
     end
   end
