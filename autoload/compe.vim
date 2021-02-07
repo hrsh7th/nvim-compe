@@ -1,3 +1,5 @@
+let s:Window = vital#compe#import('VS.Vim.Window')
+
 "
 " Public API
 "
@@ -83,6 +85,22 @@ function! compe#close(...) abort
   elseif type(l:fallback) == v:t_dict
     call feedkeys(get(l:fallback, 'keys', ''), get(l:fallback, 'mode', ''))
   endif
+  return "\<Ignore>"
+endfunction
+
+"
+" compe#scroll
+"
+function! compe#scroll(args) abort
+  let l:delta = get(a:args, 'delta', 4)
+
+  let l:ctx = {}
+  function! l:ctx.callback(delta, target) abort
+    for l:winid in s:Window.find({ winid -> !!getwinvar(winid, 'compe_documentation', v:false) })
+      call s:Window.scroll(l:winid, s:Window.info(l:winid).topline + a:delta)
+    endfor
+  endfunction
+  call timer_start(1, { -> l:ctx.callback(l:delta) })
   return "\<Ignore>"
 endfunction
 

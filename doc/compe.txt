@@ -88,18 +88,24 @@ Optionally, you can define mappings:
   inoremap <silent><expr> <C-Space> compe#complete()
   inoremap <silent><expr> <CR>      compe#confirm('<CR>')
   inoremap <silent><expr> <C-e>     compe#close('<C-e>')
+  inoremap <silent><expr> <C-f>     compe#scroll({ 'delta': +4 })
+  inoremap <silent><expr> <C-d>     compe#scroll({ 'delta': -4 })
 <
 If you use an autopair plugin, like cohama/lexima.vim:
 >
   inoremap <silent><expr> <C-Space> compe#complete()
   inoremap <silent><expr> <CR>      compe#confirm(lexima#expand('<LT>CR>', 'i'))
   inoremap <silent><expr> <C-e>     compe#close('<C-e>')
+  inoremap <silent><expr> <C-f>     compe#scroll({ 'delta': +4 })
+  inoremap <silent><expr> <C-d>     compe#scroll({ 'delta': -4 })
 <
 For Raimondi/delimitMate:
 >
   inoremap <silent><expr> <C-Space> compe#complete()
   inoremap <silent><expr> <CR>      compe#confirm({'keys': "\<Plug>delimitMateCR", 'mode': ''})
   inoremap <silent><expr> <C-e>     compe#close('<C-e>')
+  inoremap <silent><expr> <C-f>     compe#scroll({ 'delta': +4 })
+  inoremap <silent><expr> <C-d>     compe#scroll({ 'delta': -4 })
 <
 Some sources might rely on |compe#confirm()| mapping. For example, to expand
 snippets from the completion menu, you have to use |compe#confirm()| mapping.

@@ -143,12 +143,12 @@ require'compe'.setup {
 
 ### Mappings
 
-If you don't use any autopair plugin.
-
 ```viml
 inoremap <silent><expr> <C-Space> compe#complete()
 inoremap <silent><expr> <CR>      compe#confirm('<CR>')
 inoremap <silent><expr> <C-e>     compe#close('<C-e>')
+inoremap <silent><expr> <C-f>     compe#scroll({ 'delta': +4 })
+inoremap <silent><expr> <C-d>     compe#scroll({ 'delta': -4 })
 ```
 
 If you use [cohama/lexima.vim](https://github.com/cohama/lexima.vim)
@@ -160,6 +160,8 @@ call lexima#set_default_rules()
 inoremap <silent><expr> <C-Space> compe#complete()
 inoremap <silent><expr> <CR>      compe#confirm(lexima#expand('<LT>CR>', 'i'))
 inoremap <silent><expr> <C-e>     compe#close('<C-e>')
+inoremap <silent><expr> <C-f>     compe#scroll({ 'delta': +4 })
+inoremap <silent><expr> <C-d>     compe#scroll({ 'delta': -4 })
 ```
 
 If you use [Raimondi/delimitMate](https://github.com/Raimondi/delimitMate)
@@ -168,6 +170,8 @@ If you use [Raimondi/delimitMate](https://github.com/Raimondi/delimitMate)
 inoremap <silent><expr> <C-Space> compe#complete()
 inoremap <silent><expr> <CR>      compe#confirm({ 'keys': "\<Plug>delimitMateCR", 'mode': '' })
 inoremap <silent><expr> <C-e>     compe#close('<C-e>')
+inoremap <silent><expr> <C-f>     compe#scroll({ 'delta': +4 })
+inoremap <silent><expr> <C-d>     compe#scroll({ 'delta': -4 })
 ```
 
 ## Built-in sources
