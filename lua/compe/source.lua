@@ -281,23 +281,29 @@ function Source.normalize_items(self, _, items)
     -- complete-items properties.
     item.word = item.word
     item.abbr = item.abbr or item.word
-    item.menu = metadata.menu == nil and item.menu or metadata.menu
+    item.kind = item.kind or metadata.kind or nil
+    item.menu = item.menu or metadata.menu or nil
     item.equal = 1
     item.empty = 1
     item.dup = 1
 
-    -- Special properties
+    -- special properties
+    item.filter_text = item.filter_text or nil
+    item.sort_text = item.sort_text or nil
+    item.preselect = item.preselect or false
+
+    -- internal properties
     item.item_id = self.item_id
     item.source_id = self.id
     item.priority = metadata.priority or 0
     item.sort = Boolean.get(metadata.sort, true)
 
-    -- Matcher related properties (will be overwrote)
+    -- matcher related properties (will be overwrote)
     item.index = 0
     item.score = 0
     item.fuzzy = false
 
-    -- Restore original properties
+    -- save original properties
     item.original_word = item.word
     item.original_abbr = item.abbr
     item.original_kind = item.kind

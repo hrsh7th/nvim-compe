@@ -66,7 +66,6 @@ Helper.convert_lsp = function(request_position, response)
     table.insert(complete_items, {
       word = word;
       abbr = abbr;
-      preselect = completion_item.preselect or false;
       kind = vim.lsp.protocol.CompletionItemKind[completion_item.kind] or nil;
       user_data = {
         compe = {
@@ -76,6 +75,7 @@ Helper.convert_lsp = function(request_position, response)
       };
       filter_text = completion_item.filterText or nil;
       sort_text = completion_item.sortText or nil;
+      preselect = completion_item.preselect or false;
     })
   end
   return {

@@ -304,6 +304,10 @@ dup ~
     Specify source candidates can have the same word another item.
       Type: |Boolean|
 
+kind ~
+    Specify item's kind (see |complete-items|)
+      Type: |String|
+
 menu ~
     Specify item's menu (see |complete-items|)
       Type: |String|
@@ -418,6 +422,18 @@ complete ~
     args.callback({ items = items })
 <
     To stop the competion process, call `args.abort()`.
+
+    The item is almost the same as vim's complete-items (see |complete-items|)
+    But compe will accept specific properties below.
+
+    preselect ~
+      If this property will be true, the item will be pre-select.
+
+    filter_text ~
+      The matching will be used this text.
+
+    sort_text ~
+      The matching will be used this text.
 
 documentation ~
     Optional.
