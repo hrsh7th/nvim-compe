@@ -101,6 +101,9 @@ For Raimondi/delimitMate:
   inoremap <silent><expr> <CR>      compe#confirm({'keys': "\<Plug>delimitMateCR", 'mode': ''})
   inoremap <silent><expr> <C-e>     compe#close('<C-e>')
 <
+Some sources might rely on |compe#confirm()| mapping. For example, to expand
+snippets from the completion menu, you have to use |compe#confirm()| mapping.
+
 
 ==============================================================================
 FUNCTIONS                                                    *compe-functions*
@@ -153,7 +156,7 @@ compe#close([{fallback}])                                      *compe#close()*
 <
 compe#helper#*()                                                *compe#helper*
     Source helpers.
->
+
 
 ------------------------------------------------------------------------------
 LUA                                                                *compe-lua*
@@ -397,7 +400,7 @@ Lua:
       snippets_nvim = true;
     };
   }
->
+<
 
 ==============================================================================
 CUSTOM SOURCE                                            *compe-custom-source*

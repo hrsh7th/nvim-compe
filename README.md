@@ -16,8 +16,9 @@ Auto completion plugin for nvim.
   - [Neovim-specific](#neovim-specific)
   - [External-plugin](#external-plugin)
 - [FAQ](#faq)
-  - [How to use LSP snippet?](#how-to-use-lsp-snippet-)
-  - [How to use tab to navigate completion menu?](#how-to-use-tab-to-navigate-completion-menu-)
+  - [How to use LSP snippet?](#how-to-use-lsp-snippet)
+  - [How to use tab to navigate completion menu?](#how-to-use-tab-to-navigate-completion-menu)
+  - [How to expand snippets from completion menu?](#how-to-expand-snippets-from-completion-menu)
 - [Demo](#demo)
   - [Auto Import](#auto-import)
   - [LSP + Magic Completion](#lsp--rust_analyzers-magic-completion)
@@ -251,6 +252,10 @@ vim.api.nvim_set_keymap("s", "<Tab>", "v:lua.tab_complete()", {expr = true})
 vim.api.nvim_set_keymap("i", "<S-Tab>", "v:lua.s_tab_complete()", {expr = true})
 vim.api.nvim_set_keymap("s", "<S-Tab>", "v:lua.s_tab_complete()", {expr = true})
 ```
+
+### How to expand snippets from completion menu?
+
+Use `compe#confirm()` mapping, as described in section [Mappings](#mappings).
 
 ## Demo
 
