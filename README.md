@@ -65,7 +65,7 @@ In general:
 
 If you want to use TabNine:
    ```viml
-   Plug 'hrsh7th/nvim-compe', { 'do': './install_tabnine.sh' }
+   Plug 'hrsh7th/nvim-compe', { 'do': './misc/install_tabnine.sh' }
    ```
 
 ## Usage
