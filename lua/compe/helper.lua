@@ -42,6 +42,7 @@ Helper.convert_lsp = function(request_position, response)
     local abbr = ''
     if completion_item.insertTextFormat == 2 then
       word = completion_item.label
+      abbr = completion_item.label
 
       local text = word
       if completion_item.textEdit ~= nil then
