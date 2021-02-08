@@ -38,14 +38,10 @@ Helper.convert_lsp = function(request_position, response)
 
   local complete_items = {}
   for _, completion_item in pairs(completion_items) do
-    local label = completion_item.label
-    local insert_text = completion_item.insertText or label
-
     local word = ''
     local abbr = ''
     if completion_item.insertTextFormat == 2 then
-      word = label
-      abbr = label
+      word = completion_item.label
 
       local text = word
       if completion_item.textEdit ~= nil then
@@ -58,8 +54,8 @@ Helper.convert_lsp = function(request_position, response)
       end
       word = string.match(text, '[^%s=%(%$"\']+')
     else
-      word = insert_text
-      abbr = label
+      word = completion_item.insertText or completion_item.label
+      abbr = completion_item.label
     end
     word = string.gsub(string.gsub(word, '^%s*', ''), '%s*$', '')
     abbr = string.gsub(string.gsub(abbr, '^%s*', ''), '%s*$', '')
