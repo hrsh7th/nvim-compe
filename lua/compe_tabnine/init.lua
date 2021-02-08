@@ -73,11 +73,11 @@ Source._do_complete = function()
 
 	local lines_before = api.nvim_buf_get_lines(0, cursor[1] - Source.max_lines , cursor[1]-1, false)
 	table.insert(lines_before, cur_line_before)
-	local before = fn.join(lines_before, "\n")
+	local before = table.concat(lines_before, "\n")
 
 	local lines_after = api.nvim_buf_get_lines(0, cursor[1], cursor[1] + Source.max_lines, false)
 	table.insert(lines_after, 1, cur_line_after)
-	local after = fn.join(lines_after, "\n")
+	local after = table.concat(lines_after, "\n")
 
 	local req = {}
 	req.version = "2.0.0"
