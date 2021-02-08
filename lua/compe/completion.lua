@@ -143,6 +143,8 @@ Completion.complete = function(manual)
       if not Completion._trigger(context) then
         Completion._display(context)
       end
+    else
+      vim.call('compe#documentation#close')
     end
   end
 
