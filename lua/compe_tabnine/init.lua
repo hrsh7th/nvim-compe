@@ -3,6 +3,11 @@ local api = vim.api
 local fn = vim.fn
 --
 
+local function dump(...)
+    local objects = vim.tbl_map(vim.inspect, {...})
+    print(unpack(objects))
+end
+
 local function json_decode(data)
   local status, result = pcall(vim.fn.json_decode, data)
   if status then
@@ -37,6 +42,8 @@ function Source.get_metadata(_)
 		priority = 5000;
 		dup = 0;
 		menu = '[TN]';
+		-- by default, do not sort, as TabNine already sorts by relevance
+		sort = false;
 	}
 end
 
@@ -90,15 +97,11 @@ end
 
 --- complete
 function Source.complete(self, args)
-	-- print(Source.last_initiated, Source.last_finished, Source.items)
 	if Source.last_initiated >= Source.last_finished + 10 then
 		-- restart
 		Source._on_exit(0, 0)
 	end
 
-	-- for _, result in ipairs(Source.items) do
-	-- 	print('tn:', result)
-	-- end
 	--- check processing
 	if Source.last_initiated < Source.last_finished then
 		args.callback({
