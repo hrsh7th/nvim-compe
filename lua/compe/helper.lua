@@ -61,7 +61,8 @@ Helper.convert_lsp = function(request_position, response)
       word = insert_text
       abbr = label
     end
-    word = string.gsub(word, '^%s*|%s*$', '')
+    word = string.gsub(string.gsub(word, '^%s*', ''), '%s*$', '')
+    abbr = string.gsub(string.gsub(abbr, '^%s*', ''), '%s*$', '')
 
     table.insert(complete_items, {
       word = word;
