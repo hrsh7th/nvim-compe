@@ -195,6 +195,10 @@ Completion._display = function(context)
 
   local timeout = Completion._is_completing(context) and Config.get().throttle_time or 10
   Async.throttle('display:filter', timeout, function()
+    if Completion:_should_ignore() then
+      return false
+    end
+
     -- Gather items and determine start_offset
     local start_offset = 0
     local items = {}
@@ -246,6 +250,10 @@ end
 --- _show
 Completion._show = function(start_offset, items)
   Async.fast_schedule(function()
+    if Completion:_should_ignore() then
+      return false
+    end
+
     Completion._current_offset = start_offset
     Completion._current_items = items
 
