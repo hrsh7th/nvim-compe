@@ -146,8 +146,8 @@ function! s:_get_expansion(args) abort
     let l:new_text = l:completion_item.textEdit.newText
     if s:_trim_tabstop(l:new_text) !=# l:inserted
       return {
-      \   'overflow_before': l:overflow_before,
-      \   'overflow_after': l:overflow_after,
+      \   'overflow_before': max([0, l:overflow_before]),
+      \   'overflow_after': max([0, l:overflow_after]),
       \   'new_text': l:new_text,
       \   'is_snippet': l:is_snippet,
       \ }

@@ -75,7 +75,7 @@ function! s:complete(server_name, args) abort
   let l:request.context = {}
   let l:request.context.triggerKind = a:args.trigger_character_offset > 0 ? 2 : (a:args.incomplete ? 3 : 1)
   if a:args.trigger_character_offset > 0
-    let l:request.context.triggerCharacter
+    let l:request.context.triggerCharacter = a:args.context.before_char
   endif
 
   call lsp#callbag#pipe(

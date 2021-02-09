@@ -41,9 +41,9 @@ function Source.confirm(self, completed_item)
   if self.source.confirm then
     self:resolve({
       completed_item = completed_item,
-      callback = function(completed_item)
+      callback = function(resolved_completed_item)
         self.source:confirm({
-          completed_item = completed_item,
+          completed_item = resolved_completed_item,
         })
       end
     })
@@ -55,18 +55,19 @@ function Source.resolve(self, args)
   if self.resolved_items[args.completed_item.item_id] then
     return args.callback(self.resolved_items[args.completed_item.item_id])
   end
-  if self.source.resolve then
-    self.source:resolve({
-      completed_item = args.completed_item,
-      callback = function(completed_item)
-        self.resolved_items[args.completed_item.item_id] = completed_item or args.completed_item
-        args.callback(self.resolved_items[args.completed_item.item_id])
-      end;
-    })
-  else
+
+  if not self.source.resolve then
     self.resolved_items[args.completed_item.item_id] = args.completed_item
-    args.callback(self.resolved_items[args.completed_item.item_id])
+    return args.callback(self.resolved_items[args.completed_item.item_id])
   end
+
+  self.source:resolve({
+    completed_item = args.completed_item,
+    callback = function(resolved_completed_item)
+      self.resolved_items[args.completed_item.item_id] = resolved_completed_item or args.completed_item
+      args.callback(self.resolved_items[args.completed_item.item_id])
+    end;
+  })
 end
 
 --- documentation
@@ -74,9 +75,9 @@ function Source.documentation(self, completed_item)
   if self.source.documentation then
     self:resolve({
       completed_item = completed_item,
-      callback = function(completed_item)
+      callback = function(resolved_completed_item)
         self.source:documentation({
-          completed_item = completed_item;
+          completed_item = resolved_completed_item;
           context = Context.new({});
           callback = Async.guard('Source.documentation#callback', Async.fast_schedule_wrap(function(document)
             if document and #document ~= 0 then
@@ -120,6 +121,14 @@ function Source.trigger(self, context, callback)
   state.trigger_character_offset = state.trigger_character_offset == nil and 0 or state.trigger_character_offset
   state.keyword_pattern_offset = state.keyword_pattern_offset == nil and 0 or state.keyword_pattern_offset
   state.keyword_pattern_offset = state.keyword_pattern_offset == 0 and state.trigger_character_offset or state.keyword_pattern_offset
+
+  -- Check continuing completion.
+  if self.status ~= 'waiting' then
+    local items = self:get_filtered_items(context)
+    if #items ~= 0 then
+      state.keyword_pattern_offset = self.keyword_pattern_offset
+    end
+  end
 
   -- Fix for manual completion
   if context.manual then
@@ -174,8 +183,7 @@ function Source.trigger(self, context, callback)
       self.items = self.incomplete and #result.items == 0 and self.items or self:normalize_items(context, result.items or {})
       self.status = 'completed'
       self.incomplete = result.incomplete or false
-      self.keyword_pattern_offset = result.keyword_pattern_offset or self.keyword_pattern_offset
-      self.trigger_character_offset = result.trigger_character_offset or self.trigger_character_offset
+      self.keyword_pattern_offset = result.offset or self.keyword_pattern_offset
       callback()
     end);
     abort = Async.fast_schedule_wrap(function()

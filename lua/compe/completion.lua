@@ -175,6 +175,10 @@ end
 
 --- _display
 Completion._display = function(context)
+  if Completion:_should_ignore() then
+    return false
+  end
+
   local sources = {}
 
   -- Check for processing source.
@@ -194,58 +198,52 @@ Completion._display = function(context)
     end
   end
 
-  local timeout = Completion._is_completing(context) and Config.get().throttle_time or 10
-  Async.throttle('display:filter', timeout, function()
-    if Completion:_should_ignore() then
-      return false
-    end
 
-    -- Gather items and determine start_offset
-    local start_offset = 0
-    local items = {}
-    local items_uniq = {}
-    for _, source in ipairs(sources) do
-      local source_start_offset = source:get_start_offset()
-      if source_start_offset > 0 then
-        local source_items = source:get_filtered_items(context)
-        if #source_items > 0 then
-          start_offset = (start_offset == 0 or start_offset > source_start_offset) and source_start_offset or start_offset
+  -- Gather items and determine start_offset
+  local start_offset = 0
+  local items = {}
+  local items_uniq = {}
+  for _, source in ipairs(sources) do
+    local source_start_offset = source:get_start_offset()
+    if source_start_offset > 0 then
+      local source_items = source:get_filtered_items(context)
+      if #source_items > 0 then
+        start_offset = (start_offset == 0 or start_offset > source_start_offset) and source_start_offset or start_offset
 
-          -- Fix start_offset gap.
-          local gap = string.sub(context.before_line, start_offset, source_start_offset - 1)
-          for _, item in ipairs(source_items) do
-            if items_uniq[item.original_word] == nil or item.original_dup == 1 then
-              items_uniq[item.original_word] = true
-              item.word = gap .. item.original_word
-              item.abbr = string.rep(' ', #gap) .. item.original_abbr
-              item.kind = item.original_kind or ''
-              item.menu = item.original_menu or ''
+        -- Fix start_offset gap.
+        local gap = string.sub(context.before_line, start_offset, source_start_offset - 1)
+        for _, item in ipairs(source_items) do
+          if items_uniq[item.original_word] == nil or item.original_dup == 1 then
+            items_uniq[item.original_word] = true
+            item.word = gap .. item.original_word
+            item.abbr = string.rep(' ', #gap) .. item.original_abbr
+            item.kind = item.original_kind or ''
+            item.menu = item.original_menu or ''
 
-              -- trim to specified width.
-              item.abbr = String.trim(item.abbr, Config.get().max_abbr_width)
-              item.kind = String.trim(item.kind, Config.get().max_kind_width)
-              item.menu = String.trim(item.menu, Config.get().max_menu_width)
-              table.insert(items, item)
-            end
+            -- trim to specified width.
+            item.abbr = String.trim(item.abbr, Config.get().max_abbr_width)
+            item.kind = String.trim(item.kind, Config.get().max_kind_width)
+            item.menu = String.trim(item.menu, Config.get().max_menu_width)
+            table.insert(items, item)
           end
-          if source.is_triggered_by_character then
-            break
-          end
+        end
+        if source.is_triggered_by_character then
+          break
         end
       end
     end
+  end
 
-    --- Sort items
-    table.sort(items, function(item1, item2)
-      return Matcher.compare(item1, item2, Completion._history)
-    end)
-
-    if #items == 0 then
-      Completion._show(0, {})
-    else
-      Completion._show(start_offset, items)
-    end
+  --- Sort items
+  table.sort(items, function(item1, item2)
+    return Matcher.compare(item1, item2, Completion._history)
   end)
+
+  if #items == 0 then
+    Completion._show(0, {})
+  else
+    Completion._show(start_offset, items)
+  end
 end
 
 --- _show
