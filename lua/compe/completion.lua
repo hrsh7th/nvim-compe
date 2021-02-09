@@ -109,6 +109,7 @@ Completion.close = function()
   end
 
   VimBridge.clear()
+  vim.call('compe#documentation#close')
   Completion._show(0, {})
   Completion._context = Context.new({})
   Completion._selected_item = nil
