@@ -1,5 +1,5 @@
 local Pattern = require'compe.pattern'
-local Character = require'compe.completion'
+local Character = require'compe.utils.character'
 
 local Helper = {}
 
@@ -70,17 +70,21 @@ Helper.convert_lsp = function(args)
     if completion_item.textEdit then
       -- overlapped textEdit
       for idx = completion_item.textEdit.range.start.character + 1, #context.before_line do
-        if not string.match(string.sub(context.before_line, idx, idx), '%s') then
+        -- TODO: Add references to location of the same logic in VSCode.
+        if not Character.is_white(string.byte(context.before_line, idx)) then
           if string.find(word, string.sub(context.before_line, idx, -1), 1, true) == 1 then
             offset = math.min(offset, idx)
+            break
           end
-          break
         end
       end
     elseif request.context and request.context.triggerKind == 2 then
       -- overlapped trigger character
-      if context.before_char == string.sub(word, 1, 1) then
-        offset = math.min(offset, context.col - 1)
+      -- TODO: This is_alnum checking is reasonable or not (This needed by sumneko_lua)
+      if not Character.is_alnum(string.byte(context.before_char, 1)) then
+        if string.byte(context.before_char, 1) == string.byte(word, 1) then
+          offset = math.min(offset, context.col - 1)
+        end
       end
     end
 

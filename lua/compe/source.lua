@@ -123,7 +123,8 @@ function Source.trigger(self, context, callback)
   state.keyword_pattern_offset = state.keyword_pattern_offset == 0 and state.trigger_character_offset or state.keyword_pattern_offset
 
   -- Check continuing completion.
-  if self.status ~= 'waiting' then
+  -- TODO: We should investigate `%a` checking is reasonable or not (This needed by sumneko_lua).
+  if self.status ~= 'waiting' and string.match(context.before_char, '%a') then
     local items = self:get_filtered_items(context)
     if #items ~= 0 then
       state.keyword_pattern_offset = self.keyword_pattern_offset
@@ -255,7 +256,7 @@ function Source.get_filtered_items(self, context)
   end)()
 
   return Cache.ensure(cache_group_key, curr_cache_key, function()
-    if type(prev_items) == 'table' then
+    if prev_items then
       return Matcher.match(input, prev_items)
     end
     return Matcher.match(input, self.items)
