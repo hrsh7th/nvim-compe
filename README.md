@@ -15,6 +15,7 @@ Auto completion plugin for nvim.
   - [Common](#common)
   - [Neovim-specific](#neovim-specific)
   - [External-plugin](#external-plugin)
+- [External sources](#external-sources)
 - [FAQ](#faq)
   - [How to use LSP snippet?](#how-to-use-lsp-snippet)
   - [How to use tab to navigate completion menu?](#how-to-use-tab-to-navigate-completion-menu)
@@ -197,6 +198,14 @@ inoremap <silent><expr> <C-d>     compe#scroll({ 'delta': -4 })
 - [ultisnips](https://github.com/SirVer/ultisnips)
 - [snippets.nvim](https://github.com/norcalli/snippets.nvim)
 - [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter)
+
+## External sources
+
+- [tabnine](https://github.com/tzachar/compe-tabnine)
+- [zsh](https://github.com/tamago324/compe-zsh)
+- [conjure](https://github.com/tami5/compe-conjure)
+- [dadbod](https://github.com/kristijanhusak/vim-dadbod-completion)
+
 
 ## FAQ
 
