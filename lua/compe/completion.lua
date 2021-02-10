@@ -143,8 +143,11 @@ Completion.complete = function(manual)
     if should_trigger then
       if not Completion._trigger(context) then
         Completion._display(context)
+      else
+        Async.throttle('display:filter', 0, function() end)
       end
     else
+      Async.throttle('display:filter', 0, function() end)
       vim.call('compe#documentation#close')
     end
   end
