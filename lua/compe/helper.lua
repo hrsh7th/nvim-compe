@@ -59,6 +59,10 @@ Helper.convert_lsp = function(args)
       if word ~= text then
         abbr = abbr .. '~'
       end
+      -- `func`($0)
+      -- `class`="$0"
+      -- `variable`$0
+      word = string.match(text, '[^%s=%(%$]+')
     else
       word = completion_item.insertText or completion_item.label
       abbr = completion_item.label
@@ -67,23 +71,27 @@ Helper.convert_lsp = function(args)
     abbr = string.gsub(string.gsub(abbr, '^%s*', ''), '%s*$', '')
 
     -- determine item offset.
-    if completion_item.textEdit then
+    local fixed = false
+    if not fixed and completion_item.textEdit then
       -- overlapped textEdit
       for idx = completion_item.textEdit.range.start.character + 1, #context.before_line do
         -- TODO: Add references to location of the same logic in VSCode.
         if not Character.is_white(string.byte(context.before_line, idx)) then
           if string.find(word, string.sub(context.before_line, idx, -1), 1, true) == 1 then
             offset = math.min(offset, idx)
+            fixed = true
             break
           end
         end
       end
-    elseif request.context and request.context.triggerKind == 2 then
+    end
+    if not fixed and request.context and request.context.triggerKind == 2 then
       -- overlapped trigger character
       -- TODO: This is_alnum checking is reasonable or not (This needed by sumneko_lua)
       if not Character.is_alnum(string.byte(context.before_char, 1)) then
         if string.byte(context.before_char, 1) == string.byte(word, 1) then
           offset = math.min(offset, context.col - 1)
+          fixed = true
         end
       end
     end

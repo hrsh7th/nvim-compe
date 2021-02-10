@@ -1,6 +1,6 @@
 local Boolean = require'compe.utils.boolean'
 
-local THROTTLE_TIME = 80
+local THROTTLE_TIME = 200
 local SOURCE_TIMEOUT = 200
 local INCOMPLETE_DELAY = 400
 
