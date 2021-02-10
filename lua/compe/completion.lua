@@ -11,7 +11,7 @@ local Completion = {}
 
 Completion._get_sources_cache_key = 0
 Completion._sources = {}
-Completion._context = Context.new({})
+Completion._context = Context.new_empty()
 Completion._current_offset = 0
 Completion._current_items = {}
 Completion._selected_item = nil
@@ -111,7 +111,7 @@ Completion.close = function()
   VimBridge.clear()
   vim.call('compe#documentation#close')
   Completion._show(0, {})
-  Completion._context = Context.new({})
+  Completion._context = Context.new_empty()
   Completion._selected_item = nil
 end
 

@@ -1,5 +1,14 @@
 local Context = {}
 
+--- Create empty/invalid context for avoiding unexpected detects completion triggers.
+function Context.new_empty()
+  local context = Context.new({})
+  context.lnum = -1
+  context.col = -1
+  return context
+end
+
+--- Create normal context for detecting completion triggers.
 function Context.new(option)
   local self = setmetatable({}, { __index = Context })
   self.time = vim.loop.now()
