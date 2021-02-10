@@ -50,10 +50,10 @@ function! s:confirm_state(state) abort
 endfunction
 function! compe#confirm(...) abort
   let l:completeopts = split(&completeopt, ',')
-  for l:opt in ['menu', 'menuone', 'noselect']
+  for l:opt in ['menuone', 'noselect']
     if index(l:completeopts, l:opt) == -1
       echohl ErrorMsg
-      echomsg '[nvim-compe] You must set `set completeopt=menu,menuone,noselect` in your vimrc.'
+      echomsg '[nvim-compe] You must set `set completeopt=menuone,noselect` in your vimrc.'
       echohl None
     endif
   endfor

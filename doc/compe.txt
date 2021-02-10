@@ -47,13 +47,13 @@ FEATURES                                                      *compe-features*
 ==============================================================================
 PREREQUISITES                                            *compe-prerequisites*
 
-Make sure 'completeopt' is set to `menu,menuone,noselect`:
+Make sure 'completeopt' is set to `menuone,noselect`:
 >
-  set completeopt=menu,menuone,noselect
+  set completeopt=menuone,noselect
 <
 Using Lua:
 >
-  vim.o.completeopt = "menu,menuone,noselect"
+  vim.o.completeopt = "menuone,noselect"
 <
 
 ==============================================================================

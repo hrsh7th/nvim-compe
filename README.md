@@ -63,19 +63,19 @@ Detailed docs in [here](./doc/compe.txt) or `:help compe`.
 
 ### Prerequisite
 
-You must set `completeopt` to `menu,menuone,noselect` which can be easily done
+You must set `completeopt` to `menuone,noselect` which can be easily done
 as follows.
 
 Using Vim script
 
 ```viml
-set completeopt=menu,menuone,noselect
+set completeopt=menuone,noselect
 ```
 
 Using Lua
 
 ```lua
-vim.o.completeopt = "menu,menuone,noselect"
+vim.o.completeopt = "menuone,noselect"
 ```
 
 The `source` option is required if you want to enable but others can be omitted.
