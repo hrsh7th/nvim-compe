@@ -81,6 +81,11 @@ compe._close = enable(function()
   return ''
 end)
 
+--- _confirm_pre
+compe._confirm_pre = enable(function()
+  Completion.select(vim.call('complete_info', {'selected' }).selected or -1)
+end)
+
 --- _register_vim_source
 compe._register_vim_source = function(name, bridge_id, methods)
   local source = Source.new(name, VimBridge.new(bridge_id, methods))

@@ -60,6 +60,7 @@ function! compe#confirm(...) abort
 
   let l:fallback = get(a:000, 0, v:null)
   if mode()[0] ==# 'i' && complete_info(['selected']).selected != -1
+    call luaeval('require"compe"._confirm_pre()', v:null)
     call feedkeys("\<Plug>(compe-confirm-before)", '')
     call feedkeys("\<C-y>", 'n')
     call feedkeys("\<Plug>(compe-confirm-after)", '')
