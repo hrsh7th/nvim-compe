@@ -1,6 +1,7 @@
 local Cache = require'compe.utils.cache'
 local Async = require'compe.utils.async'
 local Boolean = require'compe.utils.boolean'
+local Character = require'compe.utils.character'
 local Config = require'compe.config'
 local Matcher = require'compe.matcher'
 local Context = require'compe.context'
@@ -46,7 +47,6 @@ function Source.trigger(self, context, callback)
       return self:clear()
     end
   end
-
   if metadata.ignored_filetypes and #metadata.ignored_filetypes then
     if vim.tbl_contains(metadata.ignored_filetypes or {}, context.filetype) then
       return self:clear()
@@ -59,56 +59,29 @@ function Source.trigger(self, context, callback)
   state.keyword_pattern_offset = state.keyword_pattern_offset == nil and 0 or state.keyword_pattern_offset
   state.keyword_pattern_offset = state.keyword_pattern_offset == 0 and state.trigger_character_offset or state.keyword_pattern_offset
 
-  -- Check continuing completion.
-  -- TODO: We should investigate `%a` checking is reasonable or not (This needed by sumneko_lua).
-  if self.status ~= 'waiting' then
-    local items = self:get_filtered_items(context)
-    if #items ~= 0 then
-      state.keyword_pattern_offset = self.keyword_pattern_offset
-      state.trigger_character_offset = self.trigger_character_offset
-      self.incomplete = true
-    end
-  end
-
-  -- Fix for manual completion
-  if context.manual then
-    state.keyword_pattern_offset = state.keyword_pattern_offset ~= 0 and state.keyword_pattern_offset or context.col
-    self:clear()
-  end
-
-  -- Does not match any patterns
-  if state.keyword_pattern_offset == 0 and state.trigger_character_offset == 0 then
-    self:clear()
-    return
-  end
-
-  -- Force trigger conditions
-  local force = false
-  force = force or context.manual
-  force = force or state.trigger_character_offset > 0
-  force = force or self.incomplete and (vim.loop.now() - self.context.time) > Config.get().incomplete_delay
-
-  local is_same_offset = self.context.lnum == context.lnum and self.keyword_pattern_offset == state.keyword_pattern_offset
-  local is_less_input = #(context:get_input(state.keyword_pattern_offset)) < Config.get().min_length
-
-  if force == false then
-    -- Ignore when condition does not changed
-    if is_same_offset then
+  -- Check first trigger condition.
+  local empty = state.keyword_pattern_offset == 0 and state.trigger_character_offset == 0
+  local less = #(context:get_input(state.keyword_pattern_offset)) < Config.get().min_length
+  local trigger = context.manual or self.incomplete or state.trigger_character_offset > 0
+  if self.status == 'waiting' then
+    if empty then
+      if #self:get_filtered_items(context) == 0 then
+        self:clear()
+      end
       return
     end
-
-    -- Ignore when enough length of input
-    if is_less_input then
+    if not trigger then
+      if less then
+        return self:clear()
+      end
+    end
+  else
+    if not trigger then
       return
     end
   end
 
-  self.is_triggered_by_character = is_same_offset and self.is_triggered_by_character or (state.trigger_character_offset > 0 and not string.match(context.before_char, '%w+'))
-
-  self.items = (is_same_offset and self.incomplete) and self.items or {}
-  self.status = (is_same_offset and self.incomplete) and self.status or 'processing'
-  self.keyword_pattern_offset = state.keyword_pattern_offset
-  self.trigger_character_offset = state.trigger_character_offset
+  self.status = 'processing'
   self.context = context
 
   -- Completion
@@ -120,21 +93,15 @@ function Source.trigger(self, context, callback)
     incomplete = self.incomplete;
     callback = Async.fast_schedule_wrap(function(result)
       self.revision = self.revision + 1
-      self.items = self.incomplete and #result.items == 0 and self.items or self:normalize_items(context, result.items or {})
       self.status = 'completed'
       self.incomplete = result.incomplete or false
-
-      -- the source can be corrected the offset.
-      self.keyword_pattern_offset = result.offset or self.keyword_pattern_offset
+      self.items = self.incomplete and #result.items == 0 and self.items or self:normalize_items(context, result.items or {})
+      self.keyword_pattern_offset = result.offset or state.keyword_pattern_offset
+      self.trigger_character_offset = state.trigger_character_offset
       callback()
     end);
     abort = Async.fast_schedule_wrap(function()
-      self.revision = self.revision + 1
-      self.items = {}
-      self.status = 'waiting'
-      self.incomplete = false
-      self.keyword_pattern_offset = 0
-      self.trigger_character_offset = 0
+      self:clear()
       callback()
     end);
   })

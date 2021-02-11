@@ -121,14 +121,14 @@ Completion.complete = function(manual)
     return
   end
 
-  local context = Context.new({ manual = manual })
 
   -- Check the new context should be completed.
+  local context = Context.new({ manual = manual })
   if not Completion._context:should_complete(context) then
     return
   end
 
-  local is_completing = Completion._is_completing(context)
+  local is_completing = Completion._is_completing()
 
   -- Restore pum if closed it automatically (backspace or invalid chars).
   local should_restore_pum = false
@@ -195,44 +195,44 @@ Completion._display = function(context)
         end)
         return
       end
-    else
+    elseif source.status == 'completed' then
       table.insert(sources, source)
     end
   end
 
   -- Gather items and determine start_offset
-  local timeout = Completion._is_completing(context) and Config.get().throttle_time or 1
+  local timeout = Completion._is_completing() and Config.get().throttle_time or 1
   Async.throttle('display:filter', timeout, function()
-    local start_offset = 0
+    local start_offset = context.col
     local items = {}
     local items_uniq = {}
     for _, source in ipairs(sources) do
+      local source_items = source:get_filtered_items(context)
       local source_start_offset = source:get_start_offset()
-      if source_start_offset > 0 then
-        local source_items = source:get_filtered_items(context)
-        if #source_items > 0 then
-          start_offset = (start_offset == 0 or start_offset > source_start_offset) and source_start_offset or start_offset
+      if #source_items > 0 then
 
-          -- Fix start_offset gap.
-          local gap = string.sub(context.before_line, start_offset, source_start_offset - 1)
-          for _, item in ipairs(source_items) do
-            if items_uniq[item.original_word] == nil or item.original_dup == 1 then
-              items_uniq[item.original_word] = true
-              item.word = gap .. item.original_word
-              item.abbr = string.rep(' ', #gap) .. item.original_abbr
-              item.kind = item.original_kind or ''
-              item.menu = item.original_menu or ''
+        -- update start_offset
+        start_offset = math.min(start_offset, source_start_offset)
 
-              -- trim to specified width.
-              item.abbr = String.trim(item.abbr, Config.get().max_abbr_width)
-              item.kind = String.trim(item.kind, Config.get().max_kind_width)
-              item.menu = String.trim(item.menu, Config.get().max_menu_width)
-              table.insert(items, item)
-            end
+        -- Fix start_offset & Handle `dup`
+        local gap = string.sub(context.before_line, start_offset, source_start_offset - 1)
+        for _, item in ipairs(source_items) do
+          if items_uniq[item.original_word] == nil or item.original_dup == 1 then
+            items_uniq[item.original_word] = true
+            item.word = gap .. item.original_word
+            item.abbr = string.rep(' ', #gap) .. item.original_abbr
+            item.kind = item.original_kind or ''
+            item.menu = item.original_menu or ''
+
+            -- trim to specified width.
+            item.abbr = String.trim(item.abbr, Config.get().max_abbr_width)
+            item.kind = String.trim(item.kind, Config.get().max_kind_width)
+            item.menu = String.trim(item.menu, Config.get().max_menu_width)
+            table.insert(items, item)
           end
-          if source.is_triggered_by_character then
-            break
-          end
+        end
+        if source.is_triggered_by_character then
+          break
         end
       end
     end
@@ -294,8 +294,8 @@ Completion._should_ignore = function()
 end
 
 --- _is_completing
-Completion._is_completing = function(context)
-  return (0 < Completion._current_offset and Completion._current_offset <= context.col)
+Completion._is_completing = function()
+  return (0 < Completion._current_offset and Completion._current_offset <= Completion._context.col)
 end
 
 return Completion
