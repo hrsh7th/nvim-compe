@@ -22,7 +22,7 @@ endfunction
 "
 " compe#helper#convert_lsp
 "
-function! compe#helper#convert_lsp(request_position, response) abort
-  return luaeval('require"compe".helper.convert_lsp(_A[1], _A[2])', [a:request_position, a:response])
+function! compe#helper#convert_lsp(args) abort
+  return luaeval('require"compe".helper.convert_lsp(_A)', a:args)
 endfunction
 

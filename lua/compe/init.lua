@@ -83,7 +83,10 @@ end)
 
 --- _confirm_pre
 compe._confirm_pre = enable(function()
-  Completion.select(vim.call('complete_info', {'selected' }).selected or -1)
+  Completion.select({
+    index = vim.call('complete_info', {'selected' }).selected or -1;
+    documentation = false;
+  })
 end)
 
 --- _register_vim_source
@@ -110,7 +113,10 @@ end))
 
 --- _on_complete_changed
 compe._on_complete_changed = enable(suppress(function()
-  Completion.select(vim.call('complete_info', {'selected' }).selected or -1)
+  Completion.select({
+    index = vim.call('complete_info', {'selected' }).selected or -1;
+    documentation = true;
+  })
 end))
 
 --- _on_complete_done

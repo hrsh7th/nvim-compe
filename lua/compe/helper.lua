@@ -33,7 +33,11 @@ Helper.get_default_pattern = function()
 end
 
 --- convert_lsp
-Helper.convert_lsp = function(request_position, response)
+Helper.convert_lsp = function(args)
+  -- local context = args.context
+  local request = args.request
+  local response = args.response
+
   local completion_items = vim.tbl_islist(response or {}) and response or response.items or {}
 
   local complete_items = {}
@@ -67,7 +71,7 @@ Helper.convert_lsp = function(request_position, response)
       kind = vim.lsp.protocol.CompletionItemKind[completion_item.kind] or nil;
       user_data = {
         compe = {
-          request_position = request_position;
+          request_position = request.position;
           completion_item = completion_item;
         };
       };

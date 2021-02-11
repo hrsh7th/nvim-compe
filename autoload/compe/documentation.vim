@@ -39,13 +39,13 @@ function! compe#documentation#open(document) abort
     endif
 
     if pumvisible()
-      noautocmd silent call s:window.open({
+      silent call s:window.open({
       \   'row': l:pos[0] + 1,
       \   'col': l:pos[1] + 1,
       \   'width': l:size.width,
       \   'height': l:size.height,
       \ })
-      noautocmd silent call s:Window.do(s:window.get_winid(), { -> s:Markdown.apply() })
+      silent call s:Window.do(s:window.get_winid(), { -> s:Markdown.apply() })
     endif
   endfunction
   call timer_start(0, { -> l:ctx.callback(a:document) })

@@ -62,20 +62,22 @@ endfunction
 " complete
 "
 function! s:complete(server, args) abort
-  let l:params = lsc#params#documentPosition()
-  let l:params.context = {
-  \   'triggerKind': a:args.trigger_character_offset > 0 ? 2 : (a:args.incomplete ? 3 : 1),
-  \ }
-
+  let l:request = lsc#params#documentPosition()
+  let l:request.context = {}
+  let l:request.context.triggerKind = a:args.trigger_character_offset > 0 ? 2 : (a:args.incomplete ? 3 : 1)
   if a:args.trigger_character_offset > 0
-    let l:params.context.triggerCharacter = a:args.context.before_char
+    let l:request.context.triggerCharacter = a:args.context.before_char
   endif
 
   call lsc#file#flushChanges()
-  call a:server.request('textDocument/completion', l:params, function('s:on_complete', [a:args, l:params.position]))
+  call a:server.request('textDocument/completion', l:request, function('s:on_complete', [a:args, l:request]))
 endfunction
-function! s:on_complete(args, request_position, response) abort
-  call a:args.callback(compe#helper#convert_lsp(a:request_position, a:response))
+function! s:on_complete(args, request, response) abort
+  call a:args.callback(compe#helper#convert_lsp({
+  \   'context': a:args.context,
+  \   'request': a:request,
+  \   'response': a:response,
+  \ }))
 endfunction
 
 "

@@ -69,34 +69,34 @@ endfunction
 " complete
 "
 function! s:complete(server_name, args) abort
-  let l:context = {
-  \   'triggerKind': a:args.trigger_character_offset > 0 ? 2 : (a:args.incomplete ? 3 : 1),
-  \ }
-
+  let l:request = {}
+  let l:request.textDocument = lsp#get_text_document_identifier()
+  let l:request.position = lsp#get_position()
+  let l:request.context = {}
+  let l:request.context.triggerKind = a:args.trigger_character_offset > 0 ? 2 : (a:args.incomplete ? 3 : 1)
   if a:args.trigger_character_offset > 0
-    let l:context.triggerCharacter = a:args.context.before_char
+    let l:request.context.triggerCharacter
   endif
 
-  let l:position = lsp#get_position()
   call lsp#callbag#pipe(
   \   lsp#request(a:server_name, {
   \     'method': 'textDocument/completion',
-  \     'params': {
-  \       'textDocument': lsp#get_text_document_identifier(),
-  \       'position': l:position,
-  \       'context': l:context,
-  \     }
+  \     'params': l:request,
   \   }),
   \   lsp#callbag#subscribe({
-  \     'next': { x -> s:on_complete(a:args, l:position, x.response) },
+  \     'next': { x -> s:on_complete(a:args, l:request, x.response) },
   \   })
   \ )
 endfunction
-function! s:on_complete(args, request_position, response) abort
+function! s:on_complete(args, request, response) abort
   if !has_key(a:response, 'result')
     return a:args.abort()
   endif
-  call a:args.callback(compe#helper#convert_lsp(a:request_position, a:response.result))
+  call a:args.callback(compe#helper#convert_lsp({
+  \   'context': a:args.context,
+  \   'request': a:request,
+  \   'response': a:response.result,
+  \ }))
 endfunction
 
 "

@@ -82,16 +82,16 @@ Completion.confirm = function()
 end
 
 --- select
-Completion.select = function(index)
-  if index == -1 then
+Completion.select = function(args)
+  if args.index == -1 then
     return
   end
 
-  local completed_item = Completion._current_items[(index == -2 and 0 or index) + 1]
+  local completed_item = Completion._current_items[(args.index == -2 and 0 or args.index) + 1]
   if completed_item then
     Completion._selected_item = completed_item
 
-    if Config.get().documentation then
+    if args.documentation and Config.get().documentation then
       for _, source in ipairs(Completion.get_sources()) do
         if source.id == completed_item.source_id then
           source:documentation(completed_item)
