@@ -267,9 +267,9 @@ Completion._show = function(start_offset, items)
 
       local completeopt = vim.o.completeopt
       if should_preselect then
-        vim.cmd('set completeopt=menu,menuone,noinsert')
+        vim.cmd('set completeopt=menuone,noinsert')
       else
-        vim.cmd('set completeopt=menu,menuone,noselect')
+        vim.cmd('set completeopt=menuone,noselect')
       end
       vim.call('complete', math.max(1, start_offset), items) -- start_offset=0 should close pum with `complete(1, [])`
       vim.cmd('set completeopt=' .. completeopt)
