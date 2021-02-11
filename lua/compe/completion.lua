@@ -121,38 +121,13 @@ Completion.complete = function(manual)
     return
   end
 
-
   -- Check the new context should be completed.
   local context = Context.new({ manual = manual })
-  if not Completion._context:should_complete(context) then
-    return
-  end
-
-  local is_completing = Completion._is_completing()
-
-  -- Restore pum if closed it automatically (backspace or invalid chars).
-  local should_restore_pum = false
-  should_restore_pum = should_restore_pum or Completion._context:maybe_backspace(context)
-  should_restore_pum = should_restore_pum or vim.tbl_contains({ '-' }, context.before_char)
-  if is_completing and vim.call('pumvisible') == 0 and should_restore_pum then
-    Completion._show(Completion._current_offset, Completion._current_items)
-  end
-
-  if Config.get().autocomplete or (manual or is_completing) then
-    local should_trigger = is_completing or not Completion._context:maybe_backspace(context)
-    if should_trigger then
-      if not Completion._trigger(context) then
-        Completion._display(context)
-      else
-        Async.throttle('display:filter', 0, function() end)
-      end
-    else
-      Async.throttle('display:filter', 0, function() end)
-      vim.call('compe#documentation#close')
+  if (Config.get().autocomplete and Completion._context:should_complete(context)) or manual then
+    if not Completion._trigger(context) then
+      Completion._display(context)
     end
   end
-
-  -- If triggered, the `_display` will be called for each trigger callback.
   Completion._context = context
 end
 
@@ -182,9 +157,9 @@ Completion._display = function(context)
     return false
   end
 
-  local sources = {}
 
   -- Check for processing source.
+  local sources = {}
   Async.debounce('display:processing', 0, function() end)
   for _, source in ipairs(Completion.get_sources()) do
     if source.status == 'processing' then
@@ -201,53 +176,50 @@ Completion._display = function(context)
   end
 
   -- Gather items and determine start_offset
-  local timeout = Completion._is_completing() and Config.get().throttle_time or 1
-  Async.throttle('display:filter', timeout, function()
-    local start_offset = context.col
-    local items = {}
-    local items_uniq = {}
-    for _, source in ipairs(sources) do
-      local source_items = source:get_filtered_items(context)
-      local source_start_offset = source:get_start_offset()
-      if #source_items > 0 then
+  local start_offset = context.col
+  local items = {}
+  local items_uniq = {}
+  for _, source in ipairs(sources) do
+    local source_items = source:get_filtered_items(context)
+    local source_start_offset = source:get_start_offset()
+    if #source_items > 0 then
 
-        -- update start_offset
-        start_offset = math.min(start_offset, source_start_offset)
+      -- update start_offset
+      start_offset = math.min(start_offset, source_start_offset)
 
-        -- Fix start_offset & Handle `dup`
-        local gap = string.sub(context.before_line, start_offset, source_start_offset - 1)
-        for _, item in ipairs(source_items) do
-          if items_uniq[item.original_word] == nil or item.original_dup == 1 then
-            items_uniq[item.original_word] = true
-            item.word = gap .. item.original_word
-            item.abbr = string.rep(' ', #gap) .. item.original_abbr
-            item.kind = item.original_kind or ''
-            item.menu = item.original_menu or ''
+      -- Fix start_offset & Handle `dup`
+      local gap = string.sub(context.before_line, start_offset, source_start_offset - 1)
+      for _, item in ipairs(source_items) do
+        if items_uniq[item.original_word] == nil or item.original_dup == 1 then
+          items_uniq[item.original_word] = true
+          item.word = gap .. item.original_word
+          item.abbr = string.rep(' ', #gap) .. item.original_abbr
+          item.kind = item.original_kind or ''
+          item.menu = item.original_menu or ''
 
-            -- trim to specified width.
-            item.abbr = String.trim(item.abbr, Config.get().max_abbr_width)
-            item.kind = String.trim(item.kind, Config.get().max_kind_width)
-            item.menu = String.trim(item.menu, Config.get().max_menu_width)
-            table.insert(items, item)
-          end
-        end
-        if source.is_triggered_by_character then
-          break
+          -- trim to specified width.
+          item.abbr = String.trim(item.abbr, Config.get().max_abbr_width)
+          item.kind = String.trim(item.kind, Config.get().max_kind_width)
+          item.menu = String.trim(item.menu, Config.get().max_menu_width)
+          table.insert(items, item)
         end
       end
+      if source.is_triggered_by_character then
+        break
+      end
     end
+  end
 
-    --- Sort items
-    table.sort(items, function(item1, item2)
-      return Matcher.compare(item1, item2, Completion._history)
-    end)
-
-    if #items == 0 then
-      Completion._show(0, {})
-    else
-      Completion._show(start_offset, items)
-    end
+  --- Sort items
+  table.sort(items, function(item1, item2)
+    return Matcher.compare(item1, item2, Completion._history)
   end)
+
+  if #items == 0 then
+    Completion._show(0, {})
+  else
+    Completion._show(start_offset, items)
+  end
 end
 
 --- _show

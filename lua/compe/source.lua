@@ -65,13 +65,11 @@ function Source.trigger(self, context, callback)
   local trigger = context.manual or self.incomplete or state.trigger_character_offset > 0
   if self.status == 'waiting' then
     if empty then
-      if #self:get_filtered_items(context) == 0 then
-        self:clear()
-      end
       return
     end
     if not trigger then
       if less then
+        print('less')
         return self:clear()
       end
     end
@@ -101,6 +99,7 @@ function Source.trigger(self, context, callback)
       callback()
     end);
     abort = Async.fast_schedule_wrap(function()
+      print('abort')
       self:clear()
       callback()
     end);
