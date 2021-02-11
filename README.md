@@ -108,6 +108,7 @@ let g:compe.source.spell = v:true
 let g:compe.source.tags = v:true
 let g:compe.source.snippets_nvim = v:true
 let g:compe.source.treesitter = v:true
+let g:compe.source.omni = v:true
 ```
 
 #### Lua Config
@@ -184,6 +185,7 @@ inoremap <silent><expr> <C-d>     compe#scroll({ 'delta': -4 })
 - tags
 - spell
 - calc
+- omni
 
 ### Neovim-specific
 
