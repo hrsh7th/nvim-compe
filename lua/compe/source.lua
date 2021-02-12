@@ -81,7 +81,8 @@ Source.trigger = function(self, context, callback)
     -- Update is_triggered_by_character
     self.is_triggered_by_character = state.trigger_character_offset > 0
   else
-    if empty and #self:get_filtered_items(context) == 0 then
+    local count = #self:get_filtered_items(context)
+    if empty and count == 0 then
       self:clear()
     end
 

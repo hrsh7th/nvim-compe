@@ -62,35 +62,34 @@ Helper.convert_lsp = function(args)
       abbr = completion_item.label
     end
 
-    -- determine item offset.
+    -- Fix for textEdit
     local offset_fixed = false
     if not offset_fixed and completion_item.textEdit then
       -- See https://github.com/microsoft/vscode/blob/master/src/vs/editor/contrib/suggest/completionModel.ts#L170
       for idx = completion_item.textEdit.range.start.character + 1, #context.before_line do
-        if not Character.is_white(string.byte(context.before_line, idx)) then
-          if string.find(word, string.sub(context.before_line, idx, -1), 1, true) == 1 then
-            keyword_pattern_offset = math.min(keyword_pattern_offset, idx)
-            offset_fixed = true
-            break
-          end
+        local accept = true
+        accept = accept and not Character.is_white(string.byte(context.before_line, idx))
+        accept = accept and Character.match(string.byte(word, 1), string.byte(context.before_line, idx))
+        if accept then
+          keyword_pattern_offset = math.min(keyword_pattern_offset, idx)
+          offset_fixed = true
+          break
         end
       end
     end
+
+    -- Fix for leading_word
     if not offset_fixed then
       -- TODO: We should check this implementation respecting what is VSCode does.
-      local leading_word_byte = string.byte(word, 1)
-      if not Character.is_alpha(leading_word_byte) then
-        for idx = #context.before_line, 1, -1 do
-          local target_byte = string.byte(context.before_line, idx)
-          if Character.is_white(target_byte) then
-            break
-          end
-          if leading_word_byte == target_byte then
-            local part = string.sub(context.before_line, idx, -1)
-            if string.find(word, part, 1, true) == 1 then
-              keyword_pattern_offset = math.min(keyword_pattern_offset, idx)
-              offset_fixed = true
-            end
+      for idx = #context.before_line, 1, -1 do
+        local accept = true
+        accept = accept and not Character.is_white(string.byte(context.before_line, idx))
+        accept = accept and Character.match(string.byte(word, 1), string.byte(context.before_line, idx))
+        if accept then
+          local part = string.sub(context.before_line, idx, -1)
+          if string.find(word, part, 1, true) == 1 then
+            keyword_pattern_offset = math.min(keyword_pattern_offset, idx)
+            offset_fixed = true
             break
           end
         end
