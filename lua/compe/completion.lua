@@ -184,6 +184,10 @@ Completion._display = function(context)
   -- Gather items and determine start_offset
   local timeout = Completion._is_completing(context) and Config.get().throttle_time or 1
   Async.throttle('display:filter', timeout, function()
+    if Completion:_should_ignore() then
+      return false
+    end
+
     local start_offset = context.col
     local items = {}
     local items_uniq = {}

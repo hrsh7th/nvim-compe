@@ -51,6 +51,7 @@ Config._normalize = function(config)
   config.min_length = config.min_length or 1
   config.preselect = config.preselect or 'enable'
   config.throttle_time = config.throttle_time or THROTTLE_TIME
+  config.default_pattern = config.default_pattern or '\\h\\w*\\%(-\\w*\\)*'
   config.source_timeout = config.source_timeout or SOURCE_TIMEOUT
   config.incomplete_delay = config.incomplete_delay or INCOMPLETE_DELAY
   config.allow_prefix_unmatch = Boolean.get(config.allow_prefix_unmatch, false)

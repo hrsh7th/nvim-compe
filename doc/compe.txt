@@ -235,6 +235,11 @@ min_length ~
       Type: |Number|
       Default: 1
 
+default_pattern ~
+    Specify default_pattern that uses by `compe_buffer` source and `compe.helper.determine` helper (experimental).
+      Type: |String|
+      Default: `\h\w*\%(-\w*\)*`
+
 preselect ~
     Preselect behaviour.
       Type: |String|

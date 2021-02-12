@@ -1,3 +1,5 @@
+local Config = require'compe.config'
+
 local Pattern = {}
 
 Pattern._filetypes = {}
@@ -10,7 +12,7 @@ end
 
 --- get_default_pattern
 Pattern.get_default_pattern = function()
-  return '\\h\\w*\\%(-\\w*\\)*'
+  return Config.get().default_pattern
 end
 
 --- get_keyword_pattern
