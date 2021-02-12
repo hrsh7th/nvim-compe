@@ -75,7 +75,7 @@ function! s:complete(server_name, args) abort
   let l:request.context = {}
   let l:request.context.triggerKind = a:args.trigger_character_offset > 0 ? 2 : (a:args.incomplete ? 3 : 1)
   if a:args.trigger_character_offset > 0
-    let l:request.context.triggerCharacter
+    let l:request.context.triggerCharacter = a:args.context.before_char
   endif
 
   call lsp#callbag#pipe(
@@ -93,6 +93,7 @@ function! s:on_complete(args, request, response) abort
     return a:args.abort()
   endif
   call a:args.callback(compe#helper#convert_lsp({
+  \   'keyword_pattern_offset': a:args.keyword_pattern_offset,
   \   'context': a:args.context,
   \   'request': a:request,
   \   'response': a:response.result,

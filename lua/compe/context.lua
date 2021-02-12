@@ -1,3 +1,5 @@
+local Config = require'compe.config'
+
 local Context = {}
 
 --- Create empty/invalid context for avoiding unexpected detects completion triggers.
@@ -26,9 +28,9 @@ function Context.new(option)
 end
 
 --- should_complete
-function Context.should_complete(self, new_context)
-  if new_context.manual then
-    return true
+function Context.should_auto_complete(self, new_context)
+  if not Config.get().autocomplete then
+    return false
   end
   return self.changedtick ~= new_context.changedtick and (self.lnum ~= new_context.lnum or self.col ~= new_context.col)
 end

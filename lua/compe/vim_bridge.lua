@@ -19,9 +19,6 @@ end
 
 --- complete_on_callback
 function VimBridge.complete_on_callback(id, result)
-  id = Compat.safe(id)
-  result = Compat.safe(result)
-
   if complete_callbacks[id] ~= nil then
     complete_callbacks[id](result)
     complete_callbacks[id] = nil
@@ -30,7 +27,6 @@ end
 
 --- complete_on_abort
 function VimBridge.complete_on_abort(id)
-  id = Compat.safe(id)
   if complete_aborts[id] ~= nil then
     complete_aborts[id]()
     complete_aborts[id] = nil
@@ -39,7 +35,6 @@ end
 
 --- resolve_on_callback
 function VimBridge.resolve_on_callback(id, completed_item)
-  id = Compat.safe(id)
   if resolve_callbacks[id] ~= nil then
     resolve_callbacks[id](completed_item)
     resolve_callbacks[id] = nil
@@ -48,7 +43,6 @@ end
 
 --- documentation_on_callback
 function VimBridge.documentation_on_callback(id, document)
-  id = Compat.safe(id)
   if documentation_callbacks[id] ~= nil then
     documentation_callbacks[id](document)
     documentation_callbacks[id] = nil
@@ -57,7 +51,6 @@ end
 
 --- documentation_on_abort
 function VimBridge.documentation_on_abort(id)
-  id = Compat.safe(id)
   if documentation_aborts[id] ~= nil then
     documentation_aborts[id]()
     documentation_aborts[id] = nil
@@ -81,7 +74,7 @@ M.complete = function(self, args)
   complete_aborts[self.id] = args.abort
   args.callback = nil
   args.abort = nil
-  return Compat.safe(vim.call('compe#source#vim_bridge#complete', self.id, args))
+  return vim.call('compe#source#vim_bridge#complete', self.id, args)
 end
 
 --- resolve
@@ -93,7 +86,7 @@ end
 
 --- confirm
 M.confirm = function(self, args)
-  return Compat.safe(vim.call('compe#source#vim_bridge#confirm', self.id, args))
+  vim.call('compe#source#vim_bridge#confirm', self.id, args)
 end
 
 --- documentation
@@ -102,7 +95,7 @@ M.documentation = function(self, args)
   documentation_aborts[self.id] = args.abort
   args.callback = nil
   args.abort = nil
-  return Compat.safe(vim.call('compe#source#vim_bridge#documentation', self.id, args))
+  return vim.call('compe#source#vim_bridge#documentation', self.id, args)
 end
 
 --- new

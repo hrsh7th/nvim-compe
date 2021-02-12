@@ -13,6 +13,10 @@ string.gsub('1234567890', '.', function(char)
   ALPHA[string.byte(char)] = true
 end)
 
+local white = {}
+white[string.byte(' ')] = true
+white[string.byte('\t')] = true
+
 local Character = {}
 
 Character.is_upper = function(byte)
@@ -21,6 +25,10 @@ end
 
 Character.is_alpha = function(byte)
   return alpha[byte] or ALPHA[byte]
+end
+
+Character.is_white = function(byte)
+  return white[byte]
 end
 
 Character.is_digit = function(byte)

@@ -145,9 +145,10 @@ function! s:_get_expansion(args) abort
     \   . strcharpart(l:current_line, l:request_position.character, strchars(l:inserted_text) + l:overflow_after)
     let l:new_text = l:completion_item.textEdit.newText
     if s:_trim_tabstop(l:new_text) !=# l:inserted
+      " The LSP spec says `textEdit range must contain the request position.`
       return {
-      \   'overflow_before': l:overflow_before,
-      \   'overflow_after': l:overflow_after,
+      \   'overflow_before': max([0, l:overflow_before]),
+      \   'overflow_after': max([0, l:overflow_after]),
       \   'new_text': l:new_text,
       \   'is_snippet': l:is_snippet,
       \ }

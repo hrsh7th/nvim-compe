@@ -44,6 +44,7 @@ function Source.complete(self, args)
       return args.abort()
     end
     args.callback(compe.helper.convert_lsp({
+      keyword_pattern_offset = args.keyword_pattern_offset,
       context = args.context,
       request = request,
       response = response,

@@ -19,7 +19,7 @@ call setbufvar(s:window.get_bufnr(), '&swapfile', 0)
 "
 function! compe#documentation#open(document) abort
   if getcmdwintype() !=# ''
-    return
+    return s:window.close()
   endif
 
   let l:ctx = {}
