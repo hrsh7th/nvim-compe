@@ -58,9 +58,8 @@ Source.trigger = function(self, context, callback)
   state.keyword_pattern_offset = state.keyword_pattern_offset == nil and 0 or state.keyword_pattern_offset
   state.keyword_pattern_offset = state.keyword_pattern_offset == 0 and state.trigger_character_offset or state.keyword_pattern_offset
 
-  -- should cancel if cursor beyond keyword_pattern_offset (e.g. backspace)
+  -- See https://github.com/microsoft/vscode/blob/master/src/vs/editor/contrib/suggest/suggestModel.ts#L569
   if context.col < self.keyword_pattern_offset then
-    self:_log(context, 'completing -> backspace')
     self:clear()
   end
 
@@ -71,24 +70,20 @@ Source.trigger = function(self, context, callback)
   if self.status == 'waiting' then
     -- Does not match.
     if empty then
-      self:_log(context, 'waiting -> empty')
       return
     end
 
     -- Avoid less input if context is not force.
     if not force and less then
-      self:_log(context, 'waiting -> less')
       return self:clear()
     end
 
     -- Update is_triggered_by_character
     self.is_triggered_by_character = state.trigger_character_offset > 0
   else
-
     -- While completion, should stay if context is not match manual or incomplete or trigger_character_offset.
     if not force then
       if empty then
-        self:_log(context, 'completing -> not trigger & empty')
         self:clear()
       end
       return
@@ -98,8 +93,6 @@ Source.trigger = function(self, context, callback)
     if state.trigger_character_offset > 0 then
       self.is_triggered_by_character = state.trigger_character_offset > 0
     end
-
-    self:_log(context, 'completing -> trigger')
   end
 
   self.status = 'processing'
@@ -314,11 +307,6 @@ Source._normalize_items = function(self, _, items)
     table.insert(normalized, item)
   end
   return normalized
-end
-
-Source._log = function(self, context, value)
-  print(([[[%s] %s]]):format(self.name, context.before_line))
-  print(([[[%s] %s]]):format(self.name, value))
 end
 
 return Source

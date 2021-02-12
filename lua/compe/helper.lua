@@ -39,11 +39,9 @@ Helper.convert_lsp = function(args)
   local request = args.request
   local response = args.response
 
-  local completion_items = vim.tbl_islist(response or {}) and response or response.items or {}
-
   local offset = context.col
   local complete_items = {}
-  for _, completion_item in pairs(completion_items) do
+  for _, completion_item in pairs(vim.tbl_islist(response or {}) and response or response.items or {}) do
     local word = ''
     local abbr = ''
     if completion_item.insertTextFormat == 2 then
@@ -63,26 +61,23 @@ Helper.convert_lsp = function(args)
       word = completion_item.insertText or completion_item.label
       abbr = completion_item.label
     end
-    word = string.gsub(string.gsub(word, '^%s*', ''), '%s*$', '')
-    abbr = string.gsub(string.gsub(abbr, '^%s*', ''), '%s*$', '')
 
     -- determine item offset.
-    local fixed = false
-    if not fixed and completion_item.textEdit then
-      -- overlapped textEdit
+    local offset_fixed = false
+    if not offset_fixed and completion_item.textEdit then
+      -- See https://github.com/microsoft/vscode/blob/master/src/vs/editor/contrib/suggest/completionModel.ts#L170
       for idx = completion_item.textEdit.range.start.character + 1, #context.before_line do
-        -- TODO: Add references to location of the same logic in VSCode.
         if not Character.is_white(string.byte(context.before_line, idx)) then
           if string.find(word, string.sub(context.before_line, idx, -1), 1, true) == 1 then
             offset = math.min(offset, idx)
-            fixed = true
+            offset_fixed = true
             break
           end
         end
       end
     end
-    if not fixed then
-      -- overlapped non ascii word.
+    if not offset_fixed then
+      -- TODO: We should check this implementation respecting what is VSCode does.
       local leading_word_byte = string.byte(word, 1)
       if not Character.is_alpha(leading_word_byte) then
         for idx = #context.before_line, 1, -1 do
@@ -94,7 +89,7 @@ Helper.convert_lsp = function(args)
             local part = string.sub(context.before_line, idx, -1)
             if string.find(word, part, 1, true) == 1 then
               offset = math.min(offset, idx)
-              fixed = true
+              offset_fixed = true
             end
             break
           end
@@ -102,11 +97,13 @@ Helper.convert_lsp = function(args)
       end
     end
 
-    -- `func`($0)
-    -- `class`="$0"
-    -- `variable`$0
-    -- `"json-props": "$0"`
+    -- Remove invalid chars from word without already allowed range.
+    --   `func`($0)
+    --   `class`="$0"
+    --   `variable`$0
+    --   `"json-props"`: "$0"
     word = string.match(word, '[^%s=%(%$\'"]+', math.max(1, context.col - offset))
+    abbr = string.gsub(string.gsub(abbr, '^%s*', ''), '%s*$', '')
 
     table.insert(complete_items, {
       word = word;
