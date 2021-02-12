@@ -127,10 +127,12 @@ Completion.complete = function(manual)
     Completion._show(Completion._current_offset, Completion._current_items)
   end
 
-  if Completion._context:should_complete(context) then
+  if context.manual or is_completing or Completion._context:should_auto_complete(context) then
     if not Completion._trigger(context) then
       Completion._display(context)
     end
+  else
+    vim.call('compe#documentation#close')
   end
   Completion._context = context
 end
@@ -169,7 +171,6 @@ Completion._display = function(context)
     if source.status == 'processing' then
       local processing_timeout = Config.get().source_timeout - source:get_processing_time()
       if processing_timeout > 0 then
-        Async.throttle('display:filter', 0, function() end)
         Async.debounce('display:processing', processing_timeout + 1, function()
           Completion._display(context)
         end)
