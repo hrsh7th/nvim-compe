@@ -35,11 +35,11 @@ end
 
 --- convert_lsp
 Helper.convert_lsp = function(args)
+  local keyword_pattern_offset = args.keyword_pattern_offset
   local context = args.context
   local request = args.request
   local response = args.response
 
-  local offset = context.col
   local complete_items = {}
   for _, completion_item in pairs(vim.tbl_islist(response or {}) and response or response.items or {}) do
     local word = ''
@@ -69,7 +69,7 @@ Helper.convert_lsp = function(args)
       for idx = completion_item.textEdit.range.start.character + 1, #context.before_line do
         if not Character.is_white(string.byte(context.before_line, idx)) then
           if string.find(word, string.sub(context.before_line, idx, -1), 1, true) == 1 then
-            offset = math.min(offset, idx)
+            keyword_pattern_offset = math.min(keyword_pattern_offset, idx)
             offset_fixed = true
             break
           end
@@ -88,7 +88,7 @@ Helper.convert_lsp = function(args)
           if leading_word_byte == target_byte then
             local part = string.sub(context.before_line, idx, -1)
             if string.find(word, part, 1, true) == 1 then
-              offset = math.min(offset, idx)
+              keyword_pattern_offset = math.min(keyword_pattern_offset, idx)
               offset_fixed = true
             end
             break
@@ -102,7 +102,8 @@ Helper.convert_lsp = function(args)
     --   `class`="$0"
     --   `variable`$0
     --   `"json-props"`: "$0"
-    word = string.match(word, '[^%s=%(%$\'"]+', math.max(1, context.col - offset))
+    print((args.keyword_pattern_offset - keyword_pattern_offset) + 1)
+    word = string.match(word, '[^%s=%(%$\'"]+', (args.keyword_pattern_offset - keyword_pattern_offset) + 1)
     abbr = string.gsub(string.gsub(abbr, '^%s*', ''), '%s*$', '')
 
     table.insert(complete_items, {
@@ -124,7 +125,7 @@ Helper.convert_lsp = function(args)
   return {
     items = complete_items,
     incomplete = response.incomplete or false,
-    offset = context.col ~= offset and offset or nil,
+    keyword_pattern_offset = keyword_pattern_offset,
   }
 end
 

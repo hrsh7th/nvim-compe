@@ -93,9 +93,10 @@ function! s:on_complete(args, request, response) abort
     return a:args.abort()
   endif
   call a:args.callback(compe#helper#convert_lsp({
+  \   'keyword_pattern_offset': a:args.keyword_pattern_offset,
   \   'context': a:args.context,
   \   'request': a:request,
-  \   'response': a:response.result,
+  \   'response': a:response,
   \ }))
 endfunction
 

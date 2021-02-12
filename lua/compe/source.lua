@@ -101,16 +101,16 @@ Source.trigger = function(self, context, callback)
   -- Completion
   self.source:complete({
     context = self.context;
-    input = self.context:get_input(self.keyword_pattern_offset);
-    keyword_pattern_offset = self.keyword_pattern_offset;
-    trigger_character_offset = self.trigger_character_offset;
+    input = self.context:get_input(state.keyword_pattern_offset);
+    keyword_pattern_offset = state.keyword_pattern_offset;
+    trigger_character_offset = state.trigger_character_offset;
     incomplete = self.incomplete;
     callback = Async.fast_schedule_wrap(function(result)
       self.revision = self.revision + 1
       self.status = 'completed'
       self.incomplete = result.incomplete or false
       self.items = self.incomplete and #result.items == 0 and self.items or self:_normalize_items(context, result.items or {})
-      self.keyword_pattern_offset = result.offset or state.keyword_pattern_offset
+      self.keyword_pattern_offset = result.keyword_pattern_offset or state.keyword_pattern_offset
       self.trigger_character_offset = state.trigger_character_offset
       callback()
     end);
