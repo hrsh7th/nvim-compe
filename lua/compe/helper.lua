@@ -57,6 +57,7 @@ Helper.convert_lsp = function(args)
       if word ~= text then
         abbr = abbr .. '~'
       end
+      word = text
     else
       word = completion_item.insertText or completion_item.label
       abbr = completion_item.label
@@ -69,7 +70,6 @@ Helper.convert_lsp = function(args)
       for idx = completion_item.textEdit.range.start.character + 1, #context.before_line do
         local accept = true
         accept = accept and not Character.is_white(string.byte(context.before_line, idx))
-        accept = accept and Character.match(string.byte(word, 1), string.byte(context.before_line, idx))
         if accept then
           keyword_pattern_offset = math.min(keyword_pattern_offset, idx)
           offset_fixed = true
@@ -104,6 +104,13 @@ Helper.convert_lsp = function(args)
     local leading = (args.keyword_pattern_offset - keyword_pattern_offset)
     word = string.match(word, ('.'):rep(leading) .. '[^%s=%(%$\'"]+') or ''
     abbr = string.gsub(string.gsub(abbr, '^%s*', ''), '%s*$', '')
+
+    -- Fix overlapped prefix by filterText
+    local prefix = string.sub(context.before_line, keyword_pattern_offset, -1)
+    if prefix ~= '' then
+      completion_item.filterText = completion_item.filterText or word
+      completion_item.filterText = prefix .. completion_item.filterText
+    end
 
     table.insert(complete_items, {
       word = word;
