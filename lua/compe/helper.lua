@@ -106,10 +106,12 @@ Helper.convert_lsp = function(args)
     abbr = string.gsub(string.gsub(abbr, '^%s*', ''), '%s*$', '')
 
     -- Fix overlapped prefix by filterText
-    local prefix = string.sub(context.before_line, keyword_pattern_offset, -1)
-    if prefix ~= '' then
-      completion_item.filterText = completion_item.filterText or word
-      completion_item.filterText = prefix .. completion_item.filterText
+    if offset_fixed then
+      local prefix = string.sub(context.before_line, keyword_pattern_offset, -1)
+      if prefix ~= '' then
+        completion_item.filterText = completion_item.filterText or word
+        completion_item.filterText = prefix .. completion_item.filterText
+      end
     end
 
     table.insert(complete_items, {
