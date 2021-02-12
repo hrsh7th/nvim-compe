@@ -96,7 +96,7 @@ function! s:on_complete(args, request, response) abort
   \   'keyword_pattern_offset': a:args.keyword_pattern_offset,
   \   'context': a:args.context,
   \   'request': a:request,
-  \   'response': a:response,
+  \   'response': a:response.result,
   \ }))
 endfunction
 

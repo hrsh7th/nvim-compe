@@ -114,6 +114,7 @@ end
 --- complete
 Completion.complete = function(manual)
   if Completion:_should_ignore() then
+    Async.throttle('display:filter', 0, function() end)
     return
   end
 
@@ -157,6 +158,7 @@ end
 --- _display
 Completion._display = function(context)
   if Completion:_should_ignore() then
+    Async.throttle('display:filter', 0, function() end)
     return false
   end
 
@@ -167,6 +169,7 @@ Completion._display = function(context)
     if source.status == 'processing' then
       local processing_timeout = Config.get().source_timeout - source:get_processing_time()
       if processing_timeout > 0 then
+        Async.throttle('display:filter', 0, function() end)
         Async.debounce('display:processing', processing_timeout + 1, function()
           Completion._display(context)
         end)
