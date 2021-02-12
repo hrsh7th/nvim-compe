@@ -66,7 +66,7 @@ Source.trigger = function(self, context, callback)
   -- Check first trigger condition.
   local empty = state.keyword_pattern_offset == 0 and state.trigger_character_offset == 0
   local force = context.manual or self.incomplete or state.trigger_character_offset > 0
-  local count = #self:get_filtered_items(context)
+  local count = 0
   if self.status == 'waiting' then
     -- Does not match.
     if empty then
@@ -82,6 +82,7 @@ Source.trigger = function(self, context, callback)
     -- Update is_triggered_by_character
     self.is_triggered_by_character = state.trigger_character_offset > 0
   else
+    count = #self:get_filtered_items(context)
     if empty and count == 0 then
       self:clear()
     end
