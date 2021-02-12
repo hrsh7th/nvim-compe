@@ -66,15 +66,15 @@ Helper.convert_lsp = function(args)
     -- Fix for textEdit
     local offset_fixed = false
     if not offset_fixed and completion_item.textEdit then
-      -- See https://github.com/microsoft/vscode/blob/master/src/vs/editor/contrib/suggest/completionModel.ts#L170
+      -- https://github.com/microsoft/vscode/blob/master/src/vs/editor/contrib/suggest/completionModel.ts#L170
+      -- https://github.com/microsoft/vscode/blob/master/src/vs/editor/contrib/suggest/completionModel.ts#L195
       for idx = completion_item.textEdit.range.start.character + 1, #context.before_line do
-        local accept = true
-        accept = accept and not Character.is_white(string.byte(context.before_line, idx))
-        if accept then
-          keyword_pattern_offset = math.min(keyword_pattern_offset, idx)
-          offset_fixed = true
+        if Character.is_white(string.byte(context.before_line, idx)) then
           break
         end
+        keyword_pattern_offset = math.min(keyword_pattern_offset, idx)
+        offset_fixed = true
+        break
       end
     end
 
