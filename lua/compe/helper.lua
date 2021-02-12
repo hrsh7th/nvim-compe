@@ -85,13 +85,23 @@ Helper.convert_lsp = function(args)
         end
       end
     end
-    if not fixed and request.context and request.context.triggerKind == 2 then
-      -- overlapped trigger character
-      -- TODO: This is_alnum checking is reasonable or not (This needed by sumneko_lua)
-      if not Character.is_alnum(string.byte(context.before_char, 1)) then
-        if string.byte(context.before_char, 1) == string.byte(word, 1) then
-          offset = math.min(offset, context.col - 1)
-          fixed = true
+    if not fixed then
+      -- overlapped non ascii word.
+      local leading_word_byte = string.byte(word, 1)
+      if not Character.is_alpha(leading_word_byte) then
+        for idx = #context.before_line, 1, -1 do
+          local target_byte = string.byte(context.before_line, idx)
+          if Character.is_white(target_byte) then
+            break
+          end
+          if leading_word_byte == target_byte then
+            local part = string.sub(context.before_line, idx, -1)
+            if string.find(word, part, 1, true) == 1 then
+              offset = math.min(offset, idx)
+              fixed = true
+            end
+            break
+          end
         end
       end
     end

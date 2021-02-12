@@ -123,7 +123,7 @@ Completion.complete = function(manual)
 
   -- Check the new context should be completed.
   local context = Context.new({ manual = manual })
-  if (Config.get().autocomplete and Completion._context:should_complete(context)) or manual then
+  if Completion._context:should_complete(context) then
     if not Completion._trigger(context) then
       Completion._display(context)
     end
@@ -156,7 +156,6 @@ Completion._display = function(context)
   if Completion:_should_ignore() then
     return false
   end
-
 
   -- Check for processing source.
   local sources = {}

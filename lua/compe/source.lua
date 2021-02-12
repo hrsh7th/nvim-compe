@@ -1,7 +1,6 @@
 local Cache = require'compe.utils.cache'
 local Async = require'compe.utils.async'
 local Boolean = require'compe.utils.boolean'
-local Character = require'compe.utils.character'
 local Config = require'compe.config'
 local Matcher = require'compe.matcher'
 local Context = require'compe.context'
@@ -25,7 +24,7 @@ function Source.new(name, source)
 end
 
 -- clear
-function Source.clear(self)
+Source.clear = function(self)
   self.status = 'waiting'
   self.metadata = nil
   self.item_id = 0
@@ -38,7 +37,7 @@ function Source.clear(self)
 end
 
 -- trigger
-function Source.trigger(self, context, callback)
+Source.trigger = function(self, context, callback)
   local metadata = self:get_metadata()
 
   -- Check filetypes.
@@ -59,24 +58,48 @@ function Source.trigger(self, context, callback)
   state.keyword_pattern_offset = state.keyword_pattern_offset == nil and 0 or state.keyword_pattern_offset
   state.keyword_pattern_offset = state.keyword_pattern_offset == 0 and state.trigger_character_offset or state.keyword_pattern_offset
 
+  -- should cancel if cursor beyond keyword_pattern_offset (e.g. backspace)
+  if context.col < self.keyword_pattern_offset then
+    self:_log(context, 'completing -> backspace')
+    self:clear()
+  end
+
   -- Check first trigger condition.
   local empty = state.keyword_pattern_offset == 0 and state.trigger_character_offset == 0
   local less = #(context:get_input(state.keyword_pattern_offset)) < Config.get().min_length
-  local trigger = context.manual or self.incomplete or state.trigger_character_offset > 0
+  local force = context.manual or self.incomplete or state.trigger_character_offset > 0
   if self.status == 'waiting' then
+    -- Does not match.
     if empty then
+      self:_log(context, 'waiting -> empty')
       return
     end
-    if not trigger then
-      if less then
-        print('less')
-        return self:clear()
-      end
+
+    -- Avoid less input if context is not force.
+    if not force and less then
+      self:_log(context, 'waiting -> less')
+      return self:clear()
     end
+
+    -- Update is_triggered_by_character
+    self.is_triggered_by_character = state.trigger_character_offset > 0
   else
-    if not trigger then
+
+    -- While completion, should stay if context is not match manual or incomplete or trigger_character_offset.
+    if not force then
+      if empty then
+        self:_log(context, 'completing -> not trigger & empty')
+        self:clear()
+      end
       return
     end
+
+    -- Update is_triggered_by_character
+    if state.trigger_character_offset > 0 then
+      self.is_triggered_by_character = state.trigger_character_offset > 0
+    end
+
+    self:_log(context, 'completing -> trigger')
   end
 
   self.status = 'processing'
@@ -93,13 +116,12 @@ function Source.trigger(self, context, callback)
       self.revision = self.revision + 1
       self.status = 'completed'
       self.incomplete = result.incomplete or false
-      self.items = self.incomplete and #result.items == 0 and self.items or self:normalize_items(context, result.items or {})
+      self.items = self.incomplete and #result.items == 0 and self.items or self:_normalize_items(context, result.items or {})
       self.keyword_pattern_offset = result.offset or state.keyword_pattern_offset
       self.trigger_character_offset = state.trigger_character_offset
       callback()
     end);
     abort = Async.fast_schedule_wrap(function()
-      print('abort')
       self:clear()
       callback()
     end);
@@ -107,8 +129,71 @@ function Source.trigger(self, context, callback)
   return true
 end
 
+--- resolve
+Source.resolve = function(self, args)
+  if self.resolved_items[args.completed_item.item_id] then
+    return args.callback(self.resolved_items[args.completed_item.item_id])
+  end
+
+  if not self.source.resolve then
+    self.resolved_items[args.completed_item.item_id] = args.completed_item
+    return args.callback(self.resolved_items[args.completed_item.item_id])
+  end
+
+  self.source:resolve({
+    completed_item = args.completed_item,
+    callback = function(resolved_completed_item)
+      self.resolved_items[args.completed_item.item_id] = resolved_completed_item or args.completed_item
+      args.callback(self.resolved_items[args.completed_item.item_id])
+    end;
+  })
+end
+
+--- documentation
+Source.documentation = function(self, completed_item)
+  if self.source.documentation then
+    self:resolve({
+      completed_item = completed_item,
+      callback = function(resolved_completed_item)
+        self.source:documentation({
+          completed_item = resolved_completed_item;
+          context = Context.new({});
+          callback = Async.guard('Source.documentation#callback', Async.fast_schedule_wrap(function(document)
+            if document and #document ~= 0 then
+              vim.call('compe#documentation#open', document)
+            else
+              vim.call('compe#documentation#close')
+            end
+          end));
+          abort = Async.guard('Source.documentation#abort', Async.fast_schedule_wrap(function()
+            vim.call('compe#documentation#close')
+          end));
+        })
+      end
+    })
+  else
+    Async.fast_schedule(function()
+      vim.call('compe#documentation#close')
+    end)
+  end
+end
+
+--- confirm
+Source.confirm = function(self, completed_item)
+  if self.source.confirm then
+    self:resolve({
+      completed_item = completed_item,
+      callback = function(resolved_completed_item)
+        self.source:confirm({
+          completed_item = resolved_completed_item,
+        })
+      end
+    })
+  end
+end
+
 --- get_metadata
-function Source.get_metadata(self)
+Source.get_metadata = function(self)
   if not self.metadata then
     self.metadata = self.source:get_metadata()
   end
@@ -121,12 +206,12 @@ function Source.get_metadata(self)
 end
 
 --- get_start_offset
-function Source.get_start_offset(self)
+Source.get_start_offset = function(self)
   return self.keyword_pattern_offset or 0
 end
 
 --- get_filtered_items
-function Source.get_filtered_items(self, context)
+Source.get_filtered_items = function(self, context)
   local start_offset = self:get_start_offset()
   local input = context:get_input(start_offset)
 
@@ -171,78 +256,15 @@ function Source.get_filtered_items(self, context)
 end
 
 --- get_processing_time
-function Source.get_processing_time(self)
+Source.get_processing_time = function(self)
   if self.status == 'processing' then
     return vim.loop.now() - self.context.time
   end
   return 0
 end
 
---- resolve
-function Source.resolve(self, args)
-  if self.resolved_items[args.completed_item.item_id] then
-    return args.callback(self.resolved_items[args.completed_item.item_id])
-  end
-
-  if not self.source.resolve then
-    self.resolved_items[args.completed_item.item_id] = args.completed_item
-    return args.callback(self.resolved_items[args.completed_item.item_id])
-  end
-
-  self.source:resolve({
-    completed_item = args.completed_item,
-    callback = function(resolved_completed_item)
-      self.resolved_items[args.completed_item.item_id] = resolved_completed_item or args.completed_item
-      args.callback(self.resolved_items[args.completed_item.item_id])
-    end;
-  })
-end
-
---- documentation
-function Source.documentation(self, completed_item)
-  if self.source.documentation then
-    self:resolve({
-      completed_item = completed_item,
-      callback = function(resolved_completed_item)
-        self.source:documentation({
-          completed_item = resolved_completed_item;
-          context = Context.new({});
-          callback = Async.guard('Source.documentation#callback', Async.fast_schedule_wrap(function(document)
-            if document and #document ~= 0 then
-              vim.call('compe#documentation#open', document)
-            else
-              vim.call('compe#documentation#close')
-            end
-          end));
-          abort = Async.guard('Source.documentation#abort', Async.fast_schedule_wrap(function()
-            vim.call('compe#documentation#close')
-          end));
-        })
-      end
-    })
-  else
-    Async.fast_schedule(function()
-      vim.call('compe#documentation#close')
-    end)
-  end
-end
-
---- confirm
-function Source.confirm(self, completed_item)
-  if self.source.confirm then
-    self:resolve({
-      completed_item = completed_item,
-      callback = function(resolved_completed_item)
-        self.source:confirm({
-          completed_item = resolved_completed_item,
-        })
-      end
-    })
-  end
-end
-
---- normalize_items
-function Source.normalize_items(self, _, items)
+--- _normalize_items
+Source._normalize_items = function(self, _, items)
   local metadata = self:get_metadata()
 
   local normalized = {}
@@ -292,6 +314,11 @@ function Source.normalize_items(self, _, items)
     table.insert(normalized, item)
   end
   return normalized
+end
+
+Source._log = function(self, context, value)
+  print(([[[%s] %s]]):format(self.name, context.before_line))
+  print(([[[%s] %s]]):format(self.name, value))
 end
 
 return Source
