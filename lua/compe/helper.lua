@@ -102,8 +102,8 @@ Helper.convert_lsp = function(args)
     --   `class`="$0"
     --   `variable`$0
     --   `"json-props"`: "$0"
-    print((args.keyword_pattern_offset - keyword_pattern_offset) + 1)
-    word = string.match(word, '[^%s=%(%$\'"]+', (args.keyword_pattern_offset - keyword_pattern_offset) + 1)
+    local leading = (args.keyword_pattern_offset - keyword_pattern_offset)
+    word = string.match(word, '^' .. ('.'):rep(leading) .. '[^%s=%(%$\'"]+')
     abbr = string.gsub(string.gsub(abbr, '^%s*', ''), '%s*$', '')
 
     table.insert(complete_items, {

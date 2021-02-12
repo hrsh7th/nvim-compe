@@ -123,6 +123,11 @@ Completion.complete = function(manual)
 
   -- Check the new context should be completed.
   local context = Context.new({ manual = manual })
+  local is_completing = Completion._is_completing(context)
+  if is_completing and vim.call('pumvisible') == 0 then
+    Completion._show(Completion._current_offset, Completion._current_items)
+  end
+
   if Completion._context:should_complete(context) then
     if not Completion._trigger(context) then
       Completion._display(context)
@@ -265,8 +270,15 @@ Completion._should_ignore = function()
 end
 
 --- _is_completing
-Completion._is_completing = function()
-  return (0 < Completion._current_offset and Completion._current_offset <= Completion._context.col)
+Completion._is_completing = function(context)
+  for _, source in ipairs(Completion.get_sources()) do
+    if source.status ~= 'waiting' then
+      if #source:get_filtered_items(context) ~= 0 then
+        return true
+      end
+    end
+  end
+  return false
 end
 
 return Completion
