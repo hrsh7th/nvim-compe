@@ -83,10 +83,6 @@ end
 
 --- select
 Completion.select = function(args)
-  if args.index == -1 then
-    return
-  end
-
   local completed_item = Completion._current_items[(args.index == -2 and 0 or args.index) + 1]
   if completed_item then
     Completion._selected_item = completed_item
@@ -123,6 +119,8 @@ Completion.complete = function(manual)
 
   -- Check the new context should be completed.
   local context = Context.new({ manual = manual })
+
+  -- Restore pum (sometimes vim closes pum automatically).
   local is_completing = Completion._is_completing(context)
   if is_completing and vim.call('pumvisible') == 0 then
     Completion._show(Completion._current_offset, Completion._current_items)
@@ -180,63 +178,67 @@ Completion._display = function(context)
   end
 
   -- Gather items and determine start_offset
-  local start_offset = context.col
-  local items = {}
-  local items_uniq = {}
-  for _, source in ipairs(sources) do
-    local source_items = source:get_filtered_items(context)
-    local source_start_offset = source:get_start_offset()
-    if #source_items > 0 then
+  local timeout = Completion._is_completing(context) and Config.get().throttle_time or 1
+  Async.throttle('display:filter', timeout, function()
+    local start_offset = context.col
+    local items = {}
+    local items_uniq = {}
+    for _, source in ipairs(sources) do
+      local source_items = source:get_filtered_items(context)
+      local source_start_offset = source:get_start_offset()
+      if #source_items > 0 then
 
-      -- update start_offset
-      start_offset = math.min(start_offset, source_start_offset)
+        -- update start_offset
+        start_offset = math.min(start_offset, source_start_offset)
 
-      -- Fix start_offset & Handle `dup`
-      local gap = string.sub(context.before_line, start_offset, source_start_offset - 1)
-      for _, item in ipairs(source_items) do
-        if items_uniq[item.original_word] == nil or item.original_dup == 1 then
-          items_uniq[item.original_word] = true
-          item.word = gap .. item.original_word
-          item.abbr = string.rep(' ', #gap) .. item.original_abbr
-          item.kind = item.original_kind or ''
-          item.menu = item.original_menu or ''
+        -- Fix start_offset & Handle `dup`
+        local gap = string.sub(context.before_line, start_offset, source_start_offset - 1)
+        for _, item in ipairs(source_items) do
+          if items_uniq[item.original_word] == nil or item.original_dup == 1 then
+            items_uniq[item.original_word] = true
+            item.word = gap .. item.original_word
+            item.abbr = string.rep(' ', #gap) .. item.original_abbr
+            item.kind = item.original_kind or ''
+            item.menu = item.original_menu or ''
 
-          -- trim to specified width.
-          item.abbr = String.trim(item.abbr, Config.get().max_abbr_width)
-          item.kind = String.trim(item.kind, Config.get().max_kind_width)
-          item.menu = String.trim(item.menu, Config.get().max_menu_width)
-          table.insert(items, item)
+            -- trim to specified width.
+            item.abbr = String.trim(item.abbr, Config.get().max_abbr_width)
+            item.kind = String.trim(item.kind, Config.get().max_kind_width)
+            item.menu = String.trim(item.menu, Config.get().max_menu_width)
+            table.insert(items, item)
+          end
+        end
+        if source.is_triggered_by_character then
+          break
         end
       end
-      if source.is_triggered_by_character then
-        break
-      end
     end
-  end
 
-  --- Sort items
-  table.sort(items, function(item1, item2)
-    return Matcher.compare(item1, item2, Completion._history)
+    --- Sort items
+    table.sort(items, function(item1, item2)
+      return Matcher.compare(item1, item2, Completion._history)
+    end)
+
+    if #items == 0 then
+      Completion._show(0, {})
+    else
+      Completion._show(start_offset, items)
+    end
   end)
-
-  if #items == 0 then
-    Completion._show(0, {})
-  else
-    Completion._show(start_offset, items)
-  end
 end
 
 --- _show
 Completion._show = function(start_offset, items)
   Async.fast_schedule(function()
     if Completion:_should_ignore() then
-      return false
+      return
     end
 
     Completion._current_offset = start_offset
     Completion._current_items = items
 
-    if not (vim.call('pumvisible') == 0 and #items == 0) then
+    local pumvisible = vim.call('pumvisible') == 1
+    if not (not pumvisible and #items == 0) then
       local should_preselect = false
       if items[1] then
         should_preselect = should_preselect or (Config.get().preselect == 'enable' and items[1].preselect)
@@ -251,6 +253,13 @@ Completion._show = function(start_offset, items)
       end
       vim.call('complete', math.max(1, start_offset), items) -- start_offset=0 should close pum with `complete(1, [])`
       vim.cmd('set completeopt=' .. completeopt)
+
+      if not pumvisible and should_preselect then
+        Completion.select({
+          index = 0,
+          documentation = true
+        })
+      end
     end
 
     -- close documentation if needed.
