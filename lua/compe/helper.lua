@@ -59,10 +59,6 @@ Helper.convert_lsp = function(args)
       if word ~= text then
         abbr = abbr .. '~'
       end
-      -- `func`($0)
-      -- `class`="$0"
-      -- `variable`$0
-      word = string.match(text, '[^%s=%(%$]+')
     else
       word = completion_item.insertText or completion_item.label
       abbr = completion_item.label
@@ -105,6 +101,12 @@ Helper.convert_lsp = function(args)
         end
       end
     end
+
+    -- `func`($0)
+    -- `class`="$0"
+    -- `variable`$0
+    -- `"json-props": "$0"`
+    word = string.match(word, '[^%s=%(%$\'"]+', math.max(1, context.col - offset))
 
     table.insert(complete_items, {
       word = word;
