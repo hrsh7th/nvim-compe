@@ -17,6 +17,7 @@ Source.get_metadata = function(_)
   return {
     sort = false,
     priority = 10000,
+    dup = 1,
   }
 end
 

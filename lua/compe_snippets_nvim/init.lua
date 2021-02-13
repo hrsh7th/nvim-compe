@@ -9,7 +9,7 @@ end
 function Source.get_metadata(_)
   return {
     priority = 10;
-    dup = 0;
+    dup = 1;
     menu = '[Snippets]';
   }
 end

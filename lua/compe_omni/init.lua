@@ -8,7 +8,7 @@ end
 function Source.get_metadata(_)
   return {
     priority = 100;
-    dup = 0;
+    dup = 1;
     menu = '[Omni]';
   }
 end

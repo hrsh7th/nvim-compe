@@ -13,7 +13,7 @@ end
 function Source.get_metadata(self)
   return {
     priority = 1000;
-    dup = 0;
+    dup = 1;
     menu = '[LSP]';
     filetypes = { self.filetype };
   }

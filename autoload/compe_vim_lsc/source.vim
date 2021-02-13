@@ -46,6 +46,7 @@ function! s:get_metadata(server) abort
   return {
   \   'priority': 1000,
   \   'menu': '[LSP]',
+  \   'dup': 1,
   \ }
 endfunction
 

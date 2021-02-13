@@ -13,7 +13,7 @@ end
 function Source.get_metadata(_)
   return {
     priority = 100;
-    dup = false;
+    dup = 0;
     menu = '[Treesitter]';
   }
 end

@@ -5,7 +5,7 @@ local M = {}
 function M:get_metadata()
   return {
     priority = 50,
-    dup = 0,
+    dup = 1,
     menu = '[Ultisnips]',
   }
 end

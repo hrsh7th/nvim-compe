@@ -8,6 +8,7 @@ end
 function Source.get_metadata(_)
   return {
     priority = 50;
+    dup = 1,
     menu = '[Vsnip]';
   }
 end

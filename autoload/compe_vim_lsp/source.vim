@@ -50,6 +50,7 @@ function! s:get_metadata(server_name) abort
   return {
   \   'priority': 1000,
   \   'menu': '[LSP]',
+  \   'dup': 1,
   \   'filetypes': get(l:option, 'allowlist', v:null),
   \   'ignored_filetypes': get(l:option, 'blocklist', v:null),
   \ }
