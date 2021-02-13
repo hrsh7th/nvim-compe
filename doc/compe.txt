@@ -341,6 +341,7 @@ buffer              Buffer completion.
 tags                Tag completion.
 spell               Spell file completion.
 calc                Lua math expressions.
+omni                Omni completion.
 
 Neovim-specific: ~
 nvim_lsp            Neovim's builtin LSP completion.
@@ -389,6 +390,7 @@ Vimscript:
   let g:compe.source.spell = v:true
   let g:compe.source.tags = v:true
   let g:compe.source.snippets_nvim = v:true
+  let g:compe.source.omni = v:true
 <
 Lua:
 >
@@ -416,6 +418,7 @@ Lua:
       spell = true;
       tags = true;
       snippets_nvim = true;
+      omni = true;
     };
   }
 <
