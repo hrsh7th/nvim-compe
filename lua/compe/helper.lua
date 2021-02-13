@@ -107,7 +107,7 @@ Helper.convert_lsp = function(args)
 
     -- Fix overlapped prefix by filterText
     if offset_fixed then
-      local prefix = string.sub(context.before_line, keyword_pattern_offset, -1)
+      local prefix = string.sub(context.before_line, keyword_pattern_offset, args.keyword_pattern_offset - 1)
       if prefix ~= '' then
         completion_item.filterText = completion_item.filterText or word
         completion_item.filterText = prefix .. completion_item.filterText
