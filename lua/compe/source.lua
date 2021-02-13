@@ -65,7 +65,7 @@ Source.trigger = function(self, context, callback)
 
   -- Check first trigger condition.
   local empty = state.keyword_pattern_offset == 0 and state.trigger_character_offset == 0
-  local force = context.manual or self.incomplete or state.trigger_character_offset > 0
+  local force = context.manual or (self.incomplete and not empty) or state.trigger_character_offset > 0
   local count = 0
   if self.status == 'waiting' then
     -- Does not match.
@@ -86,7 +86,6 @@ Source.trigger = function(self, context, callback)
     if empty and count == 0 then
       self:clear()
     end
-
     if not force then
       return
     end
