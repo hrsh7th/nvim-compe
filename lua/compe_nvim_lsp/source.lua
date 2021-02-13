@@ -98,7 +98,7 @@ end
 --- _create_document
 function Source._create_document(self, filetype, completion_item)
   local document = {}
-  if completion_item.detail then
+  if completion_item.detail and completion_item.detail ~= '' then
     table.insert(document, '```' .. filetype)
     table.insert(document, completion_item.detail)
     table.insert(document, '```')
