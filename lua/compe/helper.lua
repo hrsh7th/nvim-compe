@@ -64,6 +64,13 @@ Helper.convert_lsp = function(args)
     end
 
     -- Fix for textEdit
+    --
+    -- 1. sumneko_lua's require completion
+    --
+    --   local Config = require'compe.| -> local Config = require'compe.config|
+    --
+    --   ※ `.` is not contained in keyword_pattern so we should fix offset. If item has `textEdit` we should use `textEdit.range.start.character`
+    --
     local offset_fixed = false
     if not offset_fixed and completion_item.textEdit then
       -- https://github.com/microsoft/vscode/blob/master/src/vs/editor/contrib/suggest/completionModel.ts#L170
@@ -79,6 +86,12 @@ Helper.convert_lsp = function(args)
     end
 
     -- Fix for leading_word
+    --
+    -- 1. tsserver's scoped module completion
+    --
+    --   import {} from '@|' -> import {} from '@babel'
+    --   ※ `@` is not contained in keyword_pattern so we should fix offset to include '@'.
+    --
     if not offset_fixed then
       -- TODO: We should check this implementation respecting what is VSCode does.
       for idx = #context.before_line, 1, -1 do
@@ -106,6 +119,12 @@ Helper.convert_lsp = function(args)
     abbr = string.gsub(string.gsub(abbr, '^%s*', ''), '%s*$', '')
 
     -- Fix overlapped prefix by filterText
+    --
+    -- 1. Clangd's `dot property access` completion
+    --
+    --   foo.foo -> foo->foo
+    --   ※ The word is `foo`. but in this case `.` is already inserted so filterText should be `.foo`
+    --
     if offset_fixed then
       local prefix = string.sub(context.before_line, keyword_pattern_offset, args.keyword_pattern_offset - 1)
       if prefix ~= '' then
