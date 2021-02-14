@@ -68,15 +68,21 @@ Source.trigger = function(self, context, callback)
   local force = context.manual or (self.incomplete and not empty) or state.trigger_character_offset > 0
   local count = 0
   if self.status == 'waiting' then
-    -- Does not match.
-    if empty then
-      return
+    if not force then
+      -- Does not match.
+      if empty then
+        return self:clear()
+      end
+
+      -- Avoid less input if context is not force.
+      local less = #(context:get_input(state.keyword_pattern_offset)) < Config.get().min_length
+      if less then
+        return self:clear()
+      end
     end
 
-    -- Avoid less input if context is not force.
-    local less = #(context:get_input(state.keyword_pattern_offset)) < Config.get().min_length
-    if less and not force then
-      return self:clear()
+    if empty then
+      state.keyword_pattern_offset = context.col
     end
 
     -- Update is_triggered_by_character

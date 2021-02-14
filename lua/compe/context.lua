@@ -7,6 +7,7 @@ function Context.new_empty()
   local context = Context.new({})
   context.lnum = -1
   context.col = -1
+  context.changedtick = -1
   return context
 end
 
