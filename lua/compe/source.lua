@@ -100,7 +100,7 @@ Source.trigger = function(self, context, callback)
     self.is_triggered_by_character = state.trigger_character_offset > 0
   end
 
-  self.status = count > 0 and 'completed' or 'processing'
+  self.status = 'processing'
   self.context = context
 
   -- Completion

@@ -127,7 +127,8 @@ Completion.complete = function(manual)
     Completion._show(Completion._current_offset, Completion._current_items)
   end
 
-  if context.manual or is_completing or Completion._context:should_auto_complete(context) then
+  local is_manual_completing = is_completing and not Config.get().autocomplete
+  if context.manual or is_manual_completing or Completion._context:should_auto_complete(context) then
     if not Completion._trigger(context) then
       Completion._display(context)
     end
@@ -300,7 +301,7 @@ end
 --- _is_completing
 Completion._is_completing = function(context)
   for _, source in ipairs(Completion.get_sources()) do
-    if source.status ~= 'waiting' then
+    if source.status == 'completed' then
       if #source:get_filtered_items(context) ~= 0 then
         return true
       end
