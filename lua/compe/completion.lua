@@ -148,7 +148,7 @@ Completion._trigger = function(context)
     local status, value = pcall(function()
       trigger = source:trigger(context, function()
           Completion._display(Context.new({}))
-      end)
+      end) or trigger
     end)
     if not status then
       Debug.log(value)
@@ -181,6 +181,8 @@ Completion._display = function(context)
     end
   end
 
+  local start_offset = Completion._get_start_offset(context)
+
   -- Gather items and determine start_offset
   local timeout = Completion._is_completing(context) and Config.get().throttle_time or 1
   Async.throttle('display:filter', timeout, function()
@@ -188,18 +190,16 @@ Completion._display = function(context)
       return false
     end
 
-    local start_offset = context.col
+    if start_offset ~= Completion._get_start_offset(context) then
+      return
+    end
+
     local items = {}
     local items_uniq = {}
     for _, source in ipairs(sources) do
       local source_items = source:get_filtered_items(context)
       local source_start_offset = source:get_start_offset()
       if #source_items > 0 then
-
-        -- update start_offset
-        start_offset = math.min(start_offset, source_start_offset)
-
-        -- Fix start_offset & Handle `dup`
         local gap = string.sub(context.before_line, start_offset, source_start_offset - 1)
         for _, item in ipairs(source_items) do
           if items_uniq[item.original_word] == nil or item.original_dup == 1 then
@@ -284,6 +284,17 @@ Completion._should_ignore = function()
   should_ignore = should_ignore or string.sub(vim.call('mode'), 1, 1) ~= 'i'
   should_ignore = should_ignore or vim.call('getbufvar', '%', '&buftype') == 'prompt'
   return should_ignore
+end
+
+--- _get_start_offset
+Completion._get_start_offset = function(context)
+  local start_offset = context.col
+  for _, source in ipairs(Completion.get_sources()) do
+    if source.status == 'completed' then
+      start_offset = math.min(start_offset, source:get_start_offset())
+    end
+  end
+  return start_offset
 end
 
 --- _is_completing

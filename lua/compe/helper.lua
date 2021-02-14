@@ -89,13 +89,13 @@ Helper.convert_lsp = function(args)
     --   import {} from '@|' -> import {} from '@babel'
     --   ※ `@` is not contained in keyword_pattern so we should fix offset to include '@'.
     --
-    if not offset_fixed then
+    if not offset_fixed and not Character.is_alnum(string.byte(word, 1)) then
       -- TODO: We should check this implementation respecting what is VSCode does.
       for idx = #context.before_line, 1, -1 do
-        local accept = true
-        accept = accept and not Character.is_white(string.byte(context.before_line, idx))
-        accept = accept and Character.match(string.byte(word, 1), string.byte(context.before_line, idx))
-        if accept then
+        if Character.is_white(string.byte(context.before_line, idx)) then
+          break
+        end
+        if Character.match(string.byte(word, 1), string.byte(context.before_line, idx)) then
           local part = string.sub(context.before_line, idx, -1)
           if string.find(word, part, 1, true) == 1 then
             keyword_pattern_offset = math.min(keyword_pattern_offset, idx)

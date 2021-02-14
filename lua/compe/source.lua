@@ -25,6 +25,7 @@ end
 
 -- clear
 Source.clear = function(self)
+  self.revision = self.revision + 1
   self.status = 'waiting'
   self.metadata = nil
   self.item_id = 0
@@ -66,40 +67,37 @@ Source.trigger = function(self, context, callback)
   -- Check first trigger condition.
   local empty = state.keyword_pattern_offset == 0 and state.trigger_character_offset == 0
   local force = context.manual or (self.incomplete and not empty) or state.trigger_character_offset > 0
-  local count = 0
-  if self.status == 'waiting' then
-    if not force then
-      -- Does not match.
-      if empty then
-        return self:clear()
-      end
-
-      -- Avoid less input if context is not force.
-      local less = #(context:get_input(state.keyword_pattern_offset)) < Config.get().min_length
-      if less then
-        return self:clear()
-      end
-    end
-
+  local short = #(context:get_input(state.keyword_pattern_offset)) < Config.get().min_length
+  if not force then
+    -- Does not match.
     if empty then
-      state.keyword_pattern_offset = context.col
+      return self:clear()
     end
 
-    -- Update is_triggered_by_character
-    self.is_triggered_by_character = state.trigger_character_offset > 0
-  else
-    count = #self:get_filtered_items(context)
-    if empty and count == 0 then
-      self:clear()
+    -- Avoid short input if context is not force.
+    if short then
+      return self:clear()
     end
-    if not force then
+
+    if self.status ~= 'waiting' then
       return
     end
+  end
 
-    -- Update is_triggered_by_character
-    if state.trigger_character_offset > 0 then
-      self.is_triggered_by_character = state.trigger_character_offset > 0
-    end
+  -- Fix for manual completion.
+  if empty then
+    state.keyword_pattern_offset = context.col
+  end
+
+  -- Reset current completion
+  local count = #self:get_filtered_items(context)
+  if empty and count == 0 then
+    self:clear()
+  end
+
+  -- Update is_triggered_by_character
+  if state.trigger_character_offset > 0 then
+    self.is_triggered_by_character = state.trigger_character_offset > 0
   end
 
   self.status = count > 0 and 'completed' or 'processing'
@@ -113,6 +111,10 @@ Source.trigger = function(self, context, callback)
     trigger_character_offset = state.trigger_character_offset;
     incomplete = self.incomplete;
     callback = Async.fast_schedule_wrap(function(result)
+      if self.context ~= context then
+        return
+      end
+
       self.revision = self.revision + 1
       self.status = 'completed'
       self.incomplete = result.incomplete or false
