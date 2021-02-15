@@ -289,13 +289,15 @@ end
 
 --- _get_start_offset
 Completion._get_start_offset = function(context)
-  local start_offset = context.col
+  local start_offset = context.col + 1
   for _, source in ipairs(Completion.get_sources()) do
     if source.status == 'completed' then
-      start_offset = math.min(start_offset, source:get_start_offset())
+      if #source:get_filtered_items(context) ~= 0 then
+        start_offset = math.min(start_offset, source:get_start_offset())
+      end
     end
   end
-  return start_offset
+  return start_offset ~= context.col + 1 and start_offset or 0
 end
 
 --- _is_completing
