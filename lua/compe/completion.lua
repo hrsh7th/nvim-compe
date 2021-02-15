@@ -110,6 +110,8 @@ Completion.close = function()
   vim.call('compe#documentation#close')
   Completion._show(0, {})
   Completion._context = Context.new({})
+  Completion._current_items = {}
+  Completion._current_offset = 0
   Completion._selected_item = nil
 end
 
@@ -294,7 +296,10 @@ Completion._get_start_offset = function(context)
   local start_offset = context.col + 1
   for _, source in ipairs(Completion.get_sources()) do
     if source.status == 'completed' then
-      if #source:get_filtered_items(context) ~= 0 then
+      local accept = true
+      accept = accept and source.context.bufnr == context.bufnr
+      accept = accept and source.context.lnum == context.lnum
+      if accept and #source:get_filtered_items(context) ~= 0 then
         start_offset = math.min(start_offset, source:get_start_offset())
       end
     end
@@ -306,7 +311,10 @@ end
 Completion._is_completing = function(context)
   for _, source in ipairs(Completion.get_sources()) do
     if source.status == 'completed' then
-      if #source:get_filtered_items(context) ~= 0 then
+      local accept = true
+      accept = accept and source.context.bufnr == context.bufnr
+      accept = accept and source.context.lnum == context.lnum
+      if accept and #source:get_filtered_items(context) ~= 0 then
         return true
       end
     end
