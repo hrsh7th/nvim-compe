@@ -72,13 +72,15 @@ Completion.confirm = function()
 
     for _, source in ipairs(Completion.get_sources()) do
       if source.id == completed_item.source_id then
-        source:confirm(completed_item)
+        source:confirm(completed_item, function()
+          Completion.close()
+        end)
         break
       end
     end
+  else
+    Completion.close()
   end
-
-  Completion.close()
 end
 
 --- select
@@ -200,7 +202,7 @@ Completion._display = function(context)
     for _, source in ipairs(sources) do
       local source_items = source:get_filtered_items(context)
       local source_start_offset = source:get_start_offset()
-      if #source_items > 0 then
+      if #source_items > 0 and start_offset == source_start_offset then
         local gap = string.sub(context.before_line, start_offset, source_start_offset - 1)
         for _, item in ipairs(source_items) do
           if items_uniq[item.original_word] == nil or item.original_dup == 1 then

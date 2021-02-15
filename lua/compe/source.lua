@@ -181,7 +181,7 @@ Source.documentation = function(self, completed_item)
 end
 
 --- confirm
-Source.confirm = function(self, completed_item)
+Source.confirm = function(self, completed_item, callback)
   if self.source.confirm then
     self:resolve({
       completed_item = completed_item,
@@ -189,8 +189,11 @@ Source.confirm = function(self, completed_item)
         self.source:confirm({
           completed_item = resolved_completed_item,
         })
+        callback()
       end
     })
+  else
+    callback()
   end
 end
 
