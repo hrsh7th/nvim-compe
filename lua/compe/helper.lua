@@ -5,20 +5,24 @@ local Helper = {}
 
 --- determine
 Helper.determine = function(context, option)
+  option = option or {}
+
   local trigger_character_offset = 0
-  if option and option.trigger_characters and context.before_char ~= ' ' then
+  if option.trigger_characters and context.before_char ~= ' ' then
     if vim.tbl_contains(option.trigger_characters, context.before_char) then
       trigger_character_offset = context.col
     end
   end
 
-  local keyword_pattern_offset
-  if option and option.keyword_pattern then
+  local keyword_pattern_offset = 0
+  if option.keyword_pattern then
     keyword_pattern_offset = Pattern.get_pattern_offset(context.before_line, option.keyword_pattern)
+  else
+    keyword_pattern_offset = Pattern.get_keyword_offset(context)
   end
 
   return {
-    keyword_pattern_offset = keyword_pattern_offset or Pattern.get_keyword_offset(context);
+    keyword_pattern_offset = keyword_pattern_offset;
     trigger_character_offset = trigger_character_offset;
   }
 end
@@ -73,9 +77,9 @@ Helper.convert_lsp = function(args)
     --
     local offset_fixed = false
     if not offset_fixed and completion_item.textEdit then
-      local idx = completion_item.textEdit.range.start.character + 1
       -- https://github.com/microsoft/vscode/blob/master/src/vs/editor/contrib/suggest/completionModel.ts#L170
       -- https://github.com/microsoft/vscode/blob/master/src/vs/editor/contrib/suggest/completionModel.ts#L195
+      local idx = completion_item.textEdit.range.start.character + 1
       if not Character.is_white(string.byte(context.before_line, idx)) then
         keyword_pattern_offset = math.min(keyword_pattern_offset, idx)
         offset_fixed = true

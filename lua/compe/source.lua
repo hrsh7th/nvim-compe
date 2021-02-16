@@ -17,7 +17,6 @@ function Source.new(name, source)
   self.id = Source.base_id
   self.name = name
   self.source = source
-  self.context = Context.new({})
   self.revision = 0
   self:clear()
   return self
@@ -34,11 +33,14 @@ Source.clear = function(self)
   self.keyword_pattern_offset = 0
   self.trigger_character_offset = 0
   self.is_triggered_by_character = false
+  self.context = Context.new({})
   self.incomplete = false
 end
 
 -- trigger
 Source.trigger = function(self, context, callback)
+  self.context = context
+
   local metadata = self:get_metadata()
 
   -- Check filetypes.
@@ -59,16 +61,20 @@ Source.trigger = function(self, context, callback)
   state.keyword_pattern_offset = state.keyword_pattern_offset == nil and 0 or state.keyword_pattern_offset
   state.keyword_pattern_offset = state.keyword_pattern_offset == 0 and state.trigger_character_offset or state.keyword_pattern_offset
 
-  -- See https://github.com/microsoft/vscode/blob/master/src/vs/editor/contrib/suggest/suggestModel.ts#L569
-  if context.col < self.keyword_pattern_offset then
-    self:clear()
-  end
-
   -- Check first trigger condition.
-  local empty = state.keyword_pattern_offset == 0 and state.trigger_character_offset == 0
-  local force = context.manual or (self.incomplete and not empty) or state.trigger_character_offset > 0
-  local short = #(context:get_input(state.keyword_pattern_offset)) < Config.get().min_length
-  if not force then
+  local count = #self:get_filtered_items(context)
+  local short = #context:get_input(state.keyword_pattern_offset) < Config.get().min_length
+  local empty = (function()
+    if context.is_trigger_character_only then
+      return state.trigger_character_offset == 0
+    end
+    return state.keyword_pattern_offset == 0 and state.trigger_character_offset == 0
+  end)()
+
+  local incomplete = self.incomplete and not empty
+  local characters = state.trigger_character_offset > 0
+
+  if not (characters or incomplete) then
     -- Does not match.
     if empty then
       return self:clear()
@@ -84,13 +90,12 @@ Source.trigger = function(self, context, callback)
     end
   end
 
-  -- Fix for manual completion.
+  -- Fix keyword_pattern_offset
   if empty then
     state.keyword_pattern_offset = context.col
   end
 
   -- Reset current completion
-  local count = #self:get_filtered_items(context)
   if empty and count == 0 then
     self:clear()
   end
@@ -101,7 +106,6 @@ Source.trigger = function(self, context, callback)
   end
 
   self.status = 'processing'
-  self.context = context
 
   -- Completion
   self.source:complete({
@@ -115,12 +119,25 @@ Source.trigger = function(self, context, callback)
         return
       end
 
+      local prev = {}
+      prev.items = self.items
+      prev.keyword_pattern_offset = self.keyword_pattern_offset
+      prev.trigger_character_offset = self.trigger_character_offset
+
       self.revision = self.revision + 1
       self.status = 'completed'
       self.incomplete = result.incomplete or false
       self.items = self.incomplete and #result.items == 0 and self.items or self:_normalize_items(context, result.items or {})
       self.keyword_pattern_offset = result.keyword_pattern_offset or state.keyword_pattern_offset
       self.trigger_character_offset = state.trigger_character_offset
+
+      if count ~= 0 and #self:get_filtered_items(context) == 0 then
+        self.items = prev.items
+        self.keyword_pattern_offset = prev.keyword_pattern_offset
+        self.trigger_character_offset = prev.trigger_character_offset
+        self.revision = self.revision + 1
+      end
+
       callback()
     end);
     abort = Async.fast_schedule_wrap(function()
@@ -273,7 +290,7 @@ Source._normalize_items = function(self, _, items)
   local metadata = self:get_metadata()
 
   local normalized = {}
-  for _, item in pairs(items) do
+  for _, item in ipairs(items) do
     self.item_id = self.item_id + 1
 
     -- string to completed_item

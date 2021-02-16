@@ -74,6 +74,7 @@ Completion.confirm = function()
       if source.id == completed_item.source_id then
         source:confirm(completed_item, function()
           Completion.close()
+          Completion.complete({ trigger_character_only = true })
         end)
         break
       end
@@ -109,37 +110,37 @@ Completion.close = function()
   VimBridge.clear()
   vim.call('compe#documentation#close')
   Completion._show(0, {})
-  Completion._context = Context.new({})
   Completion._current_items = {}
   Completion._current_offset = 0
   Completion._selected_item = nil
 end
 
 --- complete
-Completion.complete = function(manual)
+Completion.complete = function(option)
   if Completion:_should_ignore() then
     Async.throttle('display:filter', 0, function() end)
     return
   end
 
   -- Check the new context should be completed.
-  local context = Context.new({ manual = manual })
+  local context = Completion._new_context(option)
 
   -- Restore pum (sometimes vim closes pum automatically).
   local is_completing = Completion._is_completing(context)
-  if is_completing and vim.call('pumvisible') == 0 then
-    Completion._show(Completion._current_offset, Completion._current_items)
-  end
-
   local is_manual_completing = is_completing and not Config.get().autocomplete
-  if context.manual or is_manual_completing or Completion._context:should_auto_complete(context) then
+  if is_manual_completing or context:should_auto_complete() then
     if not Completion._trigger(context) then
       Completion._display(context)
     end
-  else
-    vim.call('compe#documentation#close')
+  elseif is_completing then
+    Completion._display(context)
   end
-  Completion._context = context
+end
+
+--- _new_context
+Completion._new_context = function(option)
+  Completion._context = Context.new(option, Completion._context)
+  return Completion._context
 end
 
 --- _trigger
@@ -150,14 +151,9 @@ Completion._trigger = function(context)
 
   local trigger = false
   for _, source in ipairs(Completion.get_sources()) do
-    local status, value = pcall(function()
-      trigger = source:trigger(context, function()
-          Completion._display(Context.new({}))
-      end) or trigger
-    end)
-    if not status then
-      Debug.log(value)
-    end
+    trigger = source:trigger(context, function()
+        Completion._display(context)
+    end) or trigger
   end
   return trigger
 end
@@ -168,6 +164,7 @@ Completion._display = function(context)
     Async.throttle('display:filter', 0, function() end)
     return false
   end
+  local is_completing = Completion._is_completing(context)
 
   -- Check for processing source.
   local sources = {}
@@ -189,7 +186,7 @@ Completion._display = function(context)
   local start_offset = Completion._get_start_offset(context)
 
   -- Gather items and determine start_offset
-  local timeout = Completion._is_completing(context) and Config.get().throttle_time or 1
+  local timeout = is_completing and vim.call('pumvisible') == 1 and Config.get().throttle_time or 0
   Async.throttle('display:filter', timeout, function()
     if Completion:_should_ignore() then
       return false
@@ -242,7 +239,7 @@ end
 
 --- _show
 Completion._show = function(start_offset, items)
-  Async.fast_schedule(function()
+  Async.fast_schedule(Async.guard('Completion._show', function()
     if Completion:_should_ignore() then
       return
     end
@@ -277,15 +274,17 @@ Completion._show = function(start_offset, items)
 
     -- close documentation if needed.
     if start_offset == 0 or #items == 0 then
+      print('close')
       vim.call('compe#documentation#close')
     end
-  end)
+  end))
 end
 
 --- _should_ignore
 Completion._should_ignore = function()
   local should_ignore = false
   should_ignore = should_ignore or vim.call('compe#_is_selected_manually')
+  should_ignore = should_ignore or vim.call('compe#_is_confirming')
   should_ignore = should_ignore or string.sub(vim.call('mode'), 1, 1) ~= 'i'
   should_ignore = should_ignore or vim.call('getbufvar', '%', '&buftype') == 'prompt'
   return should_ignore
@@ -299,13 +298,15 @@ Completion._get_start_offset = function(context)
       local accept = true
       accept = accept and source.context.bufnr == context.bufnr
       accept = accept and source.context.lnum == context.lnum
-      if accept and #source:get_filtered_items(context) ~= 0 then
+      accept = accept and #source:get_filtered_items(context) ~= 0
+      if accept then
         start_offset = math.min(start_offset, source:get_start_offset())
       end
     end
   end
   return start_offset ~= context.col + 1 and start_offset or 0
 end
+
 
 --- _is_completing
 Completion._is_completing = function(context)
@@ -314,7 +315,8 @@ Completion._is_completing = function(context)
       local accept = true
       accept = accept and source.context.bufnr == context.bufnr
       accept = accept and source.context.lnum == context.lnum
-      if accept and #source:get_filtered_items(context) ~= 0 then
+      accept = accept and #source:get_filtered_items(context) ~= 0
+      if accept then
         return true
       end
     end

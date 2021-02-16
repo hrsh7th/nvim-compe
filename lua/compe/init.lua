@@ -61,7 +61,7 @@ end
 
 --- _complete
 compe._complete = enable(function()
-  Completion.complete(true)
+  Completion.complete({ manual = true })
   return ''
 end)
 
@@ -98,7 +98,7 @@ end))
 
 --- _on_text_changed
 compe._on_text_changed = enable(suppress(function()
-  Completion.complete(false)
+  Completion.complete({})
 end))
 
 --- _on_complete_changed
