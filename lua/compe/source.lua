@@ -34,6 +34,7 @@ Source.clear = function(self)
   self.trigger_character_offset = 0
   self.is_triggered_by_character = false
   self.context = Context.new({})
+  self.request_time = vim.loop.now()
   self.incomplete = false
 end
 
@@ -71,10 +72,17 @@ Source.trigger = function(self, context, callback)
     return state.keyword_pattern_offset == 0 and state.trigger_character_offset == 0
   end)()
 
-  local incomplete = self.incomplete and not empty
+  local manual = context.manual
+  local incomplete = self.incomplete and not empty and (vim.loop.now() - self.request_time) > Config.get().incomplete_delay
   local characters = state.trigger_character_offset > 0
 
-  if not (characters or incomplete) then
+  -- if self.status == 'completed' then
+  --   if context.col == self.keyword_pattern_offset then
+  --     return self:clear()
+  --   end
+  -- end
+
+  if not (manual or characters or incomplete) then
     -- Does not match.
     if empty then
       return self:clear()
@@ -106,6 +114,7 @@ Source.trigger = function(self, context, callback)
   end
 
   self.status = 'processing'
+  self.request_time = vim.loop.now()
 
   -- Completion
   self.source:complete({
@@ -119,24 +128,17 @@ Source.trigger = function(self, context, callback)
         return
       end
 
-      local prev = {}
-      prev.items = self.items
-      prev.keyword_pattern_offset = self.keyword_pattern_offset
-      prev.trigger_character_offset = self.trigger_character_offset
+      if incomplete and #result.items == 0 then
+        self.items = self.items
+      else
+        self.items = self:_normalize_items(context, result.items)
+      end
 
       self.revision = self.revision + 1
       self.status = 'completed'
       self.incomplete = result.incomplete or false
-      self.items = self.incomplete and #result.items == 0 and self.items or self:_normalize_items(context, result.items or {})
       self.keyword_pattern_offset = result.keyword_pattern_offset or state.keyword_pattern_offset
       self.trigger_character_offset = state.trigger_character_offset
-
-      if count ~= 0 and #self:get_filtered_items(context) == 0 then
-        self.items = prev.items
-        self.keyword_pattern_offset = prev.keyword_pattern_offset
-        self.trigger_character_offset = prev.trigger_character_offset
-        self.revision = self.revision + 1
-      end
 
       callback()
     end);
@@ -227,11 +229,6 @@ Source.get_metadata = function(self)
   return metadata
 end
 
---- get_start_offset
-Source.get_start_offset = function(self)
-  return self.keyword_pattern_offset or 0
-end
-
 --- get_filtered_items
 Source.get_filtered_items = function(self, context)
   local start_offset = self:get_start_offset()
@@ -280,9 +277,23 @@ end
 --- get_processing_time
 Source.get_processing_time = function(self)
   if self.status == 'processing' then
-    return vim.loop.now() - self.context.time
+    return vim.loop.now() - self.request_time
   end
-  return 0
+  return Config.get().source_timeout + 1
+end
+
+--- get_start_offset
+Source.get_start_offset = function(self)
+  return self.keyword_pattern_offset or 0
+end
+
+--- is_completing
+Source.is_completing = function(self, context)
+  local is_completing = true
+  is_completing = is_completing and self.context.bufnr == context.bufnr
+  is_completing = is_completing and self.context.lnum == context.lnum
+  is_completing = self.status == 'completed' or (self.incomplete and self.status == 'processing')
+  return is_completing
 end
 
 --- _normalize_items

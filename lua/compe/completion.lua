@@ -117,38 +117,26 @@ end
 
 --- complete
 Completion.complete = function(option)
-  if Completion:_should_ignore() then
+  local context = Completion._new_context(option)
+  if context:should_ignore() then
     Async.throttle('display:filter', 0, function() end)
     return
   end
 
-  -- Check the new context should be completed.
-  local context = Completion._new_context(option)
 
   -- Restore pum (sometimes vim closes pum automatically).
-  local is_completing = Completion._is_completing(context)
-  local is_manual_completing = is_completing and not Config.get().autocomplete
+  local is_manual_completing = context.is_completing and not Config.get().autocomplete
   if is_manual_completing or context:should_auto_complete() then
     if not Completion._trigger(context) then
       Completion._display(context)
     end
-  elseif is_completing then
+  elseif context.is_completing then
     Completion._display(context)
   end
 end
 
---- _new_context
-Completion._new_context = function(option)
-  Completion._context = Context.new(option, Completion._context)
-  return Completion._context
-end
-
 --- _trigger
 Completion._trigger = function(context)
-  if Completion:_should_ignore() then
-    return false
-  end
-
   local trigger = false
   for _, source in ipairs(Completion.get_sources()) do
     trigger = source:trigger(context, function()
@@ -160,90 +148,61 @@ end
 
 --- _display
 Completion._display = function(context)
-  if Completion:_should_ignore() then
+  if context:should_ignore() then
     Async.throttle('display:filter', 0, function() end)
     return false
   end
-  local is_completing = Completion._is_completing(context)
 
   -- Check for processing source.
   local sources = {}
-  Async.debounce('display:processing', 0, function() end)
   for _, source in ipairs(Completion.get_sources()) do
-    if source.status == 'processing' then
-      local processing_timeout = Config.get().source_timeout - source:get_processing_time()
-      if processing_timeout > 0 then
-        Async.debounce('display:processing', processing_timeout + 1, function()
-          Completion._display(context)
-        end)
-        return
-      end
-    elseif source.status == 'completed' then
+    if source:is_completing(context) then
       table.insert(sources, source)
     end
   end
 
   local start_offset = Completion._get_start_offset(context)
+  local items = {}
+  local items_uniq = {}
+  for _, source in ipairs(sources) do
+    local source_items = source:get_filtered_items(context)
+    if #source_items > 0 and start_offset == source:get_start_offset() then
+      for _, item in ipairs(source_items) do
+        if items_uniq[item.original_word] == nil or item.original_dup == 1 then
+          items_uniq[item.original_word] = true
+          item.word = item.original_word
+          item.abbr = item.original_abbr
+          item.kind = item.original_kind or ''
+          item.menu = item.original_menu or ''
 
-  -- Gather items and determine start_offset
-  local timeout = is_completing and vim.call('pumvisible') == 1 and Config.get().throttle_time or 0
-  Async.throttle('display:filter', timeout, function()
-    if Completion:_should_ignore() then
-      return false
-    end
-
-    if start_offset ~= Completion._get_start_offset(context) then
-      return
-    end
-
-    local items = {}
-    local items_uniq = {}
-    for _, source in ipairs(sources) do
-      local source_items = source:get_filtered_items(context)
-      local source_start_offset = source:get_start_offset()
-      if #source_items > 0 and start_offset == source_start_offset then
-        local gap = string.sub(context.before_line, start_offset, source_start_offset - 1)
-        for _, item in ipairs(source_items) do
-          if items_uniq[item.original_word] == nil or item.original_dup == 1 then
-            items_uniq[item.original_word] = true
-            item.word = gap .. item.original_word
-            item.abbr = string.rep(' ', #gap) .. item.original_abbr
-            item.kind = item.original_kind or ''
-            item.menu = item.original_menu or ''
-
-            -- trim to specified width.
-            item.abbr = String.trim(item.abbr, Config.get().max_abbr_width)
-            item.kind = String.trim(item.kind, Config.get().max_kind_width)
-            item.menu = String.trim(item.menu, Config.get().max_menu_width)
-            table.insert(items, item)
-          end
-        end
-        if source.is_triggered_by_character then
-          break
+          -- trim to specified width.
+          item.abbr = String.trim(item.abbr, Config.get().max_abbr_width)
+          item.kind = String.trim(item.kind, Config.get().max_kind_width)
+          item.menu = String.trim(item.menu, Config.get().max_menu_width)
+          table.insert(items, item)
         end
       end
+      if source.is_triggered_by_character then
+        break
+      end
     end
+  end
 
-    --- Sort items
-    table.sort(items, function(item1, item2)
-      return Matcher.compare(item1, item2, Completion._history)
-    end)
-
-    if #items == 0 then
-      Completion._show(0, {})
-    else
-      Completion._show(start_offset, items)
-    end
+  --- Sort items
+  table.sort(items, function(item1, item2)
+    return Matcher.compare(item1, item2, Completion._history)
   end)
+
+  if #items == 0 then
+    Completion._show(0, {})
+  else
+    Completion._show(start_offset, items)
+  end
 end
 
 --- _show
 Completion._show = function(start_offset, items)
   Async.fast_schedule(Async.guard('Completion._show', function()
-    if Completion:_should_ignore() then
-      return
-    end
-
     Completion._current_offset = start_offset
     Completion._current_items = items
 
@@ -274,54 +233,39 @@ Completion._show = function(start_offset, items)
 
     -- close documentation if needed.
     if start_offset == 0 or #items == 0 then
-      print('close')
       vim.call('compe#documentation#close')
     end
   end))
 end
 
---- _should_ignore
-Completion._should_ignore = function()
-  local should_ignore = false
-  should_ignore = should_ignore or vim.call('compe#_is_selected_manually')
-  should_ignore = should_ignore or vim.call('compe#_is_confirming')
-  should_ignore = should_ignore or string.sub(vim.call('mode'), 1, 1) ~= 'i'
-  should_ignore = should_ignore or vim.call('getbufvar', '%', '&buftype') == 'prompt'
-  return should_ignore
+--- _new_context
+Completion._new_context = function(option)
+  Completion._context = Context.new(option, Completion._context)
+  local context = Completion._context
+  context.is_completing = Completion._is_completing(context)
+  context.start_offset = Completion._get_start_offset(context)
+  return context
+end
+
+--- _is_completing
+Completion._is_completing = function(context)
+  for _, source in ipairs(Completion.get_sources()) do
+    if source:is_completing(context) then
+      return true
+    end
+  end
+  return false
 end
 
 --- _get_start_offset
 Completion._get_start_offset = function(context)
   local start_offset = context.col + 1
   for _, source in ipairs(Completion.get_sources()) do
-    if source.status == 'completed' then
-      local accept = true
-      accept = accept and source.context.bufnr == context.bufnr
-      accept = accept and source.context.lnum == context.lnum
-      accept = accept and #source:get_filtered_items(context) ~= 0
-      if accept then
-        start_offset = math.min(start_offset, source:get_start_offset())
-      end
+    if source:is_completing(context) then
+      start_offset = math.min(start_offset, source:get_start_offset())
     end
   end
   return start_offset ~= context.col + 1 and start_offset or 0
-end
-
-
---- _is_completing
-Completion._is_completing = function(context)
-  for _, source in ipairs(Completion.get_sources()) do
-    if source.status == 'completed' then
-      local accept = true
-      accept = accept and source.context.bufnr == context.bufnr
-      accept = accept and source.context.lnum == context.lnum
-      accept = accept and #source:get_filtered_items(context) ~= 0
-      if accept then
-        return true
-      end
-    end
-  end
-  return false
 end
 
 return Completion

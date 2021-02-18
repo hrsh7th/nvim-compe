@@ -79,6 +79,9 @@ Helper.convert_lsp = function(args)
     if not offset_fixed and completion_item.textEdit then
       -- https://github.com/microsoft/vscode/blob/master/src/vs/editor/contrib/suggest/completionModel.ts#L170
       -- https://github.com/microsoft/vscode/blob/master/src/vs/editor/contrib/suggest/completionModel.ts#L195
+      -- TODO: This implementation aligned to following cases.
+      -- 1. html-language-server's closing tag's textEdit
+      -- 2. clangd's dot-property accessing
       local idx = completion_item.textEdit.range.start.character + 1
       if not Character.is_white(string.byte(context.before_line, idx)) then
         keyword_pattern_offset = math.min(keyword_pattern_offset, idx)
