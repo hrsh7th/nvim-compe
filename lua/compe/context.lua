@@ -31,24 +31,6 @@ Context.new = function(option, prev_context)
   return self
 end
 
---- should_ignore
-Context.should_ignore = function(self)
-  if self.is_trigger_character_only then
-    return false
-  end
-  if self.manual then
-    return false
-  end
-
-  local should_ignore = false
-  should_ignore = should_ignore or vim.call('compe#_is_selected_manually')
-  should_ignore = should_ignore or vim.call('compe#_is_confirming')
-  should_ignore = should_ignore or string.sub(vim.call('mode'), 1, 1) ~= 'i'
-  should_ignore = should_ignore or vim.call('getbufvar', '%', '&buftype') == 'prompt'
-  should_ignore = should_ignore or (self.bufnr == self.prev_context.bufnr and self.changedtick == self.prev_context.changedtick)
-  return should_ignore
-end
-
 --- should_complete
 Context.should_auto_complete = function(self)
   if self.manual then
@@ -61,6 +43,9 @@ Context.should_auto_complete = function(self)
     return false
   end
   if self:maybe_backspace() then
+    return false
+  end
+  if self.bufnr == self.prev_context.bufnr and self.changedtick == self.prev_context.changedtick then
     return false
   end
   return self.lnum ~= self.prev_context.lnum or self.col ~= self.prev_context.col

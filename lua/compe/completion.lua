@@ -6,6 +6,20 @@ local Context = require'compe.context'
 local Matcher = require'compe.matcher'
 local VimBridge = require'compe.vim_bridge'
 
+--- guard
+local guard = function(callback)
+  return function(...)
+    local invalid = false
+    invalid = invalid or vim.call('compe#_is_selected_manually')
+    invalid = invalid or vim.call('compe#_is_confirming')
+    invalid = invalid or string.sub(vim.call('mode'), 1, 1) ~= 'i'
+    invalid = invalid or vim.call('getbufvar', '%', '&buftype') == 'prompt'
+    if not invalid then
+      callback(...)
+    end
+  end
+end
+
 local Completion = {}
 
 Completion._get_sources_cache_key = 0
@@ -115,13 +129,8 @@ Completion.close = function()
 end
 
 --- complete
-Completion.complete = function(option)
+Completion.complete = guard(function(option)
   local context = Completion._new_context(option)
-  if context:should_ignore() then
-    Async.throttle('display:filter', 0, function() end)
-    return
-  end
-
   local is_manual_completing = context.is_completing and not Config.get().autocomplete
   local is_completing_backspace = context.is_completing and context:maybe_backspace()
   if is_manual_completing or is_completing_backspace or context:should_auto_complete() then
@@ -133,7 +142,7 @@ Completion.complete = function(option)
     end
     Completion._display(context)
   end
-end
+end)
 
 --- _trigger
 Completion._trigger = function(context)
@@ -149,28 +158,19 @@ Completion._trigger = function(context)
 end
 
 --- _display
-Completion._display = function(context)
-  if context:should_ignore() then
-    Async.throttle('display:filter', 0, function() end)
-    return false
-  end
-
+Completion._display = guard(function(context)
   -- Check completing sources.
   local sources = {}
   for _, source in ipairs(Completion.get_sources()) do
-    if source:is_completing(context) then
-      table.insert(sources, source)
-    end
-  end
-
-  --- Check processing sources.
-  for _, source in ipairs(sources) do
     local timeout = Config.get().source_timeout - source:get_processing_time()
     if timeout > 0 then
       Async.set_timeout(function()
-        Completion.complete({})
+        Completion._display(Completion._new_context({}))
       end, timeout + 1)
       return
+    end
+    if source:is_completing(context) then
+      table.insert(sources, source)
     end
   end
 
@@ -211,11 +211,11 @@ Completion._display = function(context)
   else
     Completion._show(start_offset, items)
   end
-end
+end)
 
 --- _show
 Completion._show = function(start_offset, items)
-  Async.fast_schedule(Async.guard('Completion._show', function()
+  Async.fast_schedule(Async.guard('Completion._show', guard(function()
     Completion._current_offset = start_offset
     Completion._current_items = items
 
@@ -249,7 +249,7 @@ Completion._show = function(start_offset, items)
       print('close')
       vim.call('compe#documentation#close')
     end
-  end))
+  end)))
 end
 
 --- _new_context
