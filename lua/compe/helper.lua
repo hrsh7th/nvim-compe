@@ -83,8 +83,8 @@ Helper.convert_lsp = function(args)
       -- 1. html-language-server's closing tag's textEdit
       -- 2. clangd's dot-property accessing
       local idx = completion_item.textEdit.range.start.character + 1
-      if not Character.is_white(string.byte(context.before_line, idx)) then
-        keyword_pattern_offset = math.min(keyword_pattern_offset, idx)
+      if string.find(word, string.sub(context.before_line, idx, -1), 1, true) == 1 then
+        keyword_pattern_offset = idx
         offset_fixed = true
       end
     end
@@ -105,35 +105,11 @@ Helper.convert_lsp = function(args)
         if Character.match(string.byte(word, 1), string.byte(context.before_line, idx)) then
           local part = string.sub(context.before_line, idx, -1)
           if string.find(word, part, 1, true) == 1 then
-            keyword_pattern_offset = math.min(keyword_pattern_offset, idx)
+            keyword_pattern_offset = idx
             offset_fixed = true
             break
           end
         end
-      end
-    end
-
-    -- Remove invalid chars from word without already allowed range.
-    --   `func`($0)
-    --   `class`="$0"
-    --   `variable`$0
-    --   `"json-props"`: "$0"
-    local leading = (args.keyword_pattern_offset - keyword_pattern_offset)
-    word = string.match(word, ('.'):rep(leading) .. '[^%s=%(%$\'"]+') or ''
-    abbr = string.gsub(string.gsub(abbr, '^%s*', ''), '%s*$', '')
-
-    -- Fix overlapped prefix by filterText
-    --
-    -- 1. Clangd's `dot property access` completion
-    --
-    --   foo.foo -> foo->foo
-    --   ※ The word is `foo`. but in this case `.` is already inserted so filterText should be `.foo`
-    --
-    if offset_fixed then
-      local prefix = string.sub(context.before_line, keyword_pattern_offset, args.keyword_pattern_offset - 1)
-      if prefix ~= '' then
-        completion_item.filterText = completion_item.filterText or word
-        completion_item.filterText = prefix .. completion_item.filterText
       end
     end
 
@@ -150,13 +126,29 @@ Helper.convert_lsp = function(args)
       filter_text = completion_item.filterText or nil;
       sort_text = completion_item.sortText or nil;
       preselect = completion_item.preselect or false;
+      offset = keyword_pattern_offset;
+      offset_fixed = offset_fixed;
     })
+  end
+
+  -- Remove invalid chars from word without already allowed range.
+  --   `func`($0)
+  --   `class`="$0"
+  --   `variable`$0
+  --   `"json-props"`: "$0"
+
+  local fixed_offset = args.keyword_pattern_offset
+  for _, complete_item in ipairs(complete_items) do
+    local leading = (args.keyword_pattern_offset - complete_item.offset)
+    complete_item.word = string.match(complete_item.word, ('.'):rep(leading) .. '[^%s=%(%$\'"]+') or ''
+    complete_item.abbr = string.gsub(string.gsub(complete_item.abbr, '^%s*', ''), '%s*$', '')
+    fixed_offset = math.min(fixed_offset, complete_item.offset)
   end
 
   return {
     items = complete_items,
     incomplete = response.isIncomplete or false,
-    keyword_pattern_offset = keyword_pattern_offset,
+    keyword_pattern_offset = fixed_offset,
   }
 end
 

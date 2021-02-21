@@ -33,9 +33,10 @@ Source.clear = function(self)
   self.keyword_pattern_offset = 0
   self.trigger_character_offset = 0
   self.is_triggered_by_character = false
-  self.context = Context.new({})
+  self.context = Context.new_empty()
   self.request_time = vim.loop.now()
   self.incomplete = false
+  return false
 end
 
 -- trigger
@@ -56,13 +57,20 @@ Source.trigger = function(self, context, callback)
     end
   end
 
+  -- Clear current completion if all filter words removed.
+  if self.status == 'completed' then
+    if context.col == self.keyword_pattern_offset then
+      self:clear()
+    end
+  end
+
   -- Normalize trigger offsets
   local state = self.source:determine(context)
   state.trigger_character_offset = state.trigger_character_offset == nil and 0 or state.trigger_character_offset
   state.keyword_pattern_offset = state.keyword_pattern_offset == nil and 0 or state.keyword_pattern_offset
   state.keyword_pattern_offset = state.keyword_pattern_offset == 0 and state.trigger_character_offset or state.keyword_pattern_offset
 
-  -- Check first trigger condition.
+  -- Detect some trigger conditions.
   local count = #self:get_filtered_items(context)
   local short = #context:get_input(state.keyword_pattern_offset) < Config.get().min_length
   local empty = (function()
@@ -72,45 +80,44 @@ Source.trigger = function(self, context, callback)
     return state.keyword_pattern_offset == 0 and state.trigger_character_offset == 0
   end)()
 
+  -- Detect completion trigger reason.
   local manual = context.manual
-  local incomplete = self.incomplete and not empty and (vim.loop.now() - self.request_time) > Config.get().incomplete_delay
   local characters = state.trigger_character_offset > 0
+  local incomplete = self.incomplete and not empty
 
-  -- if self.status == 'completed' then
-  --   if context.col == self.keyword_pattern_offset then
-  --     return self:clear()
-  --   end
-  -- end
-
+  -- Handle completion reason.
   if not (manual or characters or incomplete) then
     -- Does not match.
-    if empty then
+    if empty and count == 0 then
       return self:clear()
     end
 
-    -- Avoid short input if context is not force.
+    -- Avoid short input.
     if short then
       return self:clear()
     end
 
+    -- Stay completed or processing state.
     if self.status ~= 'waiting' then
-      return
+      return false
     end
   end
 
-  -- Fix keyword_pattern_offset
-  if empty then
-    state.keyword_pattern_offset = context.col
+  if manual then
+    if state.keyword_pattern_offset == 0 then
+      state.keyword_pattern_offset = context.col
+    end
   end
-
-  -- Reset current completion
-  if empty and count == 0 then
-    self:clear()
+  if characters then
+    self.is_triggered_by_character = true
   end
-
-  -- Update is_triggered_by_character
-  if state.trigger_character_offset > 0 then
-    self.is_triggered_by_character = state.trigger_character_offset > 0
+  if incomplete then
+    if not (manual or characters) then
+      -- Skip for incomplete completion.
+      if (vim.loop.now() - self.request_time) < Config.get().incomplete_delay then
+        return
+      end
+    end
   end
 
   self.status = 'processing'
@@ -123,10 +130,9 @@ Source.trigger = function(self, context, callback)
     keyword_pattern_offset = state.keyword_pattern_offset;
     trigger_character_offset = state.trigger_character_offset;
     incomplete = self.incomplete;
-    callback = Async.fast_schedule_wrap(function(result)
-      if self.context ~= context then
-        return
-      end
+    callback = Async.fast_schedule_wrap(Async.guard(self.id .. ':complete', function(result)
+      -- Reset for new completion.
+      result.keyword_pattern_offset = result.keyword_pattern_offset or state.keyword_pattern_offset
 
       if incomplete and #result.items == 0 then
         self.items = self.items
@@ -137,11 +143,11 @@ Source.trigger = function(self, context, callback)
       self.revision = self.revision + 1
       self.status = 'completed'
       self.incomplete = result.incomplete or false
-      self.keyword_pattern_offset = result.keyword_pattern_offset or state.keyword_pattern_offset
+      self.keyword_pattern_offset = result.keyword_pattern_offset
       self.trigger_character_offset = state.trigger_character_offset
 
       callback()
-    end);
+    end));
     abort = Async.fast_schedule_wrap(function()
       self:clear()
       callback()

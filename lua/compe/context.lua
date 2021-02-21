@@ -60,6 +60,9 @@ Context.should_auto_complete = function(self)
   if not Config.get().autocomplete then
     return false
   end
+  if self:maybe_backspace() then
+    return false
+  end
   return self.lnum ~= self.prev_context.lnum or self.col ~= self.prev_context.col
 end
 

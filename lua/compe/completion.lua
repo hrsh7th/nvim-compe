@@ -1,4 +1,3 @@
-local Debug = require'compe.utils.debug'
 local Async = require'compe.utils.async'
 local Cache = require'compe.utils.cache'
 local String = require'compe.utils.string'
@@ -123,14 +122,15 @@ Completion.complete = function(option)
     return
   end
 
-
-  -- Restore pum (sometimes vim closes pum automatically).
   local is_manual_completing = context.is_completing and not Config.get().autocomplete
-  if is_manual_completing or context:should_auto_complete() then
-    if not Completion._trigger(context) then
-      Completion._display(context)
+  local is_completing_backspace = context.is_completing and context:maybe_backspace()
+  if is_manual_completing or is_completing_backspace or context:should_auto_complete() then
+    Completion._trigger(context)
+  end
+  if context.is_completing then
+    if vim.call('pumvisible') == 0 then
+      Completion._show(Completion._current_offset, Completion._current_items)
     end
-  elseif context.is_completing then
     Completion._display(context)
   end
 end
@@ -140,7 +140,9 @@ Completion._trigger = function(context)
   local trigger = false
   for _, source in ipairs(Completion.get_sources()) do
     trigger = source:trigger(context, function()
-        Completion._display(context)
+      Async.debounce('Completion._trigger:callback', 10, function()
+        Completion._display(Completion._new_context({}))
+      end)
     end) or trigger
   end
   return trigger
@@ -153,11 +155,22 @@ Completion._display = function(context)
     return false
   end
 
-  -- Check for processing source.
+  -- Check completing sources.
   local sources = {}
   for _, source in ipairs(Completion.get_sources()) do
     if source:is_completing(context) then
       table.insert(sources, source)
+    end
+  end
+
+  --- Check processing sources.
+  for _, source in ipairs(sources) do
+    local timeout = Config.get().source_timeout - source:get_processing_time()
+    if timeout > 0 then
+      Async.set_timeout(function()
+        Completion.complete({})
+      end, timeout + 1)
+      return
     end
   end
 
@@ -233,6 +246,7 @@ Completion._show = function(start_offset, items)
 
     -- close documentation if needed.
     if start_offset == 0 or #items == 0 then
+      print('close')
       vim.call('compe#documentation#close')
     end
   end))
