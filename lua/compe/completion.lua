@@ -151,6 +151,8 @@ end)
 
 --- _trigger
 Completion._trigger = function(context)
+  Async.debounce('Completion._trigger:callback', 0, function() end)
+
   local trigger = false
   for _, source in ipairs(Completion.get_sources()) do
     trigger = source:trigger(context, function()
@@ -164,14 +166,16 @@ end
 
 --- _display
 Completion._display = guard(function(context)
+  Async.debounce('Completion._display', 0, function() end)
+
   -- Check completing sources.
   local sources = {}
   for _, source in ipairs(Completion.get_sources()) do
     local timeout = Config.get().source_timeout - source:get_processing_time()
     if timeout > 0 then
-      Async.set_timeout(function()
+      Async.debounce('Completion._display', timeout + 1, function()
         Completion._display(Completion._new_context({}))
-      end, timeout + 1)
+      end)
       return
     end
     if source:is_completing(context) then
