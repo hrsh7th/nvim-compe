@@ -35,6 +35,7 @@ Source.clear = function(self)
   self.is_triggered_by_character = false
   self.context = Context.new_empty()
   self.request_time = vim.loop.now()
+  self.request_state = {}
   self.incomplete = false
   return false
 end
@@ -104,7 +105,9 @@ Source.trigger = function(self, context, callback)
 
     -- Stay completed or processing state.
     if self.status ~= 'waiting' then
-      return false
+      if self.request_state.keyword_pattern_offset == state.keyword_pattern_offset then
+        return false
+      end
     end
   end
 
@@ -127,6 +130,7 @@ Source.trigger = function(self, context, callback)
 
   self.status = 'processing'
   self.request_time = vim.loop.now()
+  self.request_state = state
 
   -- Completion
   self.source:complete({
