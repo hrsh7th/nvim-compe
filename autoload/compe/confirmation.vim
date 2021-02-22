@@ -6,6 +6,7 @@ let s:CompletionItem = vital#compe#import('VS.LSP.CompletionItem')
 " compe#confirmation#lsp
 "
 function! compe#confirmation#lsp(args) abort
+  echomsg string(a:args)
   let l:completed_item = a:args.completed_item
   let l:completion_item = a:args.completion_item
   let l:current_position = s:Position.cursor()
