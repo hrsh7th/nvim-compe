@@ -214,7 +214,7 @@ Completion._display = guard(function(context)
   if #items == 0 then
     Completion._show(0, {}, {})
   else
-    Completion._show(start_offset, items, { immediate = context:maybe_backspace() })
+    Completion._show(start_offset, items, {})
   end
 end)
 
