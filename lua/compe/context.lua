@@ -5,7 +5,7 @@ local Context = {}
 
 --- Create empty/invalid context for avoiding unexpected detects completion triggers.
 Context.new_empty = function ()
-  local context = Context.new({})
+  local context = Context.new({}, {})
   context.lnum = -1
   context.col = -1
   context.changedtick = -1
@@ -28,9 +28,7 @@ Context.new = function(option, prev_context)
   self.after_line = string.sub(self.line, self.col, -1)
   self.is_trigger_character_only = option.trigger_character_only or false
   self.prev_context = prev_context
-  if self.prev_context and self.prev_context.prev_context then
-    self.prev_context.prev_context = nil
-  end
+  self.prev_context.prev_context = nil
   return self
 end
 

@@ -189,7 +189,7 @@ Source.documentation = function(self, completed_item)
       callback = function(resolved_completed_item)
         self.source:documentation({
           completed_item = resolved_completed_item;
-          context = Context.new({});
+          context = Context.new({}, {});
           callback = Async.guard('Source.documentation#callback', Async.fast_schedule_wrap(function(document)
             if document and #document ~= 0 then
               vim.call('compe#documentation#open', document)

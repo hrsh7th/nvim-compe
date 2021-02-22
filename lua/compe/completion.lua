@@ -11,7 +11,6 @@ local guard = function(callback)
   return function(...)
     local invalid = false
     invalid = invalid or vim.call('compe#_is_selected_manually')
-    invalid = invalid or vim.call('compe#_is_confirming')
     invalid = invalid or vim.call('getbufvar', '%', '&buftype') == 'prompt'
     invalid = invalid or string.sub(vim.call('mode'), 1, 1) ~= 'i'
     if not invalid then
@@ -237,7 +236,7 @@ Completion._show = function(start_offset, items, option)
       end
     end
 
-    guard(function()
+    guard(Async.guard('Completion._show', function()
       local should_preselect = false
       if items[1] then
         should_preselect = should_preselect or (Config.get().preselect == 'enable' and items[1].preselect)
@@ -253,13 +252,13 @@ Completion._show = function(start_offset, items, option)
       vim.call('complete', math.max(1, start_offset), items) -- start_offset=0 should close pum with `complete(1, [])`
       vim.cmd('set completeopt=' .. completeopt)
 
-      if curr_pumvisible and should_preselect then
+      if curr_pumvisible and next_pumvisible and should_preselect then
         Completion.select({
           index = 0,
           documentation = true
         })
       end
-    end)()
+    end))()
   end)
 end
 
