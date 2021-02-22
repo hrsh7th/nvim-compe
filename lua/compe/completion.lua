@@ -238,37 +238,35 @@ Completion._show = function(start_offset, items, option)
 
   Completion._current_offset = start_offset
   Completion._current_items = items
-  Async.throttle('Completion._show', timeout, function()
+  Async.throttle('Completion._show', timeout, Async.guard('Completion._show', guard(function()
     if curr_pumvisible then
       if not next_pumvisible then
         vim.call('compe#documentation#close')
       end
     end
 
-    guard(Async.guard('Completion._show', function()
-      local should_preselect = false
-      if items[1] then
-        should_preselect = should_preselect or (Config.get().preselect == 'enable' and items[1].preselect)
-        should_preselect = should_preselect or (Config.get().preselect == 'always')
-      end
+    local should_preselect = false
+    if items[1] then
+      should_preselect = should_preselect or (Config.get().preselect == 'enable' and items[1].preselect)
+      should_preselect = should_preselect or (Config.get().preselect == 'always')
+    end
 
-      local completeopt = vim.o.completeopt
-      if should_preselect then
-        vim.cmd('set completeopt=menuone,noinsert')
-      else
-        vim.cmd('set completeopt=menuone,noselect')
-      end
-      vim.call('complete', math.max(1, start_offset), items) -- start_offset=0 should close pum with `complete(1, [])`
-      vim.cmd('set completeopt=' .. completeopt)
+    local completeopt = vim.o.completeopt
+    if should_preselect then
+      vim.cmd('set completeopt=menuone,noinsert')
+    else
+      vim.cmd('set completeopt=menuone,noselect')
+    end
+    vim.call('complete', math.max(1, start_offset), items) -- start_offset=0 should close pum with `complete(1, [])`
+    vim.cmd('set completeopt=' .. completeopt)
 
-      if curr_pumvisible and next_pumvisible and should_preselect then
-        Completion.select({
-          index = 0,
-          documentation = true
-        })
-      end
-    end))()
-  end)
+    if curr_pumvisible and next_pumvisible and should_preselect then
+      Completion.select({
+        index = 0,
+        documentation = true
+      })
+    end
+  end)))
 end
 
 --- _new_context
