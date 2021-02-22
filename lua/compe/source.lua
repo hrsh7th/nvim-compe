@@ -17,7 +17,6 @@ function Source.new(name, source)
   self.id = Source.base_id
   self.name = name
   self.source = source
-  self.context = Context.new({})
   self.revision = 0
   self:clear()
   return self
@@ -34,11 +33,16 @@ Source.clear = function(self)
   self.keyword_pattern_offset = 0
   self.trigger_character_offset = 0
   self.is_triggered_by_character = false
+  self.context = Context.new_empty()
+  self.request_time = vim.loop.now()
   self.incomplete = false
+  return false
 end
 
 -- trigger
 Source.trigger = function(self, context, callback)
+  self.context = context
+
   local metadata = self:get_metadata()
 
   -- Check filetypes.
@@ -59,49 +63,70 @@ Source.trigger = function(self, context, callback)
   state.keyword_pattern_offset = state.keyword_pattern_offset == nil and 0 or state.keyword_pattern_offset
   state.keyword_pattern_offset = state.keyword_pattern_offset == 0 and state.trigger_character_offset or state.keyword_pattern_offset
 
-  -- See https://github.com/microsoft/vscode/blob/master/src/vs/editor/contrib/suggest/suggestModel.ts#L569
-  if context.col < self.keyword_pattern_offset then
-    self:clear()
+  -- Detect some trigger conditions.
+  local count = #self:get_filtered_items(context)
+  local short = #context:get_input(state.keyword_pattern_offset) < Config.get().min_length
+  local empty = (function()
+    if context.is_trigger_character_only then
+      return state.trigger_character_offset == 0
+    end
+    return state.keyword_pattern_offset == 0 and state.trigger_character_offset == 0
+  end)()
+
+  -- Detect completion trigger reason.
+  local manual = context.manual
+  local characters = state.trigger_character_offset > 0
+  local incomplete = self.incomplete and not empty
+
+  -- Clear current completion if all filter words removed.
+  if self.status == 'completed' and not (manual or characters) then
+    if context.col == self.keyword_pattern_offset then
+      return self:clear()
+    end
   end
 
-  -- Check first trigger condition.
-  local empty = state.keyword_pattern_offset == 0 and state.trigger_character_offset == 0
-  local force = context.manual or (self.incomplete and not empty) or state.trigger_character_offset > 0
-  local short = #(context:get_input(state.keyword_pattern_offset)) < Config.get().min_length
-  if not force then
+  -- Handle is_trigger_character_only
+  if not characters and context.is_trigger_character_only then
+    return self:clear()
+  end
+
+  -- Handle completion reason.
+  if not (manual or characters or incomplete) then
     -- Does not match.
-    if empty then
+    if empty and count == 0 then
       return self:clear()
     end
 
-    -- Avoid short input if context is not force.
+    -- Avoid short input.
     if short then
       return self:clear()
     end
 
+    -- Stay completed or processing state.
     if self.status ~= 'waiting' then
-      return
+      return false
     end
   end
 
-  -- Fix for manual completion.
-  if empty then
-    state.keyword_pattern_offset = context.col
+  if manual then
+    if state.keyword_pattern_offset == 0 then
+      state.keyword_pattern_offset = context.col
+    end
   end
-
-  -- Reset current completion
-  local count = #self:get_filtered_items(context)
-  if empty and count == 0 then
-    self:clear()
+  if characters then
+    self.is_triggered_by_character = true
   end
-
-  -- Update is_triggered_by_character
-  if state.trigger_character_offset > 0 then
-    self.is_triggered_by_character = state.trigger_character_offset > 0
+  if incomplete then
+    if not (manual or characters) then
+      -- Skip for incomplete completion.
+      if (vim.loop.now() - self.request_time) < Config.get().incomplete_delay then
+        return
+      end
+    end
   end
 
   self.status = 'processing'
-  self.context = context
+  self.request_time = vim.loop.now()
 
   -- Completion
   self.source:complete({
@@ -110,19 +135,24 @@ Source.trigger = function(self, context, callback)
     keyword_pattern_offset = state.keyword_pattern_offset;
     trigger_character_offset = state.trigger_character_offset;
     incomplete = self.incomplete;
-    callback = Async.fast_schedule_wrap(function(result)
-      if self.context ~= context then
-        return
+    callback = Async.fast_schedule_wrap(Async.guard(self.id .. ':complete', function(result)
+      -- Reset for new completion.
+      result.keyword_pattern_offset = result.keyword_pattern_offset or state.keyword_pattern_offset
+
+      if incomplete and #result.items == 0 then
+        self.items = self.items
+      else
+        self.items = self:_normalize_items(context, result.items)
       end
 
       self.revision = self.revision + 1
       self.status = 'completed'
       self.incomplete = result.incomplete or false
-      self.items = self.incomplete and #result.items == 0 and self.items or self:_normalize_items(context, result.items or {})
-      self.keyword_pattern_offset = result.keyword_pattern_offset or state.keyword_pattern_offset
+      self.keyword_pattern_offset = result.keyword_pattern_offset
       self.trigger_character_offset = state.trigger_character_offset
+
       callback()
-    end);
+    end));
     abort = Async.fast_schedule_wrap(function()
       self:clear()
       callback()
@@ -159,7 +189,7 @@ Source.documentation = function(self, completed_item)
       callback = function(resolved_completed_item)
         self.source:documentation({
           completed_item = resolved_completed_item;
-          context = Context.new({});
+          context = Context.new({}, {});
           callback = Async.guard('Source.documentation#callback', Async.fast_schedule_wrap(function(document)
             if document and #document ~= 0 then
               vim.call('compe#documentation#open', document)
@@ -210,11 +240,6 @@ Source.get_metadata = function(self)
   return metadata
 end
 
---- get_start_offset
-Source.get_start_offset = function(self)
-  return self.keyword_pattern_offset or 0
-end
-
 --- get_filtered_items
 Source.get_filtered_items = function(self, context)
   local start_offset = self:get_start_offset()
@@ -263,9 +288,23 @@ end
 --- get_processing_time
 Source.get_processing_time = function(self)
   if self.status == 'processing' then
-    return vim.loop.now() - self.context.time
+    return vim.loop.now() - self.request_time
   end
-  return 0
+  return Config.get().source_timeout + 1
+end
+
+--- get_start_offset
+Source.get_start_offset = function(self)
+  return self.keyword_pattern_offset or 0
+end
+
+--- is_completing
+Source.is_completing = function(self, context)
+  local is_completing = true
+  is_completing = is_completing and self.context.bufnr == context.bufnr
+  is_completing = is_completing and self.context.lnum == context.lnum
+  is_completing = self.status == 'completed' or (self.incomplete and self.status == 'processing')
+  return is_completing
 end
 
 --- _normalize_items
@@ -273,7 +312,7 @@ Source._normalize_items = function(self, _, items)
   local metadata = self:get_metadata()
 
   local normalized = {}
-  for _, item in pairs(items) do
+  for _, item in ipairs(items) do
     self.item_id = self.item_id + 1
 
     -- string to completed_item
