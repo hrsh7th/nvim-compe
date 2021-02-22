@@ -57,13 +57,6 @@ Source.trigger = function(self, context, callback)
     end
   end
 
-  -- Clear current completion if all filter words removed.
-  if self.status == 'completed' then
-    if context.col == self.keyword_pattern_offset then
-      self:clear()
-    end
-  end
-
   -- Normalize trigger offsets
   local state = self.source:determine(context)
   state.trigger_character_offset = state.trigger_character_offset == nil and 0 or state.trigger_character_offset
@@ -84,6 +77,13 @@ Source.trigger = function(self, context, callback)
   local manual = context.manual
   local characters = state.trigger_character_offset > 0
   local incomplete = self.incomplete and not empty
+
+  -- Clear current completion if all filter words removed.
+  if self.status == 'completed' and not (manual or characters) then
+    if context.col == self.keyword_pattern_offset then
+      return self:clear()
+    end
+  end
 
   -- Handle is_trigger_character_only
   if not characters and context.is_trigger_character_only then
