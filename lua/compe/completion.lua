@@ -12,8 +12,8 @@ local guard = function(callback)
     local invalid = false
     invalid = invalid or vim.call('compe#_is_selected_manually')
     invalid = invalid or vim.call('compe#_is_confirming')
-    invalid = invalid or string.sub(vim.call('mode'), 1, 1) ~= 'i'
     invalid = invalid or vim.call('getbufvar', '%', '&buftype') == 'prompt'
+    invalid = invalid or string.sub(vim.call('mode'), 1, 1) ~= 'i'
     if not invalid then
       callback(...)
     end
@@ -122,7 +122,7 @@ Completion.close = function()
 
   VimBridge.clear()
   vim.call('compe#documentation#close')
-  Completion._show(0, {})
+  Completion._show(0, {}, { immediate = true })
   Completion._current_items = {}
   Completion._current_offset = 0
   Completion._selected_item = nil
@@ -137,9 +137,6 @@ Completion.complete = guard(function(option)
     Completion._trigger(context)
   end
   if context.is_completing then
-    if vim.call('pumvisible') == 0 then
-      Completion._show(Completion._current_offset, Completion._current_items)
-    end
     Completion._display(context)
   end
 end)
@@ -207,20 +204,40 @@ Completion._display = guard(function(context)
   end)
 
   if #items == 0 then
-    Completion._show(0, {})
+    Completion._show(0, {}, {})
   else
-    Completion._show(start_offset, items)
+    Completion._show(start_offset, items, { immediate = context:maybe_backspace() })
   end
 end)
 
 --- _show
-Completion._show = function(start_offset, items)
-  Async.fast_schedule(Async.guard('Completion._show', guard(function()
-    Completion._current_offset = start_offset
-    Completion._current_items = items
+Completion._show = function(start_offset, items, option)
+  local curr_pumvisible = (Completion._current_offset ~= 0 and #Completion._current_items ~= 0)
+  local next_pumvisible = (start_offset ~= 0 and #items ~= 0)
+  local pummove = start_offset ~= Completion._current_offset
+  local timeout = (function()
+    if curr_pumvisible ~= next_pumvisible then
+      return 0
+    end
+    if pummove then
+      return 0
+    end
+    if option.immediate then
+      return 0
+    end
+    return Config.get().throttle_time
+  end)()
 
-    local pumvisible = vim.call('pumvisible') == 1
-    if not (not pumvisible and #items == 0) then
+  Completion._current_offset = start_offset
+  Completion._current_items = items
+  Async.throttle('Completion._show', timeout, function()
+    if curr_pumvisible then
+      if not next_pumvisible then
+        vim.call('compe#documentation#close')
+      end
+    end
+
+    guard(function()
       local should_preselect = false
       if items[1] then
         should_preselect = should_preselect or (Config.get().preselect == 'enable' and items[1].preselect)
@@ -236,20 +253,14 @@ Completion._show = function(start_offset, items)
       vim.call('complete', math.max(1, start_offset), items) -- start_offset=0 should close pum with `complete(1, [])`
       vim.cmd('set completeopt=' .. completeopt)
 
-      if not pumvisible and should_preselect then
+      if curr_pumvisible and should_preselect then
         Completion.select({
           index = 0,
           documentation = true
         })
       end
-    end
-
-    -- close documentation if needed.
-    if start_offset == 0 or #items == 0 then
-      print('close')
-      vim.call('compe#documentation#close')
-    end
-  end)))
+    end)()
+  end)
 end
 
 --- _new_context

@@ -85,6 +85,11 @@ Source.trigger = function(self, context, callback)
   local characters = state.trigger_character_offset > 0
   local incomplete = self.incomplete and not empty
 
+  -- Handle is_trigger_character_only
+  if not characters and context.is_trigger_character_only then
+    return self:clear()
+  end
+
   -- Handle completion reason.
   if not (manual or characters or incomplete) then
     -- Does not match.
