@@ -132,9 +132,18 @@ Completion.complete = guard(function(option)
   local context = Completion._new_context(option)
   local is_manual_completing = context.is_completing and not Config.get().autocomplete
   local is_completing_backspace = context.is_completing and context:maybe_backspace()
+
+  -- Trigger
   if is_manual_completing or is_completing_backspace or context:should_auto_complete() then
     Completion._trigger(context)
   end
+
+  -- Restoreo
+  if context.is_completing and context.prev_context.is_completing and not context.pumvisible and context.prev_context.pumvisible then
+    Completion._show(Completion._current_offset, Completion._current_items, { immediate = true })
+  end
+
+  -- Filter
   if context.is_completing then
     Completion._display(context)
   end
@@ -268,6 +277,7 @@ Completion._new_context = function(option)
   local context = Completion._context
   context.is_completing = Completion._is_completing(context)
   context.start_offset = Completion._get_start_offset(context)
+  context.pumvisible = vim.call('pumvisible') == 1
   return context
 end
 
