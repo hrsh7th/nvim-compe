@@ -20,12 +20,10 @@ Source.determine = function(self, context)
   local start = self:_call(vim.bo.omnifunc, { 1, '' })
   if start == -2 or start == -3 then
     return nil
-  elseif context.col < start then
-    start = context.col - 1
   end
 
   return {
-    keyword_pattern_offset = start + 1,
+    keyword_pattern_offset = math.min(start, context.col - 1) + 1,
   }
 end
 
@@ -38,11 +36,16 @@ Source.complete = function(self, args)
 end
 
 Source._call = function(_, func, args)
-  local curpos = vim.api.nvim_win_get_cursor(0)
+  local prev_pos = vim.api.nvim_win_get_cursor(0)
   local _, result = pcall(function()
     return vim.api.nvim_call_function(func, args)
   end)
-  vim.api.nvim_win_set_cursor(0, curpos)
+  local next_pos = vim.api.nvim_win_get_cursor(0)
+
+  if prev_pos[1] ~= next_pos[1] or prev_pos[2] ~= next_pos[2] then
+    vim.api.nvim_win_set_cursor(0, prev_pos)
+  end
+
   return result
 end
 

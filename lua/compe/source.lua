@@ -110,7 +110,7 @@ Source.trigger = function(self, context, callback)
 
     -- Stay completed or processing state.
     if self.status ~= 'waiting' then
-      if self.request_state.keyword_pattern_offset == state.keyword_pattern_offset then
+      if count ~= 0 or self.request_state.keyword_pattern_offset == state.keyword_pattern_offset then
         return false
       end
     end
