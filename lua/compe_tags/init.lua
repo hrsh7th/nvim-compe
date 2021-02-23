@@ -17,8 +17,11 @@ function Source.determine(_, context)
 end
 
 function Source.complete(_, context)
+  local items = pcall(function()
+    return vim.fn.getcompletion(context.input, "tag")
+  end)
   context.callback({
-    items = vim.fn.getcompletion(context.input, "tag"),
+    items = items or {},
     incomplete = true
   })
 end

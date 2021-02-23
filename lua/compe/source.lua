@@ -59,7 +59,7 @@ Source.trigger = function(self, context, callback)
   end
 
   -- Normalize trigger offsets
-  local state = self.source:determine(context)
+  local state = self.source:determine(context) or {}
   state.trigger_character_offset = state.trigger_character_offset == nil and 0 or state.trigger_character_offset
   state.keyword_pattern_offset = state.keyword_pattern_offset == nil and 0 or state.keyword_pattern_offset
   state.keyword_pattern_offset = state.keyword_pattern_offset == 0 and state.trigger_character_offset or state.keyword_pattern_offset
