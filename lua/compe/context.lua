@@ -15,6 +15,7 @@ end
 --- Create normal context for detecting completion triggers.
 Context.new = function(option, prev_context)
   local self = setmetatable({}, { __index = Context })
+  self.option = option
   self.time = vim.loop.now()
   self.changedtick = vim.b.changedtick or 0
   self.manual = option.manual or false

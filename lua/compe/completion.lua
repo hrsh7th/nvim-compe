@@ -157,7 +157,7 @@ Completion._trigger = function(context)
   for _, source in ipairs(Completion.get_sources()) do
     trigger = source:trigger(context, function()
       Async.debounce('Completion._trigger:callback', 10, function()
-        Completion._display(Completion._new_context({}))
+        Completion._display(Completion._new_context(context.option))
       end)
     end) or trigger
   end
@@ -174,7 +174,7 @@ Completion._display = guard(function(context)
     local timeout = Config.get().source_timeout - source:get_processing_time()
     if timeout > 0 then
       Async.debounce('Completion._display', timeout + 1, function()
-        Completion._display(Completion._new_context({}))
+        Completion._display(Completion._new_context(context.option))
       end)
       return
     end
@@ -218,7 +218,7 @@ Completion._display = guard(function(context)
   if #items == 0 then
     Completion._show(0, {}, {})
   else
-    Completion._show(start_offset, items, {})
+    Completion._show(start_offset, items, { manual = context.manual })
   end
 end)
 
@@ -256,7 +256,9 @@ Completion._show = function(start_offset, items, option)
     end
 
     local completeopt = vim.o.completeopt
-    if should_preselect then
+    if option.manual then
+      vim.cmd('set completeopt=menuone')
+    elseif should_preselect then
       vim.cmd('set completeopt=menuone,noinsert')
     else
       vim.cmd('set completeopt=menuone,noselect')
