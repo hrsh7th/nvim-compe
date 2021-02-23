@@ -1,11 +1,10 @@
-local compe = require("compe")
 local Source = {}
 
-function Source.new()
+Source.new = function()
   return setmetatable({}, { __index = Source })
 end
 
-function Source.get_metadata(_)
+Source.get_metadata = function(_)
   return {
     priority = 100;
     dup = 1;
@@ -13,24 +12,38 @@ function Source.get_metadata(_)
   }
 end
 
-function Source.determine(_, context)
-  local fn = vim.bo.omnifunc
-  if fn == '' then
+Source.determine = function(self, context)
+  if vim.bo.omnifunc == '' then
     return nil
   end
-  local completion_start_column = vim.api.nvim_call_function(fn, { 1, '' })
-  if completion_start_column == -2 or completion_start_column == -3 then
+
+  local start = self:_call(vim.bo.omnifunc, { 1, '' })
+  if start == -2 or start == -3 then
     return nil
-  elseif completion_start_column < 0 then
-    completion_start_column = vim.api.nvim_win_get_cursor(0)[2]
+  elseif context.col < start then
+    start = context.col - 1
   end
+
   return {
-    keyword_pattern_offset = completion_start_column + 1,
+    keyword_pattern_offset = start + 1,
   }
 end
 
-function Source.complete(_, context)
-  context.callback({ items = vim.api.nvim_call_function(vim.bo.omnifunc, { 0, context.input }) })
+Source.complete = function(self, args)
+  local items = self:_call(vim.bo.omnifunc, { 0, args.input })
+  if type(items) ~= 'table' then
+    return args.abort()
+  end
+  args.callback({ items = items })
+end
+
+Source._call = function(_, func, args)
+  local curpos = vim.api.nvim_win_get_cursor(0)
+  local _, result = pcall(function()
+    return vim.api.nvim_call_function(func, args)
+  end)
+  vim.api.nvim_win_set_cursor(0, curpos)
+  return result
 end
 
 return Source.new()

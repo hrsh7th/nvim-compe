@@ -66,7 +66,12 @@ Source.trigger = function(self, context, callback)
 
   -- Detect some trigger conditions.
   local count = #self:get_filtered_items(context)
-  local short = #context:get_input(state.keyword_pattern_offset) < Config.get().min_length
+  local short = (function()
+    if self.status ~= 'waiting' and self.keyword_pattern_offset ~= 0 then
+      return #context:get_input(self.keyword_pattern_offset) < Config.get().min_length
+    end
+    return #context:get_input(state.keyword_pattern_offset) < Config.get().min_length
+  end)()
   local empty = (function()
     if context.is_trigger_character_only then
       return state.trigger_character_offset == 0
