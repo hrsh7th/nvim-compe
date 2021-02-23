@@ -17,13 +17,20 @@ Source.determine = function(self, context)
     return nil
   end
 
-  local start = self:_call(vim.bo.omnifunc, { 1, '' })
-  if start == -2 or start == -3 then
+  local keyword_pattern_offset = self:_call(vim.bo.omnifunc, { 1, '' })
+  if keyword_pattern_offset == -2 or keyword_pattern_offset == -3 then
     return nil
+  end
+  keyword_pattern_offset = math.min(keyword_pattern_offset, context.col - 1) + 1
+
+  local trigger_character_offset = 0
+  if not string.match(string.sub(context.before_line, -1, -1), '%a') then
+    trigger_character_offset =  keyword_pattern_offset
   end
 
   return {
-    keyword_pattern_offset = math.min(start, context.col - 1) + 1,
+    keywod_pattern_offset = keyword_pattern_offset,
+    trigger_character_offset = trigger_character_offset,
   }
 end
 
