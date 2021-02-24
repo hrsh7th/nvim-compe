@@ -48,7 +48,7 @@ function Source._do_complete(self, args)
   for _, buffer in ipairs(self:_get_buffers()) do
     processing = processing or buffer.processing
     for _, word in ipairs(buffer:get_words(args.context.lnum)) do
-      if not words_uniq[word] then
+      if not words_uniq[word] and args.input ~= word then
         words_uniq[word] = true
         table.insert(words, word)
       end
