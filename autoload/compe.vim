@@ -31,9 +31,11 @@ endfunction
 "
 " compe#complete
 "
-function! compe#complete() abort
+function! compe#complete(...) abort
   if mode()[0] ==# 'i'
-    return "\<C-r>=luaeval('require\"compe\"._complete()')\<CR>"
+    let l:option = get(a:000, 0, {})
+    let l:option.completeopt = get(l:option, 'completeopt', v:null)
+    call luaeval('require"compe"._complete(_A)', extend(l:option, { 'manual': v:true }, 'keep'))
   endif
   return "\<Ignore>"
 endfunction

@@ -60,8 +60,8 @@ end
 --- Private API
 
 --- _complete
-compe._complete = enable(function()
-  Completion.complete({ manual = true })
+compe._complete = enable(function(option)
+  Completion.complete(option)
   return ''
 end)
 

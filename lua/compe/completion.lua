@@ -121,7 +121,7 @@ Completion.close = function()
 
   VimBridge.clear()
   vim.call('compe#documentation#close')
-  Completion._show(0, {}, { immediate = true })
+  Completion._show(0, {}, Completion._context)
   Completion._current_items = {}
   Completion._current_offset = 0
   Completion._selected_item = nil
@@ -140,7 +140,7 @@ Completion.complete = guard(function(option)
 
   -- Restoreo
   if context.is_completing and context.prev_context.is_completing and not context.pumvisible and context.prev_context.pumvisible then
-    Completion._show(Completion._current_offset, Completion._current_items, { immediate = true })
+    Completion._show(Completion._current_offset, Completion._current_items, context)
   end
 
   -- Filter
@@ -216,14 +216,14 @@ Completion._display = guard(function(context)
   end)
 
   if #items == 0 then
-    Completion._show(0, {}, {})
+    Completion._show(0, {}, context)
   else
-    Completion._show(start_offset, items, { manual = context.manual })
+    Completion._show(start_offset, items, context)
   end
 end)
 
 --- _show
-Completion._show = function(start_offset, items, option)
+Completion._show = function(start_offset, items, context)
   local curr_pumvisible = (Completion._current_offset ~= 0 and #Completion._current_items ~= 0)
   local next_pumvisible = (start_offset ~= 0 and #items ~= 0)
   local pummove = start_offset ~= Completion._current_offset
@@ -234,7 +234,7 @@ Completion._show = function(start_offset, items, option)
     if pummove then
       return 0
     end
-    if option.immediate then
+    if context:maybe_backspace() then
       return 0
     end
     return Config.get().throttle_time
@@ -256,8 +256,8 @@ Completion._show = function(start_offset, items, option)
     end
 
     local completeopt = vim.o.completeopt
-    if option.manual then
-      vim.cmd('set completeopt=menuone')
+    if context.option.completeopt then
+      vim.cmd('set completeopt=' .. context.option.completeopt)
     elseif should_preselect then
       vim.cmd('set completeopt=menuone,noinsert')
     else
