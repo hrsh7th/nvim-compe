@@ -38,7 +38,7 @@ Source.complete = function(self, args)
 
   args.callback({
     items = { {
-      word = value,
+      word = '' .. value,
       abbr = self:_trim(args.input),
       filter_text = args.input,
     }, {
