@@ -43,7 +43,7 @@ end
 --
 --   But compe will fix the score with some of the below points so the actual score is not `matched char count`.
 --
---   1. Word boundarly order
+--   1. Word boundary order
 --
 --     compe prefers the match that near by word-beggining.
 --
@@ -54,19 +54,19 @@ end
 --
 -- ### Matching specs.
 --
---   1. Prefix matching per word boundaly
+--   1. Prefix matching per word boundary
 --
 --     `bora`         -> `border-radius` # imaginary score: 4
 --      ^^~~              ^^     ~~
 --
---   2. Try sequencial match first
+--   2. Try sequential match first
 --
 --     `woroff`       -> `word_offset`   # imaginary score: 6
 --      ^^^~~~            ^^^  ~~~
 --
 --     * The `woroff`'s second `o` should not match `word_offset`'s first `o`
 --
---   3. Prefer early word boundaly
+--   3. Prefer early word boundary
 --
 --     `call`         -> `call`          # imaginary score: 4.1
 --      ^^^^              ^^^^
@@ -80,7 +80,7 @@ end
 --     `buffer`       -> `Buffer`        # imaginary score: 6
 --      ^^^^^^            ^^^^^^
 --
---   5. Use remaining char for fuzzy match
+--   5. Use remaining characters for fuzzy match
 --
 --     `fmofy`        -> `fnamemodify`   # imaginary score: 1
 --      ^~~~~             ^    ~~  ~~
