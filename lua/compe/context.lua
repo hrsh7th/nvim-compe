@@ -15,10 +15,10 @@ end
 --- Create normal context for detecting completion triggers.
 Context.new = function(option, prev_context)
   local self = setmetatable({}, { __index = Context })
-  self.option = option
+  self.option = option or {}
   self.time = vim.loop.now()
   self.changedtick = vim.b.changedtick or 0
-  self.manual = option.manual or false
+  self.manual = self.option.manual or false
   self.lnum = vim.api.nvim_win_get_cursor(0)[1]
   self.col = vim.api.nvim_win_get_cursor(0)[2] + 1 -- zero-based index
   self.bufnr = vim.api.nvim_get_current_buf()
@@ -27,7 +27,7 @@ Context.new = function(option, prev_context)
   self.before_line = string.sub(self.line, 1, self.col - 1)
   self.before_char = self:get_before_char(self.lnum, self.before_line)
   self.after_line = string.sub(self.line, self.col, -1)
-  self.is_trigger_character_only = option.trigger_character_only or false
+  self.is_trigger_character_only = self.option.trigger_character_only or false
   self.prev_context = prev_context
   self.prev_context.prev_context = nil
   return self
