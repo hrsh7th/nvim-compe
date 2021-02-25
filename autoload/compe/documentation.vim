@@ -97,7 +97,7 @@ function! s:get_screenpos(event, size) abort
   let l:col_if_right = a:event.col + a:event.width + 1 + (a:event.scrollbar ? 1 : 0)
   let l:col_if_left = a:event.col - a:size.width - 2
 
-  if a:size.width >= (&columns - l:col_if_right)
+  if a:event.col > float2nr(&columns * 0.6)
     let l:col = l:col_if_left
   else
     let l:col = l:col_if_right
