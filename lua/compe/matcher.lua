@@ -307,10 +307,9 @@ Matcher.compare = function(item1, item2, history)
     end
 
     if #item1.word ~= #item2.word then
-      return #item1.word < #item2.word
+      return item1.abbr < item2.abbr
     end
   end
-
 
   return item1.index < item2.index
 end
