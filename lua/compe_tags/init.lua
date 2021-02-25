@@ -17,9 +17,13 @@ function Source.determine(_, context)
 end
 
 function Source.complete(_, context)
-  local items = pcall(function()
+  local _, items = pcall(function()
     return vim.fn.getcompletion(context.input, "tag")
   end)
+  if type(items) ~= 'table' then
+    return context.abort()
+  end
+
   context.callback({
     items = items or {},
     incomplete = true
