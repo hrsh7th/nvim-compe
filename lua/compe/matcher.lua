@@ -306,9 +306,12 @@ Matcher.compare = function(item1, item2, history)
       end
     end
 
-    if #item1.word ~= #item2.word then
-      return item1.abbr < item2.abbr
+    local upper1 = Character.is_upper(string.byte(item1.abbr, 1))
+    local upper2 = Character.is_upper(string.byte(item2.abbr, 1))
+    if upper1 ~= upper2 then
+      return not upper1
     end
+    return item1.abbr < item2.abbr
   end
 
   return item1.index < item2.index
