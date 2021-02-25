@@ -195,7 +195,11 @@ Completion._display = guard(function(context)
           item.word = item.original_word
           item.abbr = item.original_abbr
           item.kind = item.original_kind or ''
-          item.menu = item.original_menu or ''
+          if context.manual and item.detail then
+            item.menu = item.detail
+          else
+            item.menu = item.original_menu or ''
+          end
 
           -- trim to specified width.
           item.abbr = String.trim(item.abbr, Config.get().max_abbr_width)

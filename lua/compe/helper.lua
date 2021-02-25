@@ -117,6 +117,7 @@ Helper.convert_lsp = function(args)
       word = word;
       abbr = abbr;
       kind = vim.lsp.protocol.CompletionItemKind[completion_item.kind] or nil;
+      detail = completion_item.detail;
       user_data = {
         compe = {
           request_position = request.position;
