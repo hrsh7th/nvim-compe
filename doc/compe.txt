@@ -285,6 +285,12 @@ documentation ~
       Type: |Boolean|
       Default: true
 
+kind_mapping ~
+    Lsp kind string mapping.  .e.g LSP kind "Function" can be mapped to
+    "" by define {"Function" = ""}
+      Type: Dictionary
+      Default: empty
+
 source ~
     Source configuration. Required.
       Type: |Dictionary| of:

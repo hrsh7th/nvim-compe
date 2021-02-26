@@ -197,6 +197,7 @@ Completion._display = guard(function(context)
           item.kind = item.original_kind or ''
           item.menu = item.original_menu or ''
 
+          item.kind = Config.get().kind_mapping[item.kind] or item.kind
           -- trim to specified width.
           item.abbr = String.trim(item.abbr, Config.get().max_abbr_width)
           item.kind = String.trim(item.kind, Config.get().max_kind_width)
@@ -307,4 +308,3 @@ Completion._get_start_offset = function(context)
 end
 
 return Completion
-
