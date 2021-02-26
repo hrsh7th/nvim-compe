@@ -278,6 +278,7 @@ end
 --- _new_context
 Completion._new_context = function(option)
   Completion._context = Context.new(option, Completion._context)
+
   local context = Completion._context
   context.is_completing = Completion._is_completing(context)
   context.start_offset = Completion._get_start_offset(context)
