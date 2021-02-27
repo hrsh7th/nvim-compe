@@ -133,18 +133,19 @@ Completion.complete = guard(function(option)
   local is_manual_completing = context.is_completing and not Config.get().autocomplete
   local is_completing_backspace = context.is_completing and context:maybe_backspace()
 
-  -- Trigger
-  if is_manual_completing or is_completing_backspace or context:should_auto_complete() then
-    Completion._trigger(context)
-  end
-
-  -- Restoreo
-  if context.is_completing and context.prev_context.is_completing and not context.pumvisible and context.prev_context.pumvisible then
+  -- Restore
+  if context.is_completing and context.prev_context.is_completing and not context.pumvisible then
     Completion._show(Completion._current_offset, Completion._current_items, context)
   end
 
+  -- Trigger
+  local triggered = false
+  if is_manual_completing or is_completing_backspace or context:should_auto_complete() then
+    triggered = Completion._trigger(context)
+  end
+
   -- Filter
-  if context.is_completing then
+  if not triggered and context.is_completing then
     Completion._display(context)
   end
 end)
@@ -224,17 +225,17 @@ end)
 
 --- _show
 Completion._show = function(start_offset, items, context)
-  local curr_pumvisible = (Completion._current_offset ~= 0 and #Completion._current_items ~= 0)
-  local next_pumvisible = (start_offset ~= 0 and #items ~= 0)
+  local prev_should_visible = (Completion._current_offset ~= 0 and #Completion._current_items ~= 0)
+  local next_should_visible = (start_offset ~= 0 and #items ~= 0)
   local pummove = start_offset ~= Completion._current_offset
   local timeout = (function()
-    if curr_pumvisible ~= next_pumvisible then
+    if prev_should_visible ~= next_should_visible then
       return 0
+    end
+    if prev_should_visible and not context.pumvisible then
+      return 0 -- maybe restore
     end
     if pummove then
-      return 0
-    end
-    if context:maybe_backspace() then
       return 0
     end
     return Config.get().throttle_time
@@ -243,8 +244,8 @@ Completion._show = function(start_offset, items, context)
   Completion._current_offset = start_offset
   Completion._current_items = items
   Async.throttle('Completion._show', timeout, Async.guard('Completion._show', guard(function()
-    if curr_pumvisible then
-      if not next_pumvisible then
+    if prev_should_visible then
+      if not next_should_visible then
         vim.call('compe#documentation#close')
       end
     end
@@ -266,7 +267,7 @@ Completion._show = function(start_offset, items, context)
     vim.call('complete', math.max(1, start_offset), items) -- start_offset=0 should close pum with `complete(1, [])`
     vim.cmd('set completeopt=' .. completeopt)
 
-    if curr_pumvisible and next_pumvisible and should_preselect then
+    if context.prev_context.pumvisible and context.pumvisible and should_preselect then
       Completion.select({
         index = 0,
         documentation = true
@@ -277,7 +278,9 @@ end
 
 --- _new_context
 Completion._new_context = function(option)
-  Completion._context = Context.new(option, Completion._context)
+  local prev_context = vim.tbl_extend('keep', {}, Completion._context)
+  prev_context.prev_context = nil
+  Completion._context = Context.new(option, prev_context)
 
   local context = Completion._context
   context.is_completing = Completion._is_completing(context)

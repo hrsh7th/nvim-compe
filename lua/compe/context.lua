@@ -29,7 +29,6 @@ Context.new = function(option, prev_context)
   self.after_line = string.sub(self.line, self.col, -1)
   self.is_trigger_character_only = self.option.trigger_character_only or false
   self.prev_context = prev_context
-  self.prev_context.prev_context = nil
   return self
 end
 
