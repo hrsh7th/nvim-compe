@@ -21,9 +21,12 @@ Custom Source                         |compe-custom-source|
 ==============================================================================
 CONCEPT                                                        *compe-concept*
 
+- Simple core
+- No flicker
 - Lua source & Vim source
 - Better matching algorithm
-- Support LSP completion features (trigger character, isIncomplete)
+- Support LSP completion features (trigger character, isIncomplete, expansion)
+- Respect VSCode/LSP API design
 
 
 ==============================================================================
