@@ -257,9 +257,7 @@ Completion._show = function(start_offset, items, context)
     end
 
     local completeopt = vim.o.completeopt
-    if context.option.completeopt then
-      vim.cmd('set completeopt=' .. context.option.completeopt)
-    elseif should_preselect then
+    if should_preselect then
       vim.cmd('set completeopt=menuone,noinsert')
     else
       vim.cmd('set completeopt=menuone,noselect')

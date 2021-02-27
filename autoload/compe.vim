@@ -33,9 +33,7 @@ endfunction
 "
 function! compe#complete(...) abort
   if mode()[0] ==# 'i'
-    let l:option = get(a:000, 0, {})
-    let l:option.completeopt = get(l:option, 'completeopt', v:null)
-    call timer_start(0, { -> luaeval('require"compe"._complete(_A)', extend(l:option, { 'manual': v:true }, 'keep')) })
+    call timer_start(0, { -> luaeval('require"compe"._complete(_A)', { 'manual': v:true }) })
   endif
   return "\<Ignore>"
 endfunction

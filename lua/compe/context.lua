@@ -70,7 +70,7 @@ Context.get_before_char = function(_, lnum, before_line)
     local line = current_lnum == lnum and before_line or vim.api.nvim_get_current_line()
     local _, _, c = string.find(line, '([^%s])%s*$')
     if c ~= nil then
-      return Character.is_alnum(string.byte(c)) and '' or c
+      return (not Character.is_white(string.byte(c))) and c or ''
     end
     current_lnum = current_lnum - 1
   end
