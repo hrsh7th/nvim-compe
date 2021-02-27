@@ -69,9 +69,13 @@ Helper.convert_lsp = function(args)
 
     -- Fix for leading_word
     local suggest_offset = args.keyword_pattern_offset
-    local char = string.byte(word, 1)
+    local word_char = string.byte(word, 1)
     for idx = #context.before_line, 1, -1 do
-      if Character.match(char, string.byte(context.before_line, idx)) then
+      local line_char = string.byte(context.before_line, idx)
+      if Character.is_white(line_char) then
+        break
+      end
+      if Character.match(word_char, line_char) then
         if string.find(word, string.sub(context.before_line, idx, -1), 1, true) == 1 then
           suggest_offset = idx
           keyword_pattern_offset = math.min(idx, keyword_pattern_offset)
