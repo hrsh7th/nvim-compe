@@ -67,55 +67,22 @@ Helper.convert_lsp = function(args)
       abbr = completion_item.label
     end
 
-    -- Fix for textEdit
-    --
-    -- 1. sumneko_lua's require completion
-    --
-    --   local Config = require'compe.| -> local Config = require'compe.config|
-    --
-    --   ※ `.` is not contained in keyword_pattern so we should fix offset. If item has `textEdit` we should use `textEdit.range.start.character`
-    --
-    local offset_fixed = false
-    if not offset_fixed and completion_item.textEdit then
-      -- https://github.com/microsoft/vscode/blob/master/src/vs/editor/contrib/suggest/completionModel.ts#L170
-      -- https://github.com/microsoft/vscode/blob/master/src/vs/editor/contrib/suggest/completionModel.ts#L195
-      -- TODO: This implementation aligned to following cases.
-      -- 1. html-language-server's closing tag's textEdit
-      -- 2. clangd's dot-property accessing
-      local idx = completion_item.textEdit.range.start.character + 1
-      if string.find(word, string.sub(context.before_line, idx, -1), 1, true) == 1 then
-        keyword_pattern_offset = idx
-        offset_fixed = true
-      end
-    end
-
     -- Fix for leading_word
-    --
-    -- 1. tsserver's scoped module completion
-    --
-    --   import {} from '@|' -> import {} from '@babel'
-    --   ※ `@` is not contained in keyword_pattern so we should fix offset to include '@'.
-    --
-    if not offset_fixed and not Character.is_alnum(string.byte(word, 1)) then
-      -- TODO: We should check this implementation respecting what is VSCode does.
-      for idx = #context.before_line, 1, -1 do
-        if Character.is_white(string.byte(context.before_line, idx)) then
+    local suggest_offset = args.keyword_pattern_offset
+    local char = string.byte(word, 1)
+    for idx = #context.before_line, 1, -1 do
+      if Character.match(char, string.byte(context.before_line, idx)) then
+        if string.find(word, string.sub(context.before_line, idx, -1), 1, true) == 1 then
+          suggest_offset = idx
+          keyword_pattern_offset = math.min(idx, keyword_pattern_offset)
           break
-        end
-        if Character.match(string.byte(word, 1), string.byte(context.before_line, idx)) then
-          local part = string.sub(context.before_line, idx, -1)
-          if string.find(word, part, 1, true) == 1 then
-            keyword_pattern_offset = idx
-            offset_fixed = true
-            break
-          end
         end
       end
     end
 
     table.insert(complete_items, {
-      word = word;
-      abbr = abbr;
+      word = string.match(word, '[^%s=%(%$]+') or '';
+      abbr = string.gsub(string.gsub(abbr, '^%s*', ''), '%s*$', '');
       kind = vim.lsp.protocol.CompletionItemKind[completion_item.kind] or nil;
       user_data = {
         compe = {
@@ -126,29 +93,14 @@ Helper.convert_lsp = function(args)
       filter_text = completion_item.filterText or nil;
       sort_text = completion_item.sortText or nil;
       preselect = completion_item.preselect or false;
-      offset = keyword_pattern_offset;
-      offset_fixed = offset_fixed;
+      suggest_offset = suggest_offset;
     })
-  end
-
-  -- Remove invalid chars from word without already allowed range.
-  --   `func`($0)
-  --   `class`="$0"
-  --   `variable`$0
-  --   `"json-props"`: "$0"
-
-  local fixed_offset = args.keyword_pattern_offset
-  for _, complete_item in ipairs(complete_items) do
-    local leading = (args.keyword_pattern_offset - complete_item.offset)
-    complete_item.word = string.match(complete_item.word, ('.'):rep(leading) .. '[^%s=%(%$\'"]+') or ''
-    complete_item.abbr = string.gsub(string.gsub(complete_item.abbr, '^%s*', ''), '%s*$', '')
-    fixed_offset = math.min(fixed_offset, complete_item.offset)
   end
 
   return {
     items = complete_items,
     incomplete = response.isIncomplete or false,
-    keyword_pattern_offset = fixed_offset,
+    keyword_pattern_offset = keyword_pattern_offset;
   }
 end
 

@@ -6,11 +6,12 @@ let s:CompletionItem = vital#compe#import('VS.LSP.CompletionItem')
 " compe#confirmation#lsp
 "
 function! compe#confirmation#lsp(args) abort
+  let l:current_line = getline('.')
   let l:completed_item = a:args.completed_item
   let l:completion_item = a:args.completion_item
-  let l:current_position = s:Position.cursor()
-  let l:suggest_position = { 'line': line('.') - 1, 'character': l:current_position.character - strchars(l:completed_item.word) }
+  let l:suggest_position = { 'line': line('.') - 1, 'character': strchars(strpart(l:current_line, 0, l:completed_item.suggest_offset - 1)) }
   let l:request_position = a:args.request_position
+  let l:current_position = s:Position.cursor()
   call s:CompletionItem.confirm({
   \   'suggest_position': l:suggest_position,
   \   'request_position': l:request_position,
