@@ -58,16 +58,13 @@ function! compe#confirm(...) abort
     endif
   endfor
 
-  let l:fallback = get(a:000, 0, v:null)
   if mode()[0] ==# 'i' && complete_info(['selected']).selected != -1
     call luaeval('require"compe"._confirm_pre()', v:null)
     call feedkeys("\<Plug>(compe-confirm-before)", '')
     call feedkeys("\<C-y>", 'n')
     call feedkeys("\<Plug>(compe-confirm-after)", '')
-  elseif type(l:fallback) == v:t_string
-    call feedkeys(l:fallback, 'n')
-  elseif type(l:fallback) == v:t_dict
-    call feedkeys(get(l:fallback, 'keys', ''), get(l:fallback, 'mode', ''))
+  else
+    call s:fallback(get(a:000, 0, v:null))
   endif
   return "\<Ignore>"
 endfunction
@@ -79,13 +76,7 @@ function! compe#close(...) abort
   if mode()[0] ==# 'i' && pumvisible()
     return "\<C-e>\<C-r>=luaeval('require\"compe\"._close()')\<CR>"
   endif
-
-  let l:fallback = get(a:000, 0, v:null)
-  if type(l:fallback) == v:t_string
-    call feedkeys(l:fallback, 'n')
-  elseif type(l:fallback) == v:t_dict
-    call feedkeys(get(l:fallback, 'keys', ''), get(l:fallback, 'mode', ''))
-  endif
+  call s:fallback(get(a:000, 0, v:null))
   return "\<Ignore>"
 endfunction
 
@@ -93,15 +84,19 @@ endfunction
 " compe#scroll
 "
 function! compe#scroll(args) abort
-  let l:delta = get(a:args, 'delta', 4)
-
   let l:ctx = {}
-  function! l:ctx.callback(delta) abort
-    for l:winid in s:Window.find({ winid -> !!getwinvar(winid, 'compe_documentation', v:false) })
-      call s:Window.scroll(l:winid, s:Window.info(l:winid).topline + a:delta)
-    endfor
+  function! l:ctx.callback(args) abort
+    let l:winids = s:Window.find({ winid -> !!getwinvar(winid, 'compe_documentation', v:false) })
+    if !empty(l:winids)
+      let l:delta = get(a:args, 'delta', 4)
+      for l:winid in l:winids
+        call s:Window.scroll(l:winid, s:Window.info(l:winid).topline + l:delta)
+      endfor
+    else
+      call s:fallback(get(a:args, 'fallback', v:null))
+    endif
   endfunction
-  call timer_start(0, { -> l:ctx.callback(l:delta) })
+  call timer_start(0, { -> l:ctx.callback(a:args) })
   return "\<Ignore>"
 endfunction
 
@@ -129,3 +124,17 @@ endfunction
 function! compe#_is_confirming() abort
   return s:confirming
 endfunction
+
+"
+" fallback
+"
+function! s:fallback(fallback) abort
+  if type(a:fallback) == v:t_string
+    return feedkeys(a:fallback, 'n')
+  elseif type(a:fallback) == v:t_dict
+    if has_key(a:fallback, 'keys')
+      return feedkeys(a:fallback.keys, get(a:fallback, 'mode', 'n'))
+    endif
+  endif
+endfunction
+
