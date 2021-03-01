@@ -67,6 +67,8 @@ Helper.convert_lsp = function(args)
       abbr = completion_item.label
     end
 
+    word = completion_item.filterText or word
+
     -- Fix for leading_word
     local suggest_offset = args.keyword_pattern_offset
     local word_char = string.byte(word, 1)
@@ -84,8 +86,9 @@ Helper.convert_lsp = function(args)
       end
     end
 
+    local gap = ('.'):rep(args.keyword_pattern_offset - suggest_offset)
     table.insert(complete_items, {
-      word = string.match(word, '[^%s=%(%$]+') or '';
+      word = string.match(word, gap .. '[^%s=%(%$]+') or '';
       abbr = string.gsub(string.gsub(abbr, '^%s*', ''), '%s*$', '');
       kind = vim.lsp.protocol.CompletionItemKind[completion_item.kind] or nil;
       user_data = {

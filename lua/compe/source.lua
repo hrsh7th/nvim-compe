@@ -148,17 +148,19 @@ Source.trigger = function(self, context, callback)
       -- Reset for new completion.
       result.keyword_pattern_offset = result.keyword_pattern_offset or state.keyword_pattern_offset
 
+      self.revision = self.revision + 1
+      self.status = 'completed'
+      self.incomplete = result.incomplete or false
+      self.keyword_pattern_offset = result.keyword_pattern_offset
+      self.trigger_character_offset = state.trigger_character_offset
+
+      -- incomplete handling.
       if incomplete and #result.items == 0 then
         self.items = self.items
       else
         self.items = self:_normalize_items(context, result.items)
       end
 
-      self.revision = self.revision + 1
-      self.status = 'completed'
-      self.incomplete = result.incomplete or false
-      self.keyword_pattern_offset = result.keyword_pattern_offset
-      self.trigger_character_offset = state.trigger_character_offset
 
       callback()
     end));
@@ -288,9 +290,9 @@ Source.get_filtered_items = function(self, context)
 
   return Cache.ensure(cache_group_key, curr_cache_key, function()
     if prev_items then
-      return Matcher.match(input, prev_items)
+      return Matcher.match(context, prev_items)
     end
-    return Matcher.match(input, self.items)
+    return Matcher.match(context, self.items)
   end)
 end
 
@@ -352,6 +354,7 @@ Source._normalize_items = function(self, _, items)
     item.source_id = self.id
     item.priority = metadata.priority or 0
     item.sort = Boolean.get(metadata.sort, true)
+    item.suggest_offset = item.suggest_offset or self.keyword_pattern_offset
 
     -- matcher related properties (will be overwrote)
     item.index = 0
