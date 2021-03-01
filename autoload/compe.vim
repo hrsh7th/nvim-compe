@@ -133,7 +133,7 @@ function! s:fallback(fallback) abort
     return feedkeys(a:fallback, 'n')
   elseif type(a:fallback) == v:t_dict
     if has_key(a:fallback, 'keys')
-      return feedkeys(a:fallback.keys, get(a:fallback, 'mode', 'n'))
+      return feedkeys(a:fallback.keys, get(a:fallback, 'mode', ''))
     endif
   endif
 endfunction
