@@ -78,6 +78,9 @@ end
 --- confirm
 Completion.confirm = function()
   local completed_item = Completion._selected_item
+
+  Completion.close()
+
   if completed_item then
     Completion._history[completed_item.abbr] = Completion._history[completed_item.abbr] or 0
     Completion._history[completed_item.abbr] = Completion._history[completed_item.abbr] + 1
@@ -91,8 +94,6 @@ Completion.confirm = function()
         break
       end
     end
-  else
-    Completion.close()
   end
 end
 

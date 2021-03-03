@@ -27,7 +27,7 @@ Context.new = function(option, prev_context)
   self.before_line = string.sub(self.line, 1, self.col - 1)
   self.before_char = self:get_before_char(self.lnum, self.before_line)
   self.after_line = string.sub(self.line, self.col, -1)
-  self.is_trigger_character_only = self.option.trigger_character_only or false
+  self.is_trigger_character_only = self.option.trigger_character_only and not string.match(self.before_char, '%a')
   self.prev_context = prev_context
   return self
 end
