@@ -224,17 +224,17 @@ end
 --- confirm
 Source.confirm = function(self, completed_item, callback)
   if self.source.confirm then
+    local resolved = false
     self:resolve({
       completed_item = completed_item,
       callback = function(resolved_completed_item)
+        resolved = true
         self.source:confirm({
           completed_item = resolved_completed_item,
         })
-        callback()
       end
     })
-  else
-    callback()
+    vim.wait(500, function() return resolved end)
   end
 end
 
@@ -290,9 +290,9 @@ Source.get_filtered_items = function(self, context)
 
   return Cache.ensure(cache_group_key, curr_cache_key, function()
     if prev_items then
-      return Matcher.match(context, prev_items)
+      return Matcher.match(context, self, prev_items)
     end
-    return Matcher.match(context, self.items)
+    return Matcher.match(context, self, self.items)
   end)
 end
 

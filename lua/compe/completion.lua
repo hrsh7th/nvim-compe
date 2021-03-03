@@ -87,9 +87,13 @@ Completion.confirm = function()
 
     for _, source in ipairs(Completion.get_sources()) do
       if source.id == completed_item.source_id then
+        print('confirm start')
         source:confirm(completed_item, function()
-          Completion.close()
-          Completion.complete({ trigger_character_only = true })
+          vim.schedule(function()
+            print('confirm end')
+            Completion.close()
+            Completion.complete({ trigger_character_only = true })
+          end)
         end)
         break
       end
@@ -131,6 +135,7 @@ end
 --- complete
 Completion.complete = guard(function(option)
   local context = Completion._new_context(option)
+  print('complete: ', context.before_line, vim.inspect(option))
   local is_manual_completing = context.is_completing and not Config.get().autocomplete
   local is_completing_backspace = context.is_completing and context:maybe_backspace()
 
@@ -159,7 +164,7 @@ Completion._trigger = function(context)
   for _, source in ipairs(Completion.get_sources()) do
     trigger = source:trigger(context, function()
       Async.debounce('Completion._trigger:callback', 10, function()
-        Completion._display(Completion._new_context(context.option))
+        Completion._display(Completion._new_context())
       end)
     end) or trigger
   end
@@ -176,7 +181,7 @@ Completion._display = guard(function(context)
     local timeout = Config.get().source_timeout - source:get_processing_time()
     if timeout > 0 then
       Async.debounce('Completion._display', timeout + 1, function()
-        Completion._display(Completion._new_context(context.option))
+        Completion._display(Completion._new_context())
       end)
       return
     end

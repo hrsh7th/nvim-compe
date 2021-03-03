@@ -12,7 +12,7 @@ local suppress = function(callback)
   return function(...)
     local args = ...
     local status, value = pcall(function()
-      return callback(args)
+      return callback(args) or ''
     end)
     if not status then
       Debug.log(value)
@@ -25,7 +25,7 @@ end
 local enable = function(callback)
   return function(...)
     if Config.get().enabled then
-      return callback(...)
+      return callback(...) or ''
     end
   end
 end
@@ -79,6 +79,11 @@ compe._confirm_pre = enable(function()
   })
 end)
 
+--- _confirm
+compe._confirm = enable(suppress(function()
+  Completion.confirm()
+end))
+
 --- _register_vim_source
 compe._register_vim_source = function(name, bridge_id, methods)
   local source = Source.new(name, VimBridge.new(bridge_id, methods))
@@ -107,13 +112,6 @@ compe._on_complete_changed = enable(suppress(function()
     index = vim.call('complete_info', {'selected' }).selected or -1;
     documentation = true;
   })
-end))
-
---- _on_complete_done
-compe._on_complete_done = enable(suppress(function()
-  if vim.call('compe#_is_confirming') then
-    Completion.confirm()
-  end
 end))
 
 return compe

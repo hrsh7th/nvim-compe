@@ -6,12 +6,12 @@ local Matcher = {}
 Matcher.WORD_BOUNDALY_ORDER_FACTOR = 5
 
 --- match
-Matcher.match = function(context, items)
+Matcher.match = function(context, source, items)
   -- filter
   local matches = {}
   for i, item in ipairs(items) do
     local word = item.original_word
-    local input = context:get_input(item.suggest_offset)
+    local input = context:get_input(source:get_start_offset())
     if #input > 0 then
       if item.filter_text and #item.filter_text > 0 then
         if Character.match(string.byte(input, 1), string.byte(item.filter_text, 1)) then
