@@ -75,11 +75,17 @@ Completion.leave_insert = function()
   Completion._get_sources_cache_key = Completion._get_sources_cache_key + 1
 end
 
+--- confirm_pre
+Completion.confirm_pre = function(args)
+  Completion.select({
+    index = args.index,
+    documentation = false,
+  })
+end
+
 --- confirm
 Completion.confirm = function()
   local completed_item = Completion._selected_item
-
-  Completion.close()
 
   if completed_item then
     Completion._history[completed_item.abbr] = Completion._history[completed_item.abbr] or 0
@@ -87,18 +93,14 @@ Completion.confirm = function()
 
     for _, source in ipairs(Completion.get_sources()) do
       if source.id == completed_item.source_id then
-        print('confirm start')
-        source:confirm(completed_item, function()
-          vim.schedule(function()
-            print('confirm end')
-            Completion.close()
-            Completion.complete({ trigger_character_only = true })
-          end)
-        end)
+        source:confirm(completed_item)
         break
       end
     end
   end
+
+  Completion.close()
+  Completion.complete({ trigger_character_only = true })
 end
 
 --- select
@@ -127,6 +129,7 @@ Completion.close = function()
   VimBridge.clear()
   vim.call('compe#documentation#close')
   Completion._show(0, {}, Completion._context)
+  Completion._new_context({})
   Completion._current_items = {}
   Completion._current_offset = 0
   Completion._selected_item = nil
@@ -135,7 +138,6 @@ end
 --- complete
 Completion.complete = guard(function(option)
   local context = Completion._new_context(option)
-  print('complete: ', context.before_line, vim.inspect(option))
   local is_manual_completing = context.is_completing and not Config.get().autocomplete
   local is_completing_backspace = context.is_completing and context:maybe_backspace()
 
@@ -164,7 +166,7 @@ Completion._trigger = function(context)
   for _, source in ipairs(Completion.get_sources()) do
     trigger = source:trigger(context, function()
       Async.debounce('Completion._trigger:callback', 10, function()
-        Completion._display(Completion._new_context())
+        Completion._display(Completion._new_context(context.option))
       end)
     end) or trigger
   end
@@ -181,7 +183,7 @@ Completion._display = guard(function(context)
     local timeout = Config.get().source_timeout - source:get_processing_time()
     if timeout > 0 then
       Async.debounce('Completion._display', timeout + 1, function()
-        Completion._display(Completion._new_context())
+        Completion._display(Completion._new_context(context.option))
       end)
       return
     end

@@ -6,6 +6,18 @@ Async._throttles = {}
 Async._debounces = {}
 Async._guards = {}
 
+--- once
+Async.once = function(callback)
+  local once = false
+  return function(...)
+    if once then
+      return
+    end
+    once = true
+    callback(...)
+  end
+end
+
 -- fast_schedule_wrap
 Async.fast_schedule_wrap = function(callback)
   return function(...)

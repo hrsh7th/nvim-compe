@@ -73,9 +73,8 @@ end)
 
 --- _confirm_pre
 compe._confirm_pre = enable(function()
-  Completion.select({
+  Completion.confirm_pre({
     index = vim.call('complete_info', {'selected' }).selected or -1;
-    documentation = false;
   })
 end)
 
