@@ -231,6 +231,12 @@ inoremap <silent><expr> <C-d>     compe#scroll({ 'delta': -4 })
    Plug 'hrsh7th/vim-vsnip'
    ```
 
+   or `snippets.nvim`
+
+   ```viml
+   Plug 'norcalli/snippets.nvim'
+   ```
+
 ### How to use tab to navigate completion menu?
 
 `Tab` and `S-Tab` keys need to be mapped to `<C-n>` and `<C-p>` when completion
