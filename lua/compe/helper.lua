@@ -1,6 +1,43 @@
 local Pattern = require'compe.pattern'
 local Character = require'compe.utils.character'
 
+local Private = {}
+
+Private.DEFAULT_INVALID_BYTES = {}
+Private.DEFAULT_INVALID_BYTES[string.byte('=')] = true
+Private.DEFAULT_INVALID_BYTES[string.byte('(')] = true
+Private.DEFAULT_INVALID_BYTES[string.byte('$')] = true
+Private.DEFAULT_INVALID_BYTES[string.byte('"')] = true
+Private.DEFAULT_INVALID_BYTES[string.byte("'")] = true
+
+--- Create byte map from string
+Private.get_byte_map = function(str)
+  local byte_map = {}
+  for _, byte in ipairs({ string.byte(str, 1, -1) }) do
+    byte_map[byte] = true
+  end
+  return byte_map
+end
+
+--- Create word
+Private.get_word = function(candidate, byte_map)
+  local match = -1
+  for idx = 1, #candidate do
+    local byte = string.byte(candidate, idx)
+    if byte_map[byte] or not Private.DEFAULT_INVALID_BYTES[byte] then
+      if match == -1 then
+        match = idx
+      end
+    elseif match ~= -1 then
+      return string.sub(candidate, match, idx)
+    end
+  end
+  if match ~= -1 then
+    return string.sub(candidate, match, -1)
+  end
+  return ''
+end
+
 local Helper = {}
 
 --- determine
@@ -67,17 +104,15 @@ Helper.convert_lsp = function(args)
       abbr = completion_item.label
     end
 
-    word = completion_item.filterText or word
-
     -- Fix for leading_word
     local suggest_offset = args.keyword_pattern_offset
     local word_char = string.byte(word, 1)
-    for idx = #context.before_line, 1, -1 do
+    for idx = #context.before_line, #word, -1 do
       local line_char = string.byte(context.before_line, idx)
       if Character.is_white(line_char) then
         break
       end
-      if Character.match(word_char, line_char) then
+      if word_char == line_char then
         if string.find(word, string.sub(context.before_line, idx, -1), 1, true) == 1 then
           suggest_offset = idx
           keyword_pattern_offset = math.min(idx, keyword_pattern_offset)
@@ -86,9 +121,8 @@ Helper.convert_lsp = function(args)
       end
     end
 
-    local gap = ('.'):rep(args.keyword_pattern_offset - suggest_offset)
     table.insert(complete_items, {
-      word = string.match(word, gap .. '[^%s=%(%$]+') or '';
+      word = word,
       abbr = string.gsub(string.gsub(abbr, '^%s*', ''), '%s*$', '');
       kind = vim.lsp.protocol.CompletionItemKind[completion_item.kind] or nil;
       user_data = {
@@ -102,6 +136,12 @@ Helper.convert_lsp = function(args)
       preselect = completion_item.preselect or false;
       suggest_offset = suggest_offset;
     })
+  end
+
+  local input = string.sub(context.before_line, keyword_pattern_offset, -1)
+  local bytes = Private.get_byte_map(input)
+  for _, complete_item in ipairs(complete_items) do
+    complete_item.word = Private.get_word(complete_item.word, bytes)
   end
 
   return {

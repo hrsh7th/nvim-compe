@@ -75,11 +75,17 @@ Completion.leave_insert = function()
   Completion._get_sources_cache_key = Completion._get_sources_cache_key + 1
 end
 
+--- confirm_pre
+Completion.confirm_pre = function(args)
+  Completion.select({
+    index = args.index,
+    documentation = false,
+  })
+end
+
 --- confirm
 Completion.confirm = function()
   local completed_item = Completion._selected_item
-
-  Completion.close()
 
   if completed_item then
     Completion._history[completed_item.abbr] = Completion._history[completed_item.abbr] or 0
@@ -87,14 +93,14 @@ Completion.confirm = function()
 
     for _, source in ipairs(Completion.get_sources()) do
       if source.id == completed_item.source_id then
-        source:confirm(completed_item, function()
-          Completion.close()
-          Completion.complete({ trigger_character_only = true })
-        end)
+        source:confirm(completed_item)
         break
       end
     end
   end
+
+  Completion.close()
+  Completion.complete({ trigger_character_only = true })
 end
 
 --- select
@@ -123,6 +129,7 @@ Completion.close = function()
   VimBridge.clear()
   vim.call('compe#documentation#close')
   Completion._show(0, {}, Completion._context)
+  Completion._new_context({})
   Completion._current_items = {}
   Completion._current_offset = 0
   Completion._selected_item = nil

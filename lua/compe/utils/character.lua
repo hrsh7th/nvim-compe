@@ -27,12 +27,16 @@ Character.is_alpha = function(byte)
   return alpha[byte] or ALPHA[byte]
 end
 
+Character.is_digit = function(byte)
+  return digit[byte]
+end
+
 Character.is_white = function(byte)
   return white[byte]
 end
 
-Character.is_digit = function(byte)
-  return digit[byte]
+Character.is_symbol = function(byte)
+  return not Character.is_alnum(byte) and not Character.is_white(byte)
 end
 
 Character.is_alnum = function(byte)

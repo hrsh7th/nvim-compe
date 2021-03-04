@@ -174,20 +174,29 @@ end
 
 --- resolve
 Source.resolve = function(self, args)
+  local callback = Async.once(args.callback)
+
   if self.resolved_items[args.completed_item.item_id] then
-    return args.callback(self.resolved_items[args.completed_item.item_id])
+    return callback(self.resolved_items[args.completed_item.item_id])
   end
 
   if not self.source.resolve then
     self.resolved_items[args.completed_item.item_id] = args.completed_item
-    return args.callback(self.resolved_items[args.completed_item.item_id])
+    return callback(self.resolved_items[args.completed_item.item_id])
   end
+
+  Async.set_timeout(function()
+    if not self.resolved_items[args.completed_item.item_id] then
+      self.resolved_items[args.completed_item.item_id] = args.completed_item
+      callback(self.resolved_items[args.completed_item.item_id])
+    end
+  end, 200)
 
   self.source:resolve({
     completed_item = args.completed_item,
     callback = function(resolved_completed_item)
       self.resolved_items[args.completed_item.item_id] = resolved_completed_item or args.completed_item
-      args.callback(self.resolved_items[args.completed_item.item_id])
+      callback(self.resolved_items[args.completed_item.item_id])
     end;
   })
 end
@@ -222,19 +231,19 @@ Source.documentation = function(self, completed_item)
 end
 
 --- confirm
-Source.confirm = function(self, completed_item, callback)
+Source.confirm = function(self, completed_item)
   if self.source.confirm then
+    local resolved = false
     self:resolve({
       completed_item = completed_item,
       callback = function(resolved_completed_item)
         self.source:confirm({
           completed_item = resolved_completed_item,
         })
-        callback()
+        resolved = true
       end
     })
-  else
-    callback()
+    vim.wait(200, function() return resolved end, 1)
   end
 end
 
@@ -290,9 +299,9 @@ Source.get_filtered_items = function(self, context)
 
   return Cache.ensure(cache_group_key, curr_cache_key, function()
     if prev_items then
-      return Matcher.match(context, prev_items)
+      return Matcher.match(context, self, prev_items)
     end
-    return Matcher.match(context, self.items)
+    return Matcher.match(context, self, self.items)
   end)
 end
 
