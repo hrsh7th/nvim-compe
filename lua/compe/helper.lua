@@ -1,6 +1,43 @@
 local Pattern = require'compe.pattern'
 local Character = require'compe.utils.character'
 
+local Private = {}
+
+Private.DEFAULT_INVALID_BYTES = {}
+Private.DEFAULT_INVALID_BYTES[string.byte('=')] = true
+Private.DEFAULT_INVALID_BYTES[string.byte('(')] = true
+Private.DEFAULT_INVALID_BYTES[string.byte('$')] = true
+Private.DEFAULT_INVALID_BYTES[string.byte('"')] = true
+Private.DEFAULT_INVALID_BYTES[string.byte("'")] = true
+
+--- Create byte map from string
+Private.get_byte_map = function(str)
+  local byte_map = {}
+  for _, byte in ipairs({ string.byte(str, 1, -1) }) do
+    byte_map[byte] = true
+  end
+  return byte_map
+end
+
+--- Create word
+Private.get_word = function(candidate, byte_map)
+  local match = -1
+  for idx = 1, #candidate do
+    local byte = string.byte(candidate, idx)
+    if byte_map[byte] or not Private.DEFAULT_INVALID_BYTES[byte] then
+      if match == -1 then
+        match = idx
+      end
+    elseif match ~= -1 then
+      return string.sub(candidate, match, idx)
+    end
+  end
+  if match ~= -1 then
+    return string.sub(candidate, match, -1)
+  end
+  return ''
+end
+
 local Helper = {}
 
 --- determine
@@ -70,7 +107,7 @@ Helper.convert_lsp = function(args)
     -- Fix for leading_word
     local suggest_offset = args.keyword_pattern_offset
     local word_char = string.byte(word, 1)
-    for idx = #context.before_line, 1, -1 do
+    for idx = #context.before_line, #word, -1 do
       local line_char = string.byte(context.before_line, idx)
       if Character.is_white(line_char) then
         break
@@ -101,9 +138,10 @@ Helper.convert_lsp = function(args)
     })
   end
 
+  local input = string.sub(context.before_line, keyword_pattern_offset, -1)
+  local bytes = Private.get_byte_map(input)
   for _, complete_item in ipairs(complete_items) do
-    local gap = string.sub(context.before_line, keyword_pattern_offset, complete_item.suggest_offset)
-    complete_item.word = string.match(complete_item.word, vim.pesc(gap) .. '[^%s=%(%$"]+') or ''
+    complete_item.word = Private.get_word(complete_item.word, bytes)
   end
 
   return {
