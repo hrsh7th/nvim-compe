@@ -17,6 +17,7 @@ Auto completion plugin for nvim.
   - [External-plugin](#external-plugin)
 - [External sources](#external-sources)
 - [FAQ](#faq)
+  - [Can't get sorting to work correctly](#cant-get-sorting-to-work-correctly)
   - [How to use LSP snippet?](#how-to-use-lsp-snippet)
   - [How to use tab to navigate completion menu?](#how-to-use-tab-to-navigate-completion-menu)
   - [How to expand snippets from completion menu?](#how-to-expand-snippets-from-completion-menu)
@@ -211,6 +212,12 @@ inoremap <silent><expr> <C-d>     compe#scroll({ 'delta': -4 })
 
 
 ## FAQ
+
+### Can't get sorting to work correctly.
+
+If you are using `nvim_lsp` source and `omni` source both, you should remove `set omnifunc=v:lua.vim.lsp.omnifunc` from your configuration.
+
+See [#230](https://github.com/hrsh7th/nvim-compe/issues/230)
 
 ### How to use LSP snippet?
 
