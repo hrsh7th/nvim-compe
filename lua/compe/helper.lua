@@ -20,7 +20,18 @@ Private.get_byte_map = function(str)
 end
 
 --- Create word
-Private.get_word = function(candidate, byte_map)
+Private.get_word = function(input, candidate, byte_map)
+  -- Fix for trigger character input. (`$|` -> `namespace\path\to\Class::$cache` = `$cache`)
+  local first_char = string.sub(input, 1)
+  if Character.is_symbol(string.byte(first_char)) then
+    for idx = 1, #candidate do
+      if first_char == string.sub(candidate, idx, idx) then
+        candidate = string.sub(candidate, idx, -1)
+        break
+      end
+    end
+  end
+
   local match = -1
   for idx = 1, #candidate do
     local byte = string.byte(candidate, idx)
@@ -103,6 +114,8 @@ Helper.convert_lsp = function(args)
       word = completion_item.insertText or completion_item.label
       abbr = completion_item.label
     end
+    word = string.gsub(string.gsub(word, '^%s*', ''), '%s*$', '')
+    abbr = string.gsub(string.gsub(abbr, '^%s*', ''), '%s*$', '')
 
     -- Fix for leading_word
     local suggest_offset = args.keyword_pattern_offset
@@ -123,7 +136,7 @@ Helper.convert_lsp = function(args)
 
     table.insert(complete_items, {
       word = word,
-      abbr = string.gsub(string.gsub(abbr, '^%s*', ''), '%s*$', '');
+      abbr = abbr,
       kind = vim.lsp.protocol.CompletionItemKind[completion_item.kind] or nil;
       user_data = {
         compe = {
@@ -131,8 +144,8 @@ Helper.convert_lsp = function(args)
           completion_item = completion_item;
         };
       };
-      filter_text = completion_item.filterText or nil;
-      sort_text = completion_item.sortText or nil;
+      filter_text = completion_item.filterText or abbr;
+      sort_text = completion_item.sortText or abbr;
       preselect = completion_item.preselect or false;
       suggest_offset = suggest_offset;
     })
@@ -141,7 +154,7 @@ Helper.convert_lsp = function(args)
   local input = string.sub(context.before_line, keyword_pattern_offset, -1)
   local bytes = Private.get_byte_map(input)
   for _, complete_item in ipairs(complete_items) do
-    complete_item.word = Private.get_word(complete_item.word, bytes)
+    complete_item.word = Private.get_word(input, complete_item.word, bytes)
   end
 
   return {

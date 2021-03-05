@@ -86,7 +86,6 @@ end
 --- confirm
 Completion.confirm = function()
   local completed_item = Completion._selected_item
-
   if completed_item then
     Completion._history[completed_item.abbr] = Completion._history[completed_item.abbr] or 0
     Completion._history[completed_item.abbr] = Completion._history[completed_item.abbr] + 1
@@ -253,7 +252,7 @@ Completion._show = function(start_offset, items, context)
   Completion._current_items = items
   Async.throttle('Completion._show', timeout, Async.guard('Completion._show', guard(function()
     if prev_should_visible then
-      if not next_should_visible then
+      if not next_should_visible or pummove then
         vim.call('compe#documentation#close')
       end
     end

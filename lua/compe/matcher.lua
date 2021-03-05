@@ -126,10 +126,10 @@ Matcher.score = function(input, word)
       match.index = word_bound_index
       input_start_index = match.input_match_start
       input_end_index = match.input_match_end + 1
-      word_index = Matcher.get_next_semantic_index(word_bytes, match.word_match_end)
+      word_index = Character.get_next_semantic_index(word_bytes, match.word_match_end)
       table.insert(matches, match)
     else
-      word_index = Matcher.get_next_semantic_index(word_bytes, word_index)
+      word_index = Character.get_next_semantic_index(word_bytes, word_index)
     end
     word_bound_index = word_bound_index + 1
   end
@@ -244,30 +244,6 @@ Matcher.find_match_region = function(input_bytes, input_start_index, input_end_i
   end
 
   return nil
-end
-
---- get_next_semantic_index
-Matcher.get_next_semantic_index = function(bytes, current_index)
-  for i = current_index + 1, #bytes do
-    if Matcher.is_semantic_index(bytes, i) then
-      return i
-    end
-  end
-  return #bytes + 1
-end
-
---- is_semantic_index
-Matcher.is_semantic_index = function(bytes, index)
-  if index <= 1 then
-    return true
-  end
-  if not Character.is_upper(bytes[index - 1]) and Character.is_upper(bytes[index]) then
-    return true
-  end
-  if not Character.is_alpha(bytes[index - 1]) and Character.is_alpha(bytes[index]) then
-    return true
-  end
-  return false
 end
 
 --- compare

@@ -36,11 +36,33 @@ Character.is_white = function(byte)
 end
 
 Character.is_symbol = function(byte)
-  return not Character.is_alnum(byte) and not Character.is_white(byte)
+  return not (Character.is_alnum(byte) or Character.is_white(byte))
 end
 
 Character.is_alnum = function(byte)
   return Character.is_alpha(byte) or Character.is_digit(byte)
+end
+
+Character.is_semantic_index = function(bytes, index)
+  if index <= 1 then
+    return true
+  end
+  if not Character.is_upper(bytes[index - 1]) and Character.is_upper(bytes[index]) then
+    return true
+  end
+  if not Character.is_alpha(bytes[index - 1]) and Character.is_alpha(bytes[index]) then
+    return true
+  end
+  return false
+end
+
+Character.get_next_semantic_index = function(bytes, current_index)
+  for i = current_index + 1, #bytes do
+    if Character.is_semantic_index(bytes, i) then
+      return i
+    end
+  end
+  return #bytes + 1
 end
 
 Character.match = function(byte1, byte2)
