@@ -120,7 +120,7 @@ Helper.convert_lsp = function(args)
     -- Fix for leading_word
     local suggest_offset = args.keyword_pattern_offset
     local word_char = string.byte(word, 1)
-    for idx = #context.before_line, #word, -1 do
+    for idx = #context.before_line, 1, -1 do
       local line_char = string.byte(context.before_line, idx)
       if Character.is_white(line_char) then
         break
