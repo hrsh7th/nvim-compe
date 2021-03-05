@@ -87,6 +87,19 @@ Helper.get_default_pattern = function()
 end
 
 --- convert_lsp
+--
+-- This method will convert LSP.CompletionItem.
+--
+-- Should check following servers.
+--
+-- - php: $| -> namespace\Class::$variable|
+-- - clang: foo.| -> foo->prop|
+-- - json: "repository|" -> "repository": {|}
+-- - html: "</|>" -> "</div|>"
+-- - rust: PathBuf::into_|os_string -> PathBuf::into_boxed_path|
+-- - viml: let g:compe.| -> let g:compe.autocomplete|
+-- - lua: require'compe|' -> require'compe.utils.character|'
+--
 Helper.convert_lsp = function(args)
   local keyword_pattern_offset = args.keyword_pattern_offset
   local context = args.context
