@@ -4,11 +4,11 @@ local Character = require'compe.utils.character'
 local Private = {}
 
 Private.DEFAULT_INVALID_BYTES = {}
-Private.DEFAULT_INVALID_BYTES[string.byte('=')] = true
-Private.DEFAULT_INVALID_BYTES[string.byte('(')] = true
-Private.DEFAULT_INVALID_BYTES[string.byte('$')] = true
-Private.DEFAULT_INVALID_BYTES[string.byte('"')] = true
-Private.DEFAULT_INVALID_BYTES[string.byte("'")] = true
+Private.DEFAULT_INVALID_BYTES[string.byte('=', 1)] = true
+Private.DEFAULT_INVALID_BYTES[string.byte('(', 1)] = true
+Private.DEFAULT_INVALID_BYTES[string.byte('$', 1)] = true
+Private.DEFAULT_INVALID_BYTES[string.byte('"', 1)] = true
+Private.DEFAULT_INVALID_BYTES[string.byte("'", 1)] = true
 
 --- Create byte map from string
 Private.get_byte_map = function(str)
@@ -20,31 +20,32 @@ Private.get_byte_map = function(str)
 end
 
 --- Create word
-Private.get_word = function(input, candidate, byte_map)
+Private.get_word = function(input, word, byte_map)
   -- Fix for trigger character input. (`$|` -> `namespace\path\to\Class::$cache` = `$cache`)
+  -- TODO: More general solution
   local first_char = string.sub(input, 1)
   if Character.is_symbol(string.byte(first_char)) then
-    for idx = 1, #candidate do
-      if first_char == string.sub(candidate, idx, idx) then
-        candidate = string.sub(candidate, idx, -1)
+    for idx = 1, #word do
+      if first_char == string.sub(word, idx, idx) then
+        word = string.sub(word, idx, -1)
         break
       end
     end
   end
 
   local match = -1
-  for idx = 1, #candidate do
-    local byte = string.byte(candidate, idx)
-    if byte_map[byte] or not Private.DEFAULT_INVALID_BYTES[byte] then
+  for idx = 1, #word do
+    local byte = string.byte(word, idx)
+    if (match == -1 and byte_map[byte]) or (not Private.DEFAULT_INVALID_BYTES[byte]) then
       if match == -1 then
         match = idx
       end
     elseif match ~= -1 then
-      return string.sub(candidate, match, idx)
+      return string.sub(word, match, idx - 1)
     end
   end
   if match ~= -1 then
-    return string.sub(candidate, match, -1)
+    return string.sub(word, match, -1)
   end
   return ''
 end
