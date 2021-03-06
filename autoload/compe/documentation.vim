@@ -45,7 +45,11 @@ function! compe#documentation#open(document) abort
 
     " Ensure normalized document
     if !has_key(s:cache, l:state.document)
-      let s:cache[l:state.document] = split(s:MarkupContent.normalize(l:state.document), "\n")
+      let l:padded_document = []
+      for line in split(s:MarkupContent.normalize(l:state.document), "\n")
+        call add(l:padded_document, ' ' . line . ' ')
+      endfor
+      let s:cache[l:state.document] = l:padded_document
     endif
     let l:document = s:cache[l:state.document]
 
@@ -67,9 +71,9 @@ function! compe#documentation#open(document) abort
     if pumvisible()
       silent call s:window.open({
       \   'row': l:pos[0] + 1,
-      \   'col': l:pos[1] + 1,
-      \   'width': l:size.width,
-      \   'height': l:size.height,
+      \   'col': l:pos[1],
+      \   'width': l:size.width + 2,
+      \   'height': l:size.height + 2,
       \ })
       silent call s:Window.do(s:window.get_winid(), { -> s:Markdown.apply() })
     endif
