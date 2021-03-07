@@ -14,6 +14,15 @@ call setbufvar(s:window.get_bufnr(), '&bufhidden', 'hide')
 call setbufvar(s:window.get_bufnr(), '&buflisted', 0)
 call setbufvar(s:window.get_bufnr(), '&swapfile', 0)
 
+let s:padding = s:FloatingWindow.new()
+call s:padding.set_var('&wrap', 1)
+call s:padding.set_var('&conceallevel', 2)
+call s:padding.set_bufnr(s:Buffer.create())
+call setbufvar(s:padding.get_bufnr(), '&buftype', 'nofile')
+call setbufvar(s:padding.get_bufnr(), '&bufhidden', 'hide')
+call setbufvar(s:padding.get_bufnr(), '&buflisted', 0)
+call setbufvar(s:padding.get_bufnr(), '&swapfile', 0)
+
 let s:state = {
 \   'pumpos': {},
 \   'document': '',
@@ -26,11 +35,15 @@ let s:cache = {}
 "
 function! compe#documentation#open(document) abort
   if getcmdwintype() !=# ''
-    return s:window.close()
+    return compe#documentation#close()
   endif
 
   let l:ctx = {}
   function! l:ctx.callback(document) abort
+    if !pumvisible()
+      return compe#documentation#close()
+    endif
+
     let l:state = {}
     let l:state.pumpos = pum_getpos()
     let l:state.document = type(a:document) == type([]) ? join(a:document, "\n") : a:document
@@ -46,6 +59,7 @@ function! compe#documentation#open(document) abort
     " Ensure normalized document
     if !has_key(s:cache, l:state.document)
       let s:cache[l:state.document] = split(s:MarkupContent.normalize(l:state.document), "\n")
+      let s:cache[l:state.document] = map(s:cache[l:state.document], '" " .. v:val')
     endif
     let l:document = s:cache[l:state.document]
 
@@ -55,24 +69,31 @@ function! compe#documentation#open(document) abort
     endif
 
     let l:size = s:window.get_size({
-    \   'maxwidth': float2nr(&columns * 0.4),
+    \   'maxwidth': float2nr(&columns * 0.4) - 2,
     \   'maxheight': float2nr(&lines * 0.3),
     \ })
+    let l:size.width += 2 " padding
 
     let l:pos = s:get_screenpos(l:state.pumpos, l:size)
     if empty(l:pos)
-      return s:window.close()
+      return compe#documentation#close()
     endif
 
-    if pumvisible()
-      silent call s:window.open({
-      \   'row': l:pos[0] + 1,
-      \   'col': l:pos[1] + 1,
-      \   'width': l:size.width,
-      \   'height': l:size.height,
-      \ })
-      silent call s:Window.do(s:window.get_winid(), { -> s:Markdown.apply() })
-    endif
+    call s:window.close()
+    call s:padding.close()
+    silent call s:window.open({
+    \   'row': l:pos[0],
+    \   'col': l:pos[1] + 1,
+    \   'width': l:size.width - 2,
+    \   'height': l:size.height,
+    \ })
+    silent call s:padding.open({
+    \   'row': l:pos[0],
+    \   'col': l:pos[1],
+    \   'width': l:size.width,
+    \   'height': l:size.height,
+    \ })
+    silent call s:Window.do(s:window.get_winid(), { -> s:Markdown.apply() })
   endfunction
   call timer_start(0, { -> l:ctx.callback(a:document) })
 endfunction
@@ -83,7 +104,7 @@ endfunction
 function! compe#documentation#close() abort
   let s:state = { 'pumpos': {}, 'document': '' }
   let s:cache = {}
-  call timer_start(0, { -> s:window.close() })
+  call timer_start(0, { -> [s:padding.close(), s:window.close()] })
 endfunction
 
 "
@@ -94,8 +115,8 @@ function! s:get_screenpos(event, size) abort
     return []
   endif
 
-  let l:col_if_right = a:event.col + a:event.width + 1 + (a:event.scrollbar ? 1 : 0)
-  let l:col_if_left = a:event.col - a:size.width - 2
+  let l:col_if_right = a:event.col + a:event.width + (a:event.scrollbar ? 1 : 0)
+  let l:col_if_left = a:event.col - a:size.width - 1
 
   if a:event.col > float2nr(&columns * 0.6)
     let l:col = l:col_if_left
@@ -110,6 +131,6 @@ function! s:get_screenpos(event, size) abort
     return []
   endif
 
-  return [a:event.row, l:col]
+  return [a:event.row + 1, l:col + 1]
 endfunction
 
