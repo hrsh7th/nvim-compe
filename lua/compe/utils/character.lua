@@ -10,7 +10,7 @@ end)
 
 local digit = {}
 string.gsub('1234567890', '.', function(char)
-  ALPHA[string.byte(char)] = true
+  digit[string.byte(char)] = true
 end)
 
 local white = {}
