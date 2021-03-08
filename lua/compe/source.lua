@@ -161,6 +161,9 @@ Source.trigger = function(self, context, callback)
         self.items = self:_normalize_items(context, result.items)
       end
 
+      if #self.items == 0 then
+        self:clear()
+      end
 
       callback()
     end));
