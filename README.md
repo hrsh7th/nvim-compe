@@ -98,6 +98,8 @@ let g:compe.max_abbr_width = 100
 let g:compe.max_kind_width = 100
 let g:compe.max_menu_width = 100
 let g:compe.documentation = v:true
+let g:compe.kind_mapping =  {"Function" = ""; "Interface" = "擄";};
+
 
 let g:compe.source = {}
 let g:compe.source.path = v:true
@@ -129,6 +131,7 @@ require'compe'.setup {
   max_kind_width = 100;
   max_menu_width = 100;
   documentation = true;
+  kind_mapping = {["Function"] = ""; ["Interface"] = "擄";};
 
   source = {
     path = true;
@@ -209,7 +212,6 @@ inoremap <silent><expr> <C-d>     compe#scroll({ 'delta': -4 })
 - [zsh](https://github.com/tamago324/compe-zsh)
 - [conjure](https://github.com/tami5/compe-conjure)
 - [dadbod](https://github.com/kristijanhusak/vim-dadbod-completion)
-
 
 ## FAQ
 

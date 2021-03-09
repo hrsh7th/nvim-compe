@@ -55,6 +55,7 @@ Config._normalize = function(config)
   config.source_timeout = config.source_timeout or SOURCE_TIMEOUT
   config.incomplete_delay = config.incomplete_delay or INCOMPLETE_DELAY
   config.allow_prefix_unmatch = Boolean.get(config.allow_prefix_unmatch, false)
+  config.kind_mapping = config.kind_mapping or {}
   config.max_abbr_width = config.max_abbr_width or 100
   config.max_kind_width = config.max_kind_width or 100
   config.max_menu_width = config.max_menu_width or 100
@@ -78,4 +79,3 @@ Config._normalize = function(config)
 end
 
 return Config
-
