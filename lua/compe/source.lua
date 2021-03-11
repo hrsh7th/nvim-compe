@@ -327,7 +327,7 @@ Source.is_completing = function(self, context)
   is_completing = is_completing and self.context.bufnr == context.bufnr
   is_completing = is_completing and self.context.lnum == context.lnum
   is_completing = is_completing and (self.status == 'completed' or (self.incomplete and self.status == 'processing'))
-  is_completing = is_completing and #self:get_filtered_items(context) > 0
+  is_completing = is_completing and #self.items > 0
   return is_completing
 end
 

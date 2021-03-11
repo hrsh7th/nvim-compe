@@ -16,12 +16,8 @@ call setbufvar(s:window.get_bufnr(), '&bufhidden', 'hide')
 call setbufvar(s:window.get_bufnr(), '&buflisted', 0)
 call setbufvar(s:window.get_bufnr(), '&swapfile', 0)
 
-let s:state = {
-\   'pumpos': {},
-\   'document': '',
-\ }
-
-let s:cache = {}
+let s:document_cache = {}
+let s:state = {}
 let s:timer = 0
 
 "
@@ -34,50 +30,42 @@ function! compe#documentation#open(document) abort
 
   let l:ctx = {}
   function! l:ctx.callback(document) abort
-    let l:state = {}
-    let l:state.pumpos = pum_getpos()
-    let l:state.document = type(a:document) == type([]) ? join(a:document, "\n") : a:document
-
-    " Check if condition has changed.
-    let l:same_pumpos = s:state.pumpos == l:state.pumpos
-    let l:same_document = s:state.document ==# l:state.document
-    if l:same_pumpos && l:same_document
+    if !pumvisible()
       return
     endif
-    let s:state = l:state
 
     " Ensure normalized document
-    if !has_key(s:cache, l:state.document)
-      let s:cache[l:state.document] = split(s:MarkupContent.normalize(l:state.document), "\n")
-      let s:cache[l:state.document] = map(s:cache[l:state.document], '" " . v:val . " "')
-    endif
-    let l:document = s:cache[l:state.document]
-
-    if !l:same_document
+    let l:document = type(a:document) == type([]) ? join(a:document, "\n") : a:document
+    if !has_key(s:document_cache, l:document)
+      let l:normalize_document = map(split(s:MarkupContent.normalize(l:document), "\n"), '" " . v:val . " "')
       silent call deletebufline(s:window.get_bufnr(), 1, '$')
-      silent call setbufline(s:window.get_bufnr(), 1, l:document)
+      silent call setbufline(s:window.get_bufnr(), 1, l:normalize_document)
+      let s:document_cache[l:document] = {}
+      let s:document_cache[l:document].document = l:normalize_document
+      let s:document_cache[l:document].size = s:window.get_size({ 'maxwidth': float2nr(&columns * 0.4), 'maxheight': float2nr(&lines * 0.3), })
     endif
-
-    let l:size = s:window.get_size({
-    \   'maxwidth': float2nr(&columns * 0.4),
-    \   'maxheight': float2nr(&lines * 0.3),
-    \ })
-
-    let l:pos = s:get_screenpos(l:state.pumpos, l:size)
+    let l:size = s:document_cache[l:document].size
+    let l:document = s:document_cache[l:document].document
+    let l:pos = s:get_screenpos(pum_getpos(), l:size)
     if empty(l:pos)
       return s:window.close()
     endif
 
-    if pumvisible()
-      silent call s:window.open({
-      \   'row': l:pos[0] + 1,
-      \   'col': l:pos[1] + 1,
-      \   'width': l:size.width,
-      \   'height': l:size.height,
-      \ })
-      silent call s:Window.do(s:window.get_winid(), { -> s:Markdown.apply() })
+    let l:state = { 'pos': l:pos, 'size': l:size, 'document': l:document }
+    if s:state == l:state
+      return
     endif
+    let s:state = l:state
+
+    silent call s:window.open({
+    \   'row': l:pos[0] + 1,
+    \   'col': l:pos[1] + 1,
+    \   'width': l:size.width,
+    \   'height': l:size.height,
+    \ })
+    silent call s:Window.do(s:window.get_winid(), { -> s:Markdown.apply() })
   endfunction
+  call timer_stop(s:timer)
   let s:timer = timer_start(0, { -> l:ctx.callback(a:document) })
 endfunction
 
@@ -85,10 +73,10 @@ endfunction
 " compe#documentation#close
 "
 function! compe#documentation#close() abort
-  let s:state = { 'pumpos': {}, 'document': '' }
-  let s:cache = {}
+  let s:document_cache = {}
+  let s:state = {}
   call timer_stop(s:timer)
-  call timer_start(0, { -> s:window.close() })
+  let s:timer = timer_start(0, { -> s:window.close() })
 endfunction
 
 "
