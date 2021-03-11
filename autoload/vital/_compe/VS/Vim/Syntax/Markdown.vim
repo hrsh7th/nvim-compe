@@ -13,16 +13,25 @@ function! s:apply(...) abort
 
     " We manually apply fenced code block
     syntax clear markdownCode
+    syntax clear markdownEscape
 
     " Add syntax for basic html entities.
-    syntax match vital_vs_vim_syntax_markdown_entities_lt /&lt;/ containedin=TOP conceal cchar=<
-    syntax match vital_vs_vim_syntax_markdown_entities_gt /&gt;/ containedin=TOP conceal cchar=>
-    syntax match vital_vs_vim_syntax_markdown_entities_amp /&amp;/ containedin=TOP conceal cchar=&
-    syntax match vital_vs_vim_syntax_markdown_entities_quot /&quot;/ containedin=TOP conceal cchar="
-    syntax match vital_vs_vim_syntax_markdown_entities_nbsp /&nbsp;/ containedin=TOP conceal cchar=\ 
+    syntax match vital_vs_vim_syntax_markdown_entities_lt /&lt;/ containedin=ALL conceal cchar=<
+    syntax match vital_vs_vim_syntax_markdown_entities_gt /&gt;/ containedin=ALL conceal cchar=>
+    syntax match vital_vs_vim_syntax_markdown_entities_amp /&amp;/ containedin=ALL conceal cchar=&
+    syntax match vital_vs_vim_syntax_markdown_entities_quot /&quot;/ containedin=ALL conceal cchar="
+    syntax match vital_vs_vim_syntax_markdown_entities_nbsp /&nbsp;/ containedin=ALL conceal cchar=\ 
 
-    " Ignore possible escape chars.
-    syntax match vital_vs_vim_syntax_markdown_escape /[^\\]\zs\\\ze[^\\]/ conceal
+    " Ignore possible escape chars (https://github.github.com/gfm/#example-308)
+    for l:char in split('!"#$%&()*+,-.g:;<=>?@[]^_`{|}~' . "'", '\zs')
+      execute printf('syntax match vital_vs_vim_syntax_markdown_escape_%s /[^\\]\?\zs\\\V%s/ conceal cchar=%s containedin=ALL',
+      \   l:char,
+      \   l:char,
+      \   l:char,
+      \ )
+    endfor
+    syntax match vital_vs_vim_syntax_markdown_escape_escape /[^\\]\\\\/ conceal cchar=\ containedin=ALL
+
     let b:___VS_Vim_Syntax_Markdown = {}
   endif
 
@@ -44,11 +53,11 @@ function! s:apply(...) abort
         \   l:group
         \ )
       catch /.*/
-        echomsg printf('[VS.Vim.Syntax.Markdown] The `%s` is not valid filetype! You can add `"let g:markdown_fenced_languages = ["FILETYPE=%s"]`.', l:mark, l:mark)
+        unsilent echomsg printf('[VS.Vim.Syntax.Markdown] The `%s` is not valid filetype! You can add `"let g:markdown_fenced_languages = ["FILETYPE=%s"]`.', l:mark, l:mark)
       endtry
     endfor
   catch /.*/
-    echomsg string({ 'exception': v:exception, 'throwpoint': v:throwpoint })
+    unsilent echomsg string({ 'exception': v:exception, 'throwpoint': v:throwpoint })
   endtry
 endfunction
 
