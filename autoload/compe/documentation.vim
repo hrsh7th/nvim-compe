@@ -25,7 +25,7 @@ let s:timer = 0
 "
 function! compe#documentation#open(text) abort
   if getcmdwintype() !=# ''
-    return s:window.close()
+    return compe#documentation#close()
   endif
 
   let l:ctx = {}
@@ -43,12 +43,15 @@ function! compe#documentation#open(text) abort
       let s:document_cache[l:text] = {}
       let s:document_cache[l:text].document = l:document
       let s:document_cache[l:text].size = s:window.get_size({ 'maxwidth': float2nr(&columns * 0.4), 'maxheight': float2nr(&lines * 0.3), })
+    else
+      silent call deletebufline(s:window.get_bufnr(), 1, '$')
+      silent call setbufline(s:window.get_bufnr(), 1, s:document_cache[l:text].document)
     endif
     let l:document = s:document_cache[l:text].document
     let l:size = s:document_cache[l:text].size
     let l:pos = s:get_screenpos(pum_getpos(), l:size)
     if empty(l:pos)
-      return s:window.close()
+      return compe#documentation#close()
     endif
 
     let l:state = { 'pos': l:pos, 'size': l:size, 'document': l:document }
