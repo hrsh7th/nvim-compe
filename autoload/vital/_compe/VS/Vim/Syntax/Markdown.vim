@@ -95,12 +95,12 @@ function! s:_find_marks(bufnr) abort
   let l:text = join(getbufline(a:bufnr, '^', '$'), "\n")
   let l:pos = 0
   while 1
-    let l:match = matchlist(l:text, '```\s*\(\w\+\)', l:pos, 1)
-    if empty(l:match)
+    let l:match = matchstrpos(l:text, '```\s*\zs\w\+', l:pos, 1)
+    if empty(l:match[0])
       break
     endif
-    let l:marks[l:match[1]] = v:true
-    let l:pos = matchend(l:text, '```\s*\(\w\+\)', l:pos, 1)
+    let l:marks[l:match[0]] = v:true
+    let l:pos = l:match[2]
   endwhile
 
   return keys(l:marks)
