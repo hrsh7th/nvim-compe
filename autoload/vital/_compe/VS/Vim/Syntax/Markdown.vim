@@ -10,7 +10,19 @@ delfunction s:_SID
 function! s:apply(...) abort
   if !exists('b:___VS_Vim_Syntax_Markdown')
     call s:_execute('runtime! syntax/markdown.vim')
-    call s:_execute('syntax clear markdownCode')
+
+    " We manually apply fenced code block
+    syntax clear markdownCode
+
+    " Add syntax for basic html entities.
+    syntax match vital_vs_vim_syntax_markdown_entities_lt /&lt;/ containedin=TOP conceal cchar=<
+    syntax match vital_vs_vim_syntax_markdown_entities_gt /&gt;/ containedin=TOP conceal cchar=>
+    syntax match vital_vs_vim_syntax_markdown_entities_amp /&amp;/ containedin=TOP conceal cchar=&
+    syntax match vital_vs_vim_syntax_markdown_entities_quot /&quot;/ containedin=TOP conceal cchar="
+    syntax match vital_vs_vim_syntax_markdown_entities_nbsp /&nbsp;/ containedin=TOP conceal cchar=\ 
+
+    " Ignore possible escape chars.
+    syntax match vital_vs_vim_syntax_markdown_escape /[^\\]\zs\\\ze[^\\]/ conceal
     let b:___VS_Vim_Syntax_Markdown = {}
   endif
 
