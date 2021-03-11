@@ -152,7 +152,7 @@ Completion.complete = guard(function(option)
   end
 
   -- Filter
-  if not triggered and context.is_completing then
+  if not triggered then
     Completion._display(context)
   end
 end)
@@ -178,6 +178,7 @@ Completion._display = guard(function(context)
 
   -- Check completing sources.
   local sources = {}
+  local has_triggered_by_character = false
   for _, source in ipairs(Completion.get_sources()) do
     local timeout = Config.get().source_timeout - source:get_processing_time()
     if timeout > 0 then
@@ -187,6 +188,7 @@ Completion._display = guard(function(context)
       return
     end
     if source:is_completing(context) then
+      has_triggered_by_character = has_triggered_by_character or source.is_triggered_by_character
       table.insert(sources, source)
     end
   end
@@ -195,25 +197,24 @@ Completion._display = guard(function(context)
   local items = {}
   local items_uniq = {}
   for _, source in ipairs(sources) do
-    local source_items = source:get_filtered_items(context)
-    if #source_items > 0 and start_offset == source:get_start_offset() then
-      for _, item in ipairs(source_items) do
-        if items_uniq[item.original_word] == nil or item.original_dup == 1 then
-          items_uniq[item.original_word] = true
-          item.word = item.original_word
-          item.abbr = item.original_abbr
-          item.kind = item.original_kind or ''
-          item.menu = item.original_menu or ''
+    if not has_triggered_by_character or source.is_triggered_by_character then
+      local source_items = source:get_filtered_items(context)
+      if #source_items > 0 and start_offset == source:get_start_offset() then
+        for _, item in ipairs(source_items) do
+          if items_uniq[item.original_word] == nil or item.original_dup == 1 then
+            items_uniq[item.original_word] = true
+            item.word = item.original_word
+            item.abbr = item.original_abbr
+            item.kind = item.original_kind or ''
+            item.menu = item.original_menu or ''
 
-          -- trim to specified width.
-          item.abbr = String.trim(item.abbr, Config.get().max_abbr_width)
-          item.kind = String.trim(item.kind, Config.get().max_kind_width)
-          item.menu = String.trim(item.menu, Config.get().max_menu_width)
-          table.insert(items, item)
+            -- trim to specified width.
+            item.abbr = String.trim(item.abbr, Config.get().max_abbr_width)
+            item.kind = String.trim(item.kind, Config.get().max_kind_width)
+            item.menu = String.trim(item.menu, Config.get().max_menu_width)
+            table.insert(items, item)
+          end
         end
-      end
-      if source.is_triggered_by_character then
-        break
       end
     end
   end

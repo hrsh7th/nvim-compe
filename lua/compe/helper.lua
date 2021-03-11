@@ -1,55 +1,6 @@
 local Pattern = require'compe.pattern'
 local Character = require'compe.utils.character'
 
-local Private = {}
-
-Private.DEFAULT_INVALID_BYTES = {}
-Private.DEFAULT_INVALID_BYTES[string.byte('=', 1)] = true
-Private.DEFAULT_INVALID_BYTES[string.byte('(', 1)] = true
-Private.DEFAULT_INVALID_BYTES[string.byte('$', 1)] = true
-Private.DEFAULT_INVALID_BYTES[string.byte('"', 1)] = true
-Private.DEFAULT_INVALID_BYTES[string.byte("'", 1)] = true
-
---- Create byte map from string
-Private.get_byte_map = function(str)
-  local byte_map = {}
-  for _, byte in ipairs({ string.byte(str, 1, -1) }) do
-    byte_map[byte] = true
-  end
-  return byte_map
-end
-
---- Create word
-Private.get_word = function(input, word, byte_map)
-  -- Fix for trigger character input. (`$|` -> `namespace\path\to\Class::$cache` = `$cache`)
-  -- TODO: More general solution
-  local first_char = string.sub(input, 1)
-  if Character.is_symbol(string.byte(first_char)) then
-    for idx = 1, #word do
-      if first_char == string.sub(word, idx, idx) then
-        word = string.sub(word, idx, -1)
-        break
-      end
-    end
-  end
-
-  local match = -1
-  for idx = 1, #word do
-    local byte = string.byte(word, idx)
-    if (match == -1 and byte_map[byte]) or (not Private.DEFAULT_INVALID_BYTES[byte]) then
-      if match == -1 then
-        match = idx
-      end
-    elseif match ~= -1 then
-      return string.sub(word, match, idx - 1)
-    end
-  end
-  if match ~= -1 then
-    return string.sub(word, match, -1)
-  end
-  return ''
-end
-
 local Helper = {}
 
 --- determine
@@ -106,6 +57,7 @@ Helper.convert_lsp = function(args)
   local request = args.request
   local response = args.response
 
+  local before_line_bytes = { string.byte(context.before_line, 1, -1) }
   local complete_items = {}
   for _, completion_item in pairs(vim.tbl_islist(response or {}) and response or response.items or {}) do
     local word = ''
@@ -133,17 +85,14 @@ Helper.convert_lsp = function(args)
 
     -- Fix for leading_word
     local suggest_offset = args.keyword_pattern_offset
-    local word_char = string.byte(word, 1)
     for idx = args.keyword_pattern_offset, 1, -1 do
-      local line_char = string.byte(context.before_line, idx)
-      if Character.is_white(line_char) then
+      if Character.is_white(before_line_bytes[idx]) then
         break
       end
-      if word_char == line_char then
-        if string.find(word, string.sub(context.before_line, idx, -1), 1, true) == 1 then
+      if Character.is_semantic_index(before_line_bytes, idx) then
+        if string.find(word, string.sub(context.before_line, idx, args.keyword_pattern_offset - 1), 1, true) == 1 then
           suggest_offset = idx
           keyword_pattern_offset = math.min(idx, keyword_pattern_offset)
-          break
         end
       end
     end
@@ -165,10 +114,9 @@ Helper.convert_lsp = function(args)
     })
   end
 
-  local input = string.sub(context.before_line, keyword_pattern_offset, -1)
-  local bytes = Private.get_byte_map(input)
   for _, complete_item in ipairs(complete_items) do
-    complete_item.word = Private.get_word(input, complete_item.word, bytes)
+    local leading = string.sub(context.before_line, keyword_pattern_offset, args.keyword_pattern_offset - 1)
+    complete_item.word = string.match(complete_item.word, vim.pesc(leading) .. '[^%s=$(\'"]+') or ''
   end
 
   return {

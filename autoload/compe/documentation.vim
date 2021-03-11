@@ -7,6 +7,7 @@ let s:FloatingWindow = vital#compe#import('VS.Vim.Window.FloatingWindow')
 let s:window = s:FloatingWindow.new()
 call s:window.set_var('&wrap', 1)
 call s:window.set_var('&conceallevel', 2)
+call s:window.set_var('&breakindent', 1)
 call s:window.set_var('compe_documentation', 1)
 call s:window.set_bufnr(s:Buffer.create())
 call setbufvar(s:window.get_bufnr(), '&buftype', 'nofile')
@@ -20,6 +21,7 @@ let s:state = {
 \ }
 
 let s:cache = {}
+let s:timer = 0
 
 "
 " compe#documentation#show
@@ -46,6 +48,7 @@ function! compe#documentation#open(document) abort
     " Ensure normalized document
     if !has_key(s:cache, l:state.document)
       let s:cache[l:state.document] = split(s:MarkupContent.normalize(l:state.document), "\n")
+      let s:cache[l:state.document] = map(s:cache[l:state.document], '" " . v:val . " "')
     endif
     let l:document = s:cache[l:state.document]
 
@@ -74,7 +77,7 @@ function! compe#documentation#open(document) abort
       silent call s:Window.do(s:window.get_winid(), { -> s:Markdown.apply() })
     endif
   endfunction
-  call timer_start(0, { -> l:ctx.callback(a:document) })
+  let s:timer = timer_start(0, { -> l:ctx.callback(a:document) })
 endfunction
 
 "
@@ -83,6 +86,7 @@ endfunction
 function! compe#documentation#close() abort
   let s:state = { 'pumpos': {}, 'document': '' }
   let s:cache = {}
+  call timer_stop(s:timer)
   call timer_start(0, { -> s:window.close() })
 endfunction
 
@@ -94,8 +98,8 @@ function! s:get_screenpos(event, size) abort
     return []
   endif
 
-  let l:col_if_right = a:event.col + a:event.width + 1 + (a:event.scrollbar ? 1 : 0)
-  let l:col_if_left = a:event.col - a:size.width - 2
+  let l:col_if_right = a:event.col + a:event.width + (a:event.scrollbar ? 1 : 0)
+  let l:col_if_left = a:event.col - a:size.width - 1
 
   if a:event.col > float2nr(&columns * 0.6)
     let l:col = l:col_if_left

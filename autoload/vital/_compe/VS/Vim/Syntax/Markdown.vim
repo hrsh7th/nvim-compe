@@ -9,7 +9,8 @@ delfunction s:_SID
 " ___vital___
 function! s:apply(...) abort
   if !exists('b:___VS_Vim_Syntax_Markdown')
-    runtime! syntax/markdown.vim
+    call s:_execute('runtime! syntax/markdown.vim')
+    call s:_execute('syntax clear markdownCode')
     let b:___VS_Vim_Syntax_Markdown = {}
   endif
 
@@ -23,14 +24,11 @@ function! s:apply(...) abort
       let b:___VS_Vim_Syntax_Markdown[l:group] = v:true
 
       try
-        if exists('b:current_syntax')
-          unlet b:current_syntax
-        endif
-        execute printf('syntax include @%s syntax/%s.vim', l:group, l:filetype)
-        execute printf('syntax region %s matchgroup=Conceal start=/%s/rs=e matchgroup=Conceal end=/%s/re=s contains=@%s containedin=ALL keepend concealends',
+        call s:_execute('syntax include @%s syntax/%s.vim', l:group, l:filetype)
+        call s:_execute('syntax region %s matchgroup=Conceal start=/%s/rs=e matchgroup=Conceal end=/%s/re=s contains=@%s containedin=TOP keepend concealends',
         \   l:group,
-        \   printf('^\s*```\s*%s\s*', l:mark),
-        \   '\s*```\s*$',
+        \   printf('```%s\s*', l:mark),
+        \   '```\s*\%(\s\|' . "\n" . '\|$\)',
         \   l:group
         \ )
       catch /.*/
@@ -40,6 +38,19 @@ function! s:apply(...) abort
   catch /.*/
     echomsg string({ 'exception': v:exception, 'throwpoint': v:throwpoint })
   endtry
+endfunction
+
+"
+"  _execute
+"
+function! s:_execute(command, ...) abort
+  let b:current_syntax = ''
+  unlet b:current_syntax
+
+  let g:main_syntax = ''
+  unlet g:main_syntax
+
+  execute call('printf', [a:command] + a:000)
 endfunction
 
 "

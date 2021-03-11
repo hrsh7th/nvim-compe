@@ -20,11 +20,13 @@ Matcher.match = function(context, source, items)
       end
     end
 
-    item.index = i
+    item.prefix = false
     item.score = 0
     item.fuzzy = false
+    item.index = i
     if #word >= #input then
-      local score, fuzzy = Matcher.score(input, word)
+      local prefix, score, fuzzy = Matcher.score(input, word)
+      item.prefix = prefix
       item.score = score
       item.fuzzy = fuzzy
       if item.score >= 1 or #input == 0 then
@@ -96,19 +98,12 @@ end
 Matcher.score = function(input, word)
   -- Empty input
   if #input == 0 then
-    return 1, false
+    return true, 1, false
   end
 
   -- Ignore if input is long than word
   if #input > #word then
-    return 0, false
-  end
-
-  -- Check first char matching (special check for completion)
-  if not Config.get().allow_prefix_unmatch then
-    if not Character.match(string.byte(input, 1, 1), string.byte(word, 1, 1)) then
-      return 0, false
-    end
+    return false, 0, false
   end
 
   local input_bytes = { string.byte(input, 1, -1) }
@@ -135,7 +130,7 @@ Matcher.score = function(input, word)
   end
 
   if #matches == 0 then
-    return 0, false
+    return false, 0, false
   end
 
   -- Compute prefix match score
@@ -155,13 +150,15 @@ Matcher.score = function(input, word)
     end
   end
 
+  local prefix = matches[1].input_match_start == 1 and matches[1].word_match_start == 1
+
   -- Check the word contains the remaining input. if not, it does not match.
   local last_match = matches[#matches]
   if last_match.input_match_end < #input_bytes then
 
     -- If input is remaining but all word consumed, it does not match.
     if last_match.word_match_end >= #word_bytes then
-      return 0, false
+      return prefix, 0, false
     end
 
     for word_index = last_match.word_match_end + 1, #word_bytes do
@@ -178,13 +175,13 @@ Matcher.score = function(input, word)
         word_offset = word_offset + 1
       end
       if input_index - 1 == #input_bytes then
-        return score, true
+        return prefix, score, true
       end
     end
-    return 0, false
+    return false, 0, false
   end
 
-  return score, false
+  return prefix, score, false
 end
 
 --- find_match_region
@@ -248,6 +245,15 @@ end
 
 --- compare
 Matcher.compare = function(item1, item2, history)
+  if item1.prefix ~= item2.prefix then
+    if item1.prefix then
+      return true
+    end
+    if item2.prefix then
+      return false
+    end
+  end
+
   if item1.fuzzy ~= item2.fuzzy then
     if item1.fuzzy then
       return false

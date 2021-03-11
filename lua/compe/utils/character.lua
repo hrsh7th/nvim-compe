@@ -50,6 +50,9 @@ Character.is_semantic_index = function(bytes, index)
   if not Character.is_upper(bytes[index - 1]) and Character.is_upper(bytes[index]) then
     return true
   end
+  if Character.is_symbol(bytes[index]) or Character.is_white(bytes[index]) then
+    return true
+  end
   if not Character.is_alpha(bytes[index - 1]) and Character.is_alpha(bytes[index]) then
     return true
   end
