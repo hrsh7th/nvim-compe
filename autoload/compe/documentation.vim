@@ -23,29 +23,29 @@ let s:timer = 0
 "
 " compe#documentation#show
 "
-function! compe#documentation#open(document) abort
+function! compe#documentation#open(text) abort
   if getcmdwintype() !=# ''
     return s:window.close()
   endif
 
   let l:ctx = {}
-  function! l:ctx.callback(document) abort
+  function! l:ctx.callback(text) abort
     if !pumvisible()
       return
     endif
 
     " Ensure normalized document
-    let l:document = type(a:document) == type([]) ? join(a:document, "\n") : a:document
-    if !has_key(s:document_cache, l:document)
-      let l:normalize_document = map(split(s:MarkupContent.normalize(l:document), "\n"), '" " . v:val . " "')
+    let l:text = type(a:text) == type([]) ? join(a:text, "\n") : a:text
+    if !has_key(s:document_cache, l:text)
+      let l:document = map(split(s:MarkupContent.normalize(l:text), "\n"), '" " . v:val . " "')
       silent call deletebufline(s:window.get_bufnr(), 1, '$')
-      silent call setbufline(s:window.get_bufnr(), 1, l:normalize_document)
-      let s:document_cache[l:document] = {}
-      let s:document_cache[l:document].document = l:normalize_document
-      let s:document_cache[l:document].size = s:window.get_size({ 'maxwidth': float2nr(&columns * 0.4), 'maxheight': float2nr(&lines * 0.3), })
+      silent call setbufline(s:window.get_bufnr(), 1, l:document)
+      let s:document_cache[l:text] = {}
+      let s:document_cache[l:text].document = l:document
+      let s:document_cache[l:text].size = s:window.get_size({ 'maxwidth': float2nr(&columns * 0.4), 'maxheight': float2nr(&lines * 0.3), })
     endif
-    let l:size = s:document_cache[l:document].size
-    let l:document = s:document_cache[l:document].document
+    let l:document = s:document_cache[l:text].document
+    let l:size = s:document_cache[l:text].size
     let l:pos = s:get_screenpos(pum_getpos(), l:size)
     if empty(l:pos)
       return s:window.close()
@@ -58,15 +58,15 @@ function! compe#documentation#open(document) abort
     let s:state = l:state
 
     silent call s:window.open({
-    \   'row': l:pos[0] + 1,
-    \   'col': l:pos[1] + 1,
-    \   'width': l:size.width,
-    \   'height': l:size.height,
+    \   'row': l:state.pos[0] + 1,
+    \   'col': l:state.pos[1] + 1,
+    \   'width': l:state.size.width,
+    \   'height': l:state.size.height,
     \ })
     silent call s:Window.do(s:window.get_winid(), { -> s:Markdown.apply() })
   endfunction
   call timer_stop(s:timer)
-  let s:timer = timer_start(0, { -> l:ctx.callback(a:document) })
+  let s:timer = timer_start(0, { -> l:ctx.callback(a:text) })
 endfunction
 
 "
