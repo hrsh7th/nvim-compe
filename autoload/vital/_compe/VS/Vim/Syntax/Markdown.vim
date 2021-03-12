@@ -11,26 +11,29 @@ function! s:apply(...) abort
   if !exists('b:___VS_Vim_Syntax_Markdown')
     call s:_execute('runtime! syntax/markdown.vim')
 
-    " We manually apply fenced code block
+    " Modify markdownCode
     syntax clear markdownCode
+    syntax region markdownCode matchgroup=Conceal start=/\%(``\)\@!`/ matchgroup=Conceal end=/\%(``\)\@!`/ containedin=TOP keepend concealends
+
+    " Modify markdownEscape
     syntax clear markdownEscape
+    let l:name = 0
+    for l:char in split('!"#$%&()*+,-.g:;<=>?@[]^_`{|}~' . "'", '\zs')
+      let l:name += 1
+      execute printf('syntax match vital_vs_vim_syntax_markdown_escape_%s /[^\\]\?\zs\\\V%s/ conceal cchar=%s containedin=ALL',
+      \   l:name,
+      \   l:char,
+      \   l:char,
+      \ )
+    endfor
+    syntax match vital_vs_vim_syntax_markdown_escape_escape /[^\\]\?\zs\\\\/ conceal cchar=\ containedin=ALL
 
     " Add syntax for basic html entities.
     syntax match vital_vs_vim_syntax_markdown_entities_lt /&lt;/ containedin=ALL conceal cchar=<
     syntax match vital_vs_vim_syntax_markdown_entities_gt /&gt;/ containedin=ALL conceal cchar=>
     syntax match vital_vs_vim_syntax_markdown_entities_amp /&amp;/ containedin=ALL conceal cchar=&
     syntax match vital_vs_vim_syntax_markdown_entities_quot /&quot;/ containedin=ALL conceal cchar="
-    syntax match vital_vs_vim_syntax_markdown_entities_nbsp /&nbsp;/ containedin=ALL conceal cchar=\ 
-
-    " Ignore possible escape chars (https://github.github.com/gfm/#example-308)
-    for l:char in split('!"#$%&()*+,-.g:;<=>?@[]^_`{|}~' . "'", '\zs')
-      execute printf('syntax match vital_vs_vim_syntax_markdown_escape_%s /[^\\]\?\zs\\\V%s/ conceal cchar=%s containedin=ALL',
-      \   l:char,
-      \   l:char,
-      \   l:char,
-      \ )
-    endfor
-    syntax match vital_vs_vim_syntax_markdown_escape_escape /[^\\]\\\\/ conceal cchar=\ containedin=ALL
+    syntax match vital_vs_vim_syntax_markdown_entities_nbsp /&nbsp;/ containedin=ALL conceal cchar= 
 
     let b:___VS_Vim_Syntax_Markdown = {}
   endif
