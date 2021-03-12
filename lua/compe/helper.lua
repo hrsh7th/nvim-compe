@@ -90,7 +90,7 @@ Helper.convert_lsp = function(args)
         break
       end
       if Character.is_semantic_index(before_line_bytes, idx) then
-        if string.find(word, string.sub(context.before_line, idx, args.keyword_pattern_offset - 1), 1, true) == 1 then
+        if string.find(word, string.sub(context.before_line, idx, math.min(idx + #word - 1, context.col)), 1, true) == 1 then
           suggest_offset = idx
           keyword_pattern_offset = math.min(idx, keyword_pattern_offset)
         end
