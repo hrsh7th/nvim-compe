@@ -18,14 +18,14 @@ function! compe#register_source(name, source) abort
   if matchstr(a:name, '^\w\+$') ==# ''
     throw "compe: the source's name must be \w\+"
   endif
-  return compe#source#vim_bridge#register(a:name, a:source)
+  return compe#vim_bridge#register(a:name, a:source)
 endfunction
 
 "
 " compe#register_source
 "
 function! compe#unregister_source(id) abort
-  call compe#source#vim_bridge#unregister(a:id)
+  call compe#vim_bridge#unregister(a:id)
 endfunction
 
 "

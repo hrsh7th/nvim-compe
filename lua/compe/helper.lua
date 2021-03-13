@@ -1,4 +1,5 @@
 local Pattern = require'compe.pattern'
+local String = require'compe.utils.string'
 local Character = require'compe.utils.character'
 
 local Helper = {}
@@ -55,11 +56,10 @@ Helper.convert_lsp = function(args)
   local keyword_pattern_offset = args.keyword_pattern_offset
   local context = args.context
   local request = args.request
-  local response = args.response
+  local response = args.response or {}
 
-  local before_line_bytes = { string.byte(context.before_line, 1, -1) }
   local complete_items = {}
-  for _, completion_item in pairs(vim.tbl_islist(response or {}) and response or response.items or {}) do
+  for _, completion_item in ipairs(response.items or response) do
     local word = ''
     local abbr = ''
     if completion_item.insertTextFormat == 2 then
@@ -80,17 +80,25 @@ Helper.convert_lsp = function(args)
       word = completion_item.insertText or completion_item.label
       abbr = completion_item.label
     end
-    word = string.gsub(string.gsub(word, '^%s*', ''), '%s*$', '')
-    abbr = string.gsub(string.gsub(abbr, '^%s*', ''), '%s*$', '')
+    word = String.trim(word)
+    abbr = String.trim(abbr)
 
     -- Fix for leading_word
     local suggest_offset = args.keyword_pattern_offset
     for idx = args.keyword_pattern_offset, 1, -1 do
-      if Character.is_white(before_line_bytes[idx]) then
+      if Character.is_white(string.byte(context.before_line, idx)) then
         break
       end
-      if Character.is_semantic_index(before_line_bytes, idx) then
-        if string.find(word, string.sub(context.before_line, idx, math.min(idx + #word - 1, context.col)), 1, true) == 1 then
+      if Character.is_semantic_index(context.before_line, idx) then
+        local match = true
+        local max = math.min(idx + #word - 1, context.col - 1)
+        for i = idx, max do
+          if string.byte(word, 1 + i - idx) ~= string.byte(context.before_line, i) then
+            match = false
+            break
+          end
+        end
+        if match then
           suggest_offset = idx
           keyword_pattern_offset = math.min(idx, keyword_pattern_offset)
         end
@@ -114,9 +122,9 @@ Helper.convert_lsp = function(args)
     })
   end
 
+  local leading = string.sub(context.before_line, keyword_pattern_offset, args.keyword_pattern_offset - 1)
   for _, complete_item in ipairs(complete_items) do
-    local leading = string.sub(context.before_line, keyword_pattern_offset, args.keyword_pattern_offset - 1)
-    complete_item.word = string.match(complete_item.word, vim.pesc(leading) .. '[^%s=$(\'"]+') or ''
+    complete_item.word = String.get_word(complete_item.word, leading)
   end
 
   return {

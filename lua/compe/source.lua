@@ -17,6 +17,7 @@ function Source.new(name, source)
   self.id = Source.base_id
   self.name = name
   self.source = source
+  self.request_id = 0
   self.revision = 0
   self:clear()
   return self
@@ -134,8 +135,11 @@ Source.trigger = function(self, context, callback)
   end
 
   self.status = 'processing'
+  self.request_id = self.request_id + 1
   self.request_time = vim.loop.now()
   self.request_state = state
+
+  local request_id = self.request_id
 
   -- Completion
   self.source:complete({
@@ -144,7 +148,11 @@ Source.trigger = function(self, context, callback)
     keyword_pattern_offset = state.keyword_pattern_offset;
     trigger_character_offset = state.trigger_character_offset;
     incomplete = self.incomplete;
-    callback = Async.fast_schedule_wrap(Async.guard(self.id .. ':complete', function(result)
+    callback = function(result)
+      if self.request_id ~= request_id then
+        return
+      end
+
       -- Reset for new completion.
       result.keyword_pattern_offset = result.keyword_pattern_offset or state.keyword_pattern_offset
 
@@ -165,12 +173,12 @@ Source.trigger = function(self, context, callback)
         self:clear()
       end
 
-      callback()
-    end));
-    abort = Async.fast_schedule_wrap(function()
+      Async.fast_schedule(callback)
+    end;
+    abort = function()
       self:clear()
-      callback()
-    end);
+      Async.fast_schedule(callback)
+    end;
   })
   return true
 end

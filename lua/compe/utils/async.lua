@@ -94,9 +94,10 @@ Async.guard = function(id, callback)
 
   local guard = Async._guards[id]
   return function(...)
-    if Async._guards[id] == guard then
-      callback(...)
+    if Async._guards[id] ~= guard then
+      return
     end
+    callback(...)
   end
 end
 

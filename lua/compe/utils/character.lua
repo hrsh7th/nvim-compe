@@ -1,21 +1,26 @@
 local alpha = {}
 string.gsub('abcdefghijklmnopqrstuvwxyz', '.', function(char)
   alpha[string.byte(char)] = true
+  alpha[char] = true
 end)
 
 local ALPHA = {}
 string.gsub('ABCDEFGHIJKLMNOPQRSTUVWXYZ', '.', function(char)
   ALPHA[string.byte(char)] = true
+  ALPHA[char] = true
 end)
 
 local digit = {}
 string.gsub('1234567890', '.', function(char)
   digit[string.byte(char)] = true
+  digit[char] = true
 end)
 
 local white = {}
-white[string.byte(' ')] = true
-white[string.byte('\t')] = true
+string.gsub(' \t', '.', function(char)
+  white[string.byte(char)] = true
+  white[char] = true
+end)
 
 local Character = {}
 
@@ -43,29 +48,33 @@ Character.is_alnum = function(byte)
   return Character.is_alpha(byte) or Character.is_digit(byte)
 end
 
-Character.is_semantic_index = function(bytes, index)
+Character.is_semantic_index = function(text, index)
   if index <= 1 then
     return true
   end
-  if not Character.is_upper(bytes[index - 1]) and Character.is_upper(bytes[index]) then
+
+  local prev = string.byte(text, index - 1)
+  local curr = string.byte(text, index)
+
+  if not Character.is_upper(prev) and Character.is_upper(curr) then
     return true
   end
-  if Character.is_symbol(bytes[index]) or Character.is_white(bytes[index]) then
+  if Character.is_symbol(curr) or Character.is_white(curr) then
     return true
   end
-  if not Character.is_alpha(bytes[index - 1]) and Character.is_alpha(bytes[index]) then
+  if not Character.is_alpha(prev) and Character.is_alpha(curr) then
     return true
   end
   return false
 end
 
-Character.get_next_semantic_index = function(bytes, current_index)
-  for i = current_index + 1, #bytes do
-    if Character.is_semantic_index(bytes, i) then
+Character.get_next_semantic_index = function(text, current_index)
+  for i = current_index + 1, #text do
+    if Character.is_semantic_index(text, i) then
       return i
     end
   end
-  return #bytes + 1
+  return #text + 1
 end
 
 Character.match = function(byte1, byte2)

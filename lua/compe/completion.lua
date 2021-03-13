@@ -1,10 +1,10 @@
 local Async = require'compe.utils.async'
 local Cache = require'compe.utils.cache'
 local String = require'compe.utils.string'
+local Callback = require'compe.utils.callback'
 local Config = require'compe.config'
 local Context = require'compe.context'
 local Matcher = require'compe.matcher'
-local VimBridge = require'compe.vim_bridge'
 
 --- guard
 local guard = function(callback)
@@ -125,8 +125,8 @@ Completion.close = function()
     source:clear()
   end
 
-  VimBridge.clear()
   vim.call('compe#documentation#close')
+  Callback.clear()
   Completion._show(0, {}, Completion._context)
   Completion._new_context({})
   Completion._current_items = {}
@@ -209,9 +209,9 @@ Completion._display = guard(function(context)
             item.menu = item.original_menu or ''
 
             -- trim to specified width.
-            item.abbr = String.trim(item.abbr, Config.get().max_abbr_width)
-            item.kind = String.trim(item.kind, Config.get().max_kind_width)
-            item.menu = String.trim(item.menu, Config.get().max_menu_width)
+            item.abbr = String.omit(item.abbr, Config.get().max_abbr_width)
+            item.kind = String.omit(item.kind, Config.get().max_kind_width)
+            item.menu = String.omit(item.menu, Config.get().max_menu_width)
             table.insert(items, item)
           end
         end
