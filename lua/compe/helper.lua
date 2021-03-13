@@ -85,14 +85,11 @@ Helper.convert_lsp = function(args)
 
     local suggest_offset = args.keyword_pattern_offset
     if completion_item.textEdit and completion_item.textEdit.range then
-      for idx = args.keyword_pattern_offset - 1, completion_item.textEdit.range.start.character + 1, -1 do
-        local char = string.byte(context.before_line, idx)
-        if Character.is_white(char) then
-          break
-        end
-        if char == string.byte(word, 1) then
+      for idx = completion_item.textEdit.range.start.character + 1, args.keyword_pattern_offset - 1 do
+        if string.byte(context.before_line, idx) == string.byte(word, 1) then
           suggest_offset = idx
           keyword_pattern_offset = math.min(idx, keyword_pattern_offset)
+          break
         end
       end
     else
