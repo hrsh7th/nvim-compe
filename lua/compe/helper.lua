@@ -83,24 +83,38 @@ Helper.convert_lsp = function(args)
     word = String.trim(word)
     abbr = String.trim(abbr)
 
-    -- Fix for leading_word
     local suggest_offset = args.keyword_pattern_offset
-    for idx = args.keyword_pattern_offset, 1, -1 do
-      if Character.is_white(string.byte(context.before_line, idx)) then
-        break
-      end
-      if Character.is_semantic_index(context.before_line, idx) then
-        local match = true
-        local max = math.min(idx + #word - 1, context.col - 1)
-        for i = idx, max do
-          if string.byte(word, 1 + i - idx) ~= string.byte(context.before_line, i) then
-            match = false
-            break
-          end
+    if completion_item.textEdit and completion_item.textEdit.range then
+      for idx = args.keyword_pattern_offset - 1, completion_item.textEdit.range.start.character + 1, -1 do
+        local char = string.byte(context.before_line, idx)
+        if Character.is_white(char) then
+          break
         end
-        if match then
+        if char == string.byte(word, 1) then
           suggest_offset = idx
           keyword_pattern_offset = math.min(idx, keyword_pattern_offset)
+        end
+      end
+    else
+      -- TODO: Add tests (compe specific implementation)
+      local byte_map = String.make_byte_map(word)
+      for idx = args.keyword_pattern_offset - 1, 1, -1 do
+        local char = string.byte(context.before_line, idx)
+        if Character.is_white(char) or not byte_map[char] then
+          break
+        end
+        if Character.is_semantic_index(context.before_line, idx) then
+          local match = true
+          for i = 1, math.min(#word, args.keyword_pattern_offset - idx) do
+            if string.byte(word, i) ~= string.byte(context.before_line, idx + i - 1) then
+              match = false
+              break
+            end
+          end
+          if match then
+            suggest_offset = idx
+            keyword_pattern_offset = math.min(idx, keyword_pattern_offset)
+          end
         end
       end
     end

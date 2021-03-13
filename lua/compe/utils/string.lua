@@ -96,14 +96,13 @@ String.get_word = function(word, prefix)
   return ''
 end
 
---- has_prefix
-String.has_prefix = function(text, prefix)
-  for i = 1, #prefix do
-    if string.byte(text, i) ~= string.byte(prefix, i) then
-      return false
-    end
+--- make_byte_map
+String.make_byte_map = function(word)
+  local map = {}
+  for i = 1, #word do
+    map[string.byte(word, i)] = true
   end
-  return true
+  return map
 end
 
 return String
