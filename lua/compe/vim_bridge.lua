@@ -1,109 +1,50 @@
 local Compat = require'compe.utils.compat'
+local Callback = require'compe.utils.callback'
 
-local VimBridge =  {}
+local Methods = {}
 
-local complete_callbacks = {}
-local complete_aborts = {}
-local resolve_callbacks = {}
-local documentation_callbacks = {}
-local documentation_aborts = {}
-
---- clear
-function VimBridge.clear()
-  complete_callbacks = {}
-  complete_aborts = {}
-  resolve_callbacks = {}
-  documentation_callbacks = {}
-  documentation_aborts = {}
-end
-
---- complete_on_callback
-function VimBridge.complete_on_callback(id, result)
-  if complete_callbacks[id] ~= nil then
-    complete_callbacks[id](result)
-    complete_callbacks[id] = nil
-  end
-end
-
---- complete_on_abort
-function VimBridge.complete_on_abort(id)
-  if complete_aborts[id] ~= nil then
-    complete_aborts[id]()
-    complete_aborts[id] = nil
-  end
-end
-
---- resolve_on_callback
-function VimBridge.resolve_on_callback(id, completed_item)
-  if resolve_callbacks[id] ~= nil then
-    resolve_callbacks[id](completed_item)
-    resolve_callbacks[id] = nil
-  end
-end
-
---- documentation_on_callback
-function VimBridge.documentation_on_callback(id, document)
-  if documentation_callbacks[id] ~= nil then
-    documentation_callbacks[id](document)
-    documentation_callbacks[id] = nil
-  end
-end
-
---- documentation_on_abort
-function VimBridge.documentation_on_abort(id)
-  if documentation_aborts[id] ~= nil then
-    documentation_aborts[id]()
-    documentation_aborts[id] = nil
-  end
-end
-
---- get_metadata
-local M = {}
-M.get_metadata = function(self)
-  return Compat.safe(vim.call('compe#source#vim_bridge#get_metadata', self.id))
+Methods.get_metadata = function(self)
+  return Compat.safe(vim.call('compe#vim_bridge#get_metadata', self.id))
 end
 
 --- determine
-M.determine = function(self, context)
-  return Compat.safe(vim.call('compe#source#vim_bridge#determine', self.id, context))
+Methods.determine = function(self, context)
+  return Compat.safe(vim.call('compe#vim_bridge#determine', self.id, context))
 end
 
 --- complete
-M.complete = function(self, args)
-  complete_callbacks[self.id] = args.callback
-  complete_aborts[self.id] = args.abort
-  args.callback = nil
-  args.abort = nil
-  return vim.call('compe#source#vim_bridge#complete', self.id, args)
+Methods.complete = function(self, args)
+  args.callback = Callback.set(args.callback)
+  args.abort = Callback.set(args.abort)
+  return vim.call('compe#vim_bridge#complete', self.id, args)
 end
 
 --- resolve
-M.resolve = function(self, args)
-  resolve_callbacks[self.id] = args.callback
-  args.callback = nil
-  return Compat.safe(vim.call('compe#source#vim_bridge#resolve', self.id, args))
+Methods.resolve = function(self, args)
+  args.callback = Callback.set(args.callback)
+  return vim.call('compe#vim_bridge#resolve', self.id, args)
 end
 
 --- confirm
-M.confirm = function(self, args)
-  vim.call('compe#source#vim_bridge#confirm', self.id, args)
+Methods.confirm = function(self, args)
+  vim.call('compe#vim_bridge#confirm', self.id, args)
 end
 
 --- documentation
-M.documentation = function(self, args)
-  documentation_callbacks[self.id] = args.callback
-  documentation_aborts[self.id] = args.abort
-  args.callback = nil
-  args.abort = nil
-  return vim.call('compe#source#vim_bridge#documentation', self.id, args)
+Methods.documentation = function(self, args)
+  args.callback = Callback.set(args.callback)
+  args.abort = Callback.set(args.abort)
+  return vim.call('compe#vim_bridge#documentation', self.id, args)
 end
 
+local VimBridge =  {}
+
 --- new
-function VimBridge.new(id, methods)
+VimBridge.new = function(id, methods)
   local self = setmetatable({}, { __index = VimBridge })
   self.id = id
   for _, method in ipairs(methods) do
-    self[method] = M[method]
+    self[method] = Methods[method]
   end
   return self
 end

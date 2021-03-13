@@ -2,11 +2,7 @@ local Config = require'compe.config'
 
 local Pattern = {}
 
-Pattern._filetypes = {
-  php = {
-    keyword_pattern = [[\%(\$\w*\|\h\w*\)]]
-  }
-}
+Pattern._filetypes = {}
 Pattern._regexes = {}
 
 --- set

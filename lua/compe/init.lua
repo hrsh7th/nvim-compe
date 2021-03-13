@@ -1,5 +1,5 @@
 local Debug = require'compe.utils.debug'
-local Pattern = require'compe.pattern'
+local Callback = require'compe.utils.callback'
 local Completion = require'compe.completion'
 local Source = require'compe.source'
 local Config = require'compe.config'
@@ -109,9 +109,15 @@ end))
 compe._on_complete_changed = enable(suppress(function()
   Completion.select({
     index = vim.call('complete_info', {'selected' }).selected or -1;
+    manual = vim.call('compe#_is_selected_manually');
     documentation = true;
   })
 end))
+
+--- _on_callback
+compe._on_callback = function(id, ...)
+  Callback.call(id, ...)
+end
 
 return compe
 

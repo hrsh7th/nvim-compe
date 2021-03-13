@@ -1,5 +1,4 @@
 local Character = require'compe.utils.character'
-local Config = require'compe.config'
 
 local Matcher = {}
 
@@ -8,10 +7,10 @@ Matcher.WORD_BOUNDALY_ORDER_FACTOR = 5
 --- match
 Matcher.match = function(context, source, items)
   -- filter
+  local input = context:get_input(source:get_start_offset())
   local matches = {}
   for i, item in ipairs(items) do
     local word = item.original_word
-    local input = context:get_input(source:get_start_offset())
     if #input > 0 then
       if item.filter_text and #item.filter_text > 0 then
         if Character.match(string.byte(input, 1), string.byte(item.filter_text, 1)) then
@@ -20,11 +19,13 @@ Matcher.match = function(context, source, items)
       end
     end
 
-    item.index = i
+    item.prefix = false
     item.score = 0
     item.fuzzy = false
+    item.index = i
     if #word >= #input then
-      local score, fuzzy = Matcher.score(input, word)
+      local prefix, score, fuzzy = Matcher.score(input, word)
+      item.prefix = prefix
       item.score = score
       item.fuzzy = fuzzy
       if item.score >= 1 or #input == 0 then
@@ -96,23 +97,13 @@ end
 Matcher.score = function(input, word)
   -- Empty input
   if #input == 0 then
-    return 1, false
+    return true, 1, false
   end
 
   -- Ignore if input is long than word
   if #input > #word then
-    return 0, false
+    return false, 0, false
   end
-
-  -- Check first char matching (special check for completion)
-  if not Config.get().allow_prefix_unmatch then
-    if not Character.match(string.byte(input, 1, 1), string.byte(word, 1, 1)) then
-      return 0, false
-    end
-  end
-
-  local input_bytes = { string.byte(input, 1, -1) }
-  local word_bytes = { string.byte(word, 1, -1) }
 
   --- Gather matched regions
   local matches = {}
@@ -120,22 +111,22 @@ Matcher.score = function(input, word)
   local input_end_index = 1
   local word_index = 1
   local word_bound_index = 1
-  while input_end_index <= #input_bytes and word_index <= #word_bytes do
-    local match = Matcher.find_match_region(input_bytes, input_start_index, input_end_index, word_bytes, word_index)
+  while input_end_index <= #input and word_index <= #word do
+    local match = Matcher.find_match_region(input, input_start_index, input_end_index, word, word_index)
     if match and input_end_index <= match.input_match_end then
       match.index = word_bound_index
       input_start_index = match.input_match_start
       input_end_index = match.input_match_end + 1
-      word_index = Character.get_next_semantic_index(word_bytes, match.word_match_end)
+      word_index = Character.get_next_semantic_index(word, match.word_match_end)
       table.insert(matches, match)
     else
-      word_index = Character.get_next_semantic_index(word_bytes, word_index)
+      word_index = Character.get_next_semantic_index(word, word_index)
     end
     word_bound_index = word_bound_index + 1
   end
 
   if #matches == 0 then
-    return 0, false
+    return false, 0, false
   end
 
   -- Compute prefix match score
@@ -155,21 +146,23 @@ Matcher.score = function(input, word)
     end
   end
 
+  local prefix = matches[1].input_match_start == 1 and matches[1].word_match_start == 1
+
   -- Check the word contains the remaining input. if not, it does not match.
   local last_match = matches[#matches]
-  if last_match.input_match_end < #input_bytes then
+  if last_match.input_match_end < #input then
 
     -- If input is remaining but all word consumed, it does not match.
-    if last_match.word_match_end >= #word_bytes then
-      return 0, false
+    if last_match.word_match_end >= #word then
+      return prefix, 0, false
     end
 
-    for word_index = last_match.word_match_end + 1, #word_bytes do
+    for word_index = last_match.word_match_end + 1, #word do
       local word_offset = 0
       local input_index = last_match.input_match_end + 1
       local matched = false
-      while word_offset + word_index <= #word_bytes and input_index <= #input_bytes do
-        if Character.match(word_bytes[word_index + word_offset], input_bytes[input_index]) then
+      while word_offset + word_index <= #word and input_index <= #input do
+        if Character.match(string.byte(word, word_index + word_offset), string.byte(input, input_index)) then
           matched = true
           input_index = input_index + 1
         elseif matched then
@@ -177,21 +170,21 @@ Matcher.score = function(input, word)
         end
         word_offset = word_offset + 1
       end
-      if input_index - 1 == #input_bytes then
-        return score, true
+      if input_index - 1 == #input then
+        return prefix, score, true
       end
     end
-    return 0, false
+    return false, 0, false
   end
 
-  return score, false
+  return prefix, score, false
 end
 
 --- find_match_region
-Matcher.find_match_region = function(input_bytes, input_start_index, input_end_index, word_bytes, word_index)
+Matcher.find_match_region = function(input, input_start_index, input_end_index, word, word_index)
   -- determine input position ( woroff -> word_offset )
   while input_start_index < input_end_index do
-    if Character.match(input_bytes[input_end_index], word_bytes[word_index]) then
+    if Character.match(string.byte(input, input_end_index), string.byte(word, word_index)) then
       break
     end
     input_end_index = input_end_index - 1
@@ -206,15 +199,15 @@ Matcher.find_match_region = function(input_bytes, input_start_index, input_end_i
   local input_match_start = -1
   local input_index = input_end_index
   local word_offset = 0
-  while input_index <= #input_bytes and word_index + word_offset <= #word_bytes do
-    if Character.match(input_bytes[input_index], word_bytes[word_index + word_offset]) then
+  while input_index <= #input and word_index + word_offset <= #word do
+    if Character.match(string.byte(input, input_index), string.byte(word, word_index + word_offset)) then
       -- Match start.
       if input_match_start == -1 then
         input_match_start = input_index
       end
 
       -- Increase strict_match_count
-      if input_bytes[input_index] == word_bytes[word_index + word_offset] then
+      if string.byte(input, input_index) == string.byte(word, word_index + word_offset) then
         strict_match_count = strict_match_count + 1
       end
 
@@ -248,6 +241,15 @@ end
 
 --- compare
 Matcher.compare = function(item1, item2, history)
+  if item1.prefix ~= item2.prefix then
+    if item1.prefix then
+      return true
+    end
+    if item2.prefix then
+      return false
+    end
+  end
+
   if item1.fuzzy ~= item2.fuzzy then
     if item1.fuzzy then
       return false
@@ -305,15 +307,6 @@ Matcher.logger = function(word, expected)
       print(vim.inspect(value))
     end
   end
-end
-
---- bytes2string
-Matcher.bytes2string = function(bytes)
-  local s = ''
-  for i = 1, #bytes do
-    s = s .. string.char(bytes[i])
-  end
-  return s
 end
 
 return Matcher

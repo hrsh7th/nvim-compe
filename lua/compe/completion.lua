@@ -1,10 +1,10 @@
 local Async = require'compe.utils.async'
 local Cache = require'compe.utils.cache'
 local String = require'compe.utils.string'
+local Callback = require'compe.utils.callback'
 local Config = require'compe.config'
 local Context = require'compe.context'
 local Matcher = require'compe.matcher'
-local VimBridge = require'compe.vim_bridge'
 
 --- guard
 local guard = function(callback)
@@ -27,6 +27,7 @@ Completion._context = Context.new_empty()
 Completion._current_offset = 0
 Completion._current_items = {}
 Completion._selected_item = nil
+Completion._selected_manually = false
 Completion._history = {}
 
 --- register_source
@@ -107,6 +108,7 @@ Completion.select = function(args)
   local completed_item = Completion._current_items[(args.index == -2 and 0 or args.index) + 1]
   if completed_item then
     Completion._selected_item = completed_item
+    Completion._selected_manually = args.manual or false
 
     if args.documentation and Config.get().documentation then
       for _, source in ipairs(Completion.get_sources()) do
@@ -125,8 +127,8 @@ Completion.close = function()
     source:clear()
   end
 
-  VimBridge.clear()
   vim.call('compe#documentation#close')
+  Callback.clear()
   Completion._show(0, {}, Completion._context)
   Completion._new_context({})
   Completion._current_items = {}
@@ -141,7 +143,7 @@ Completion.complete = guard(function(option)
   local is_completing_backspace = context.is_completing and context:maybe_backspace()
 
   -- Restore
-  if context.is_completing and context.prev_context.is_completing and not context.pumvisible then
+  if not Completion._selected_manually and context.is_completing and context.prev_context.is_completing and not context.pumvisible then
     Completion._show(Completion._current_offset, Completion._current_items, context)
   end
 
@@ -152,7 +154,7 @@ Completion.complete = guard(function(option)
   end
 
   -- Filter
-  if not triggered and context.is_completing then
+  if not triggered then
     Completion._display(context)
   end
 end)
@@ -178,6 +180,7 @@ Completion._display = guard(function(context)
 
   -- Check completing sources.
   local sources = {}
+  local has_triggered_by_character = false
   for _, source in ipairs(Completion.get_sources()) do
     local timeout = Config.get().source_timeout - source:get_processing_time()
     if timeout > 0 then
@@ -187,6 +190,7 @@ Completion._display = guard(function(context)
       return
     end
     if source:is_completing(context) then
+      has_triggered_by_character = has_triggered_by_character or source.is_triggered_by_character
       table.insert(sources, source)
     end
   end
@@ -195,25 +199,24 @@ Completion._display = guard(function(context)
   local items = {}
   local items_uniq = {}
   for _, source in ipairs(sources) do
-    local source_items = source:get_filtered_items(context)
-    if #source_items > 0 and start_offset == source:get_start_offset() then
-      for _, item in ipairs(source_items) do
-        if items_uniq[item.original_word] == nil or item.original_dup == 1 then
-          items_uniq[item.original_word] = true
-          item.word = item.original_word
-          item.abbr = item.original_abbr
-          item.kind = item.original_kind or ''
-          item.menu = item.original_menu or ''
+    if not has_triggered_by_character or source.is_triggered_by_character then
+      local source_items = source:get_filtered_items(context)
+      if #source_items > 0 and start_offset == source:get_start_offset() then
+        for _, item in ipairs(source_items) do
+          if items_uniq[item.original_word] == nil or item.original_dup == 1 then
+            items_uniq[item.original_word] = true
+            item.word = item.original_word
+            item.abbr = item.original_abbr
+            item.kind = item.original_kind or ''
+            item.menu = item.original_menu or ''
 
-          -- trim to specified width.
-          item.abbr = String.trim(item.abbr, Config.get().max_abbr_width)
-          item.kind = String.trim(item.kind, Config.get().max_kind_width)
-          item.menu = String.trim(item.menu, Config.get().max_menu_width)
-          table.insert(items, item)
+            -- trim to specified width.
+            item.abbr = String.omit(item.abbr, Config.get().max_abbr_width)
+            item.kind = String.omit(item.kind, Config.get().max_kind_width)
+            item.menu = String.omit(item.menu, Config.get().max_menu_width)
+            table.insert(items, item)
+          end
         end
-      end
-      if source.is_triggered_by_character then
-        break
       end
     end
   end

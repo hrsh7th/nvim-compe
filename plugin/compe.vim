@@ -39,10 +39,13 @@ function! s:on_text_changed() abort
   call luaeval('require"compe"._on_text_changed()')
 endfunction
 
+if !hlexists('CompeDocumentation')
+  highlight def link CompeDocumentation NormalFloat
+endif
+
 "
 " setup
 "
 if has_key(g:, 'compe')
   call compe#setup(g:compe)
 endif
-

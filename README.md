@@ -11,6 +11,7 @@ Auto completion plugin for nvim.
     - [Vim script Config](#vim-script-config)
     - [Lua Config](#lua-config)
   - [Mappings](#mappings)
+  - [Highlight](#highlight)
 - [Built-in sources](#built-in-sources)
   - [Common](#common)
   - [Neovim-specific](#neovim-specific)
@@ -177,6 +178,15 @@ inoremap <silent><expr> <C-e>     compe#close('<C-e>')
 inoremap <silent><expr> <C-f>     compe#scroll({ 'delta': +4 })
 inoremap <silent><expr> <C-d>     compe#scroll({ 'delta': -4 })
 ```
+
+### Highlight
+
+You can change documentation window's highlight group via following.
+
+```viml
+highlight link CompeDocumentation NormalFloat
+```
+
 
 ## Built-in sources
 

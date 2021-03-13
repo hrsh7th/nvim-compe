@@ -12,6 +12,7 @@ Functions                             |compe-functions|
   Lua                                 |compe-lua|
 Options                               |compe-options|
 Configuration                         |compe-config|
+  Highlight                           |compe-highlight|
   Source Configuration                |compe-source|
   Builtin Sources                     |compe-sources|
   Example Configuration               |compe-example|
@@ -299,6 +300,15 @@ source ~
           If true, the source is enabled with default options.
           If false, the source is disabled.
           For dictionary, see |compe-source| for the list of source options.
+
+
+------------------------------------------------------------------------------
+HIGHLIGHT                                                    *compe-highlight*
+
+You can change documentation window's highlight group via following.
+>
+    highlight link CompeDocumentation NormalFloat
+<
 
 
 ------------------------------------------------------------------------------
