@@ -27,6 +27,7 @@ Completion._context = Context.new_empty()
 Completion._current_offset = 0
 Completion._current_items = {}
 Completion._selected_item = nil
+Completion._selected_manually = false
 Completion._history = {}
 
 --- register_source
@@ -107,6 +108,7 @@ Completion.select = function(args)
   local completed_item = Completion._current_items[(args.index == -2 and 0 or args.index) + 1]
   if completed_item then
     Completion._selected_item = completed_item
+    Completion._selected_manually = args.manual or false
 
     if args.documentation and Config.get().documentation then
       for _, source in ipairs(Completion.get_sources()) do
@@ -141,7 +143,7 @@ Completion.complete = guard(function(option)
   local is_completing_backspace = context.is_completing and context:maybe_backspace()
 
   -- Restore
-  if context.is_completing and context.prev_context.is_completing and not context.pumvisible then
+  if not Completion._selected_manually and context.is_completing and context.prev_context.is_completing and not context.pumvisible then
     Completion._show(Completion._current_offset, Completion._current_items, context)
   end
 

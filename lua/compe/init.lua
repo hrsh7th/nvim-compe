@@ -109,6 +109,7 @@ end))
 compe._on_complete_changed = enable(suppress(function()
   Completion.select({
     index = vim.call('complete_info', {'selected' }).selected or -1;
+    manual = vim.call('compe#_is_selected_manually');
     documentation = true;
   })
 end))
