@@ -24,52 +24,49 @@ let s:timer = 0
 " compe#documentation#show
 "
 function! compe#documentation#open(text) abort
+  call timer_stop(s:timer)
+
   if getcmdwintype() !=# ''
     return compe#documentation#close()
   endif
 
-  let l:ctx = {}
-  function! l:ctx.callback(text) abort
-    if !pumvisible()
-      return
-    endif
+  if !pumvisible()
+    return
+  endif
 
-    " Ensure normalized document
-    let l:text = type(a:text) == type([]) ? join(a:text, "\n") : a:text
-    if !has_key(s:document_cache, l:text)
-      let l:document = map(split(s:MarkupContent.normalize(l:text), "\n"), '" " . v:val . " "')
-      silent call deletebufline(s:window.get_bufnr(), 1, '$')
-      silent call setbufline(s:window.get_bufnr(), 1, l:document)
-      let s:document_cache[l:text] = {}
-      let s:document_cache[l:text].document = l:document
-      let s:document_cache[l:text].size = s:window.get_size({ 'maxwidth': float2nr(&columns * 0.4), 'maxheight': float2nr(&lines * 0.3), })
-    else
-      silent call deletebufline(s:window.get_bufnr(), 1, '$')
-      silent call setbufline(s:window.get_bufnr(), 1, s:document_cache[l:text].document)
-    endif
-    let l:document = s:document_cache[l:text].document
-    let l:size = s:document_cache[l:text].size
-    let l:pos = s:get_screenpos(pum_getpos(), l:size)
-    if empty(l:pos)
-      return compe#documentation#close()
-    endif
+  " Ensure normalized document
+  let l:text = type(a:text) == type([]) ? join(a:text, "\n") : a:text
+  if !has_key(s:document_cache, l:text)
+    let l:document = map(split(s:MarkupContent.normalize(l:text), "\n"), '" " . v:val . " "')
+    silent call deletebufline(s:window.get_bufnr(), 1, '$')
+    silent call setbufline(s:window.get_bufnr(), 1, l:document)
+    let s:document_cache[l:text] = {}
+    let s:document_cache[l:text].document = l:document
+    let s:document_cache[l:text].size = s:window.get_size({ 'maxwidth': float2nr(&columns * 0.4), 'maxheight': float2nr(&lines * 0.3), })
+  else
+    silent call deletebufline(s:window.get_bufnr(), 1, '$')
+    silent call setbufline(s:window.get_bufnr(), 1, s:document_cache[l:text].document)
+  endif
+  let l:document = s:document_cache[l:text].document
+  let l:size = s:document_cache[l:text].size
+  let l:pos = s:get_screenpos(pum_getpos(), l:size)
+  if empty(l:pos)
+    return compe#documentation#close()
+  endif
 
-    let l:state = { 'pos': l:pos, 'size': l:size, 'document': l:document }
-    if s:state == l:state
-      return
-    endif
-    let s:state = l:state
+  let l:state = { 'pos': l:pos, 'size': l:size, 'document': l:document }
+  if s:state == l:state
+    return
+  endif
+  let s:state = l:state
 
-    silent call s:window.open({
-    \   'row': l:state.pos[0] + 1,
-    \   'col': l:state.pos[1] + 1,
-    \   'width': l:state.size.width,
-    \   'height': l:state.size.height,
-    \ })
-    silent call s:Window.do(s:window.get_winid(), { -> s:Markdown.apply() })
-  endfunction
-  call timer_stop(s:timer)
-  let s:timer = timer_start(0, { -> l:ctx.callback(a:text) })
+  silent call s:window.open({
+  \   'row': l:state.pos[0] + 1,
+  \   'col': l:state.pos[1] + 1,
+  \   'width': l:state.size.width,
+  \   'height': l:state.size.height,
+  \ })
+  silent call s:Window.do(s:window.get_winid(), { -> s:Markdown.apply() })
 endfunction
 
 "

@@ -113,7 +113,9 @@ Completion.select = function(args)
     if args.documentation and Config.get().documentation then
       for _, source in ipairs(Completion.get_sources()) do
         if source.id == completed_item.source_id then
-          source:documentation(completed_item)
+          vim.schedule(Async.guard('documentation', function()
+            source:documentation(completed_item)
+          end))
           break
         end
       end
