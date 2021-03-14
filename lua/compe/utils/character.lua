@@ -1,25 +1,21 @@
 local alpha = {}
 string.gsub('abcdefghijklmnopqrstuvwxyz', '.', function(char)
   alpha[string.byte(char)] = true
-  alpha[char] = true
 end)
 
 local ALPHA = {}
 string.gsub('ABCDEFGHIJKLMNOPQRSTUVWXYZ', '.', function(char)
   ALPHA[string.byte(char)] = true
-  ALPHA[char] = true
 end)
 
 local digit = {}
 string.gsub('1234567890', '.', function(char)
   digit[string.byte(char)] = true
-  digit[char] = true
 end)
 
 local white = {}
 string.gsub(' \t', '.', function(char)
   white[string.byte(char)] = true
-  white[char] = true
 end)
 
 local Character = {}
