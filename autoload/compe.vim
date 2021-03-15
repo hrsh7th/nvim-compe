@@ -122,7 +122,7 @@ endfunction
 "
 function! s:normalize(option) abort
   if type(a:option) == v:t_string
-    return { 'fallback': { 'keys': a:option, 'mode': 'n' } }
+    return { 'keys': a:option, 'mode': 'n' }
   endif
   return a:option
 endfunction
