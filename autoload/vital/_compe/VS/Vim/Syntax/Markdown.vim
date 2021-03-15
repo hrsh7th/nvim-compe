@@ -17,14 +17,15 @@ function! s:apply(...) abort
     call s:_execute('runtime! syntax/markdown.vim')
 
     " Remove markdownCodeBlock because we support it manually.
-    silent! syntax clear markdownCodeBlock
+    call s:_clear('markdownCodeBlock') " tpope/vim-markdown
+    call s:_clear('mkdCode') " plasticboy/vim-markdown
 
     " Modify markdownCode (`codes...`)
-    silent! syntax clear markdownCode
+    call s:_clear('markdownCode')
     syntax region markdownCode matchgroup=Conceal start=/\%(``\)\@!`/ matchgroup=Conceal end=/\%(``\)\@!`/ containedin=TOP keepend concealends
 
     " Modify markdownEscape (_bold\_text_)
-    silent! syntax clear markdownEscape
+    call s:_clear('markdownEscape')
     let l:name = 0
     for l:char in split('!"#$%&()*+,-.g:;<=>?@[]^_`{|}~' . "'", '\zs')
       let l:name += 1
@@ -69,6 +70,16 @@ function! s:apply(...) abort
     endfor
   catch /.*/
     unsilent echomsg string({ 'exception': v:exception, 'throwpoint': v:throwpoint })
+  endtry
+endfunction
+
+"
+" _clear
+"
+function! s:_clear(group) abort
+  try
+    execute printf('silent! syntax clear %s', a:group)
+  catch /.*/
   endtry
 endfunction
 
