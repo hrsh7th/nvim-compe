@@ -113,11 +113,17 @@ Completion.select = function(args)
     if args.documentation and Config.get().documentation then
       for _, source in ipairs(Completion.get_sources()) do
         if source.id == completed_item.source_id then
-          source:documentation(completed_item)
+          vim.schedule(Async.guard('documentation', function()
+            source:documentation(completed_item)
+          end))
           break
         end
       end
     end
+  else
+    vim.schedule(Async.guard('documentation', function()
+      vim.call('compe#documentation#close')
+    end))
   end
 end
 
@@ -254,12 +260,6 @@ Completion._show = function(start_offset, items, context)
   Completion._current_offset = start_offset
   Completion._current_items = items
   Async.throttle('Completion._show', timeout, Async.guard('Completion._show', guard(function()
-    if prev_should_visible then
-      if not next_should_visible or pummove then
-        vim.call('compe#documentation#close')
-      end
-    end
-
     local should_preselect = false
     if items[1] then
       should_preselect = should_preselect or (Config.get().preselect == 'enable' and items[1].preselect)
@@ -275,11 +275,8 @@ Completion._show = function(start_offset, items, context)
     vim.call('complete', math.max(1, start_offset), items) -- start_offset=0 should close pum with `complete(1, [])`
     vim.cmd('set completeopt=' .. completeopt)
 
-    if context.prev_context.pumvisible and context.pumvisible and should_preselect then
-      Completion.select({
-        index = 0,
-        documentation = true
-      })
+    if context.prev_context.pumvisible and not context.pumvisible then
+      vim.call('compe#documentation#close')
     end
   end)))
 end
