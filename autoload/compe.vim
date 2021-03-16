@@ -51,11 +51,17 @@ function! compe#confirm(...) abort
     endif
   endfor
 
-  if mode()[0] ==# 'i' && complete_info(['selected']).selected != -1
+  let l:option = s:normalize(get(a:000, 0, {}))
+  let l:select = get(l:option, 'select', v:false)
+  let l:selected = complete_info(['selected']).selected != -1
+  if mode()[0] ==# 'i' && pumvisible() && (l:select || l:selected)
     call luaeval('require"compe"._confirm_pre()')
-    call feedkeys("\<Plug>(compe-confirm)")
+    let l:confirm = ''
+    let l:confirm .= l:select && !l:selected ? "\<C-n>" : ''
+    let l:confirm .= "\<Plug>(compe-confirm)"
+    call feedkeys(l:confirm)
   else
-    call s:fallback(get(a:000, 0, v:null))
+    call s:fallback(l:option)
   endif
   return "\<Ignore>"
 endfunction
@@ -68,27 +74,27 @@ function! compe#close(...) abort
   if mode()[0] ==# 'i' && pumvisible()
     return "\<C-e>\<C-r>=luaeval('require\"compe\"._close()')\<CR>"
   endif
-  call s:fallback(get(a:000, 0, v:null))
+  call s:fallback(s:normalize(get(a:000, 0, {})))
   return "\<Ignore>"
 endfunction
 
 "
 " compe#scroll
 "
-function! compe#scroll(args) abort
+function! compe#scroll(option) abort
   let l:ctx = {}
-  function! l:ctx.callback(args) abort
+  function! l:ctx.callback(option) abort
     let l:winids = s:Window.find({ winid -> !!getwinvar(winid, 'compe_documentation', v:false) })
     if !empty(l:winids)
-      let l:delta = get(a:args, 'delta', 4)
+      let l:delta = get(a:option, 'delta', 4)
       for l:winid in l:winids
         call s:Window.scroll(l:winid, s:Window.info(l:winid).topline + l:delta)
       endfor
     else
-      call s:fallback(get(a:args, 'fallback', v:null))
+      call s:fallback(a:option)
     endif
   endfunction
-  call timer_start(0, { -> l:ctx.callback(a:args) })
+  call timer_start(0, { -> l:ctx.callback(s:normalize(a:option)) })
   return "\<Ignore>"
 endfunction
 
@@ -111,15 +117,21 @@ function! compe#_has_completed_item() abort
 endfunction
 
 "
+" normalize
+"
+function! s:normalize(option) abort
+  if type(a:option) == v:t_string
+    return { 'keys': a:option, 'mode': 'n' }
+  endif
+  return a:option
+endfunction
+
+"
 " fallback
 "
-function! s:fallback(fallback) abort
-  if type(a:fallback) == v:t_string
-    return feedkeys(a:fallback, 'n')
-  elseif type(a:fallback) == v:t_dict
-    if has_key(a:fallback, 'keys')
-      return feedkeys(a:fallback.keys, get(a:fallback, 'mode', ''))
-    endif
+function! s:fallback(option) abort
+  if has_key(a:option, 'keys') && !empty(a:option.keys)
+    call feedkeys(a:option.keys, get(a:option, 'mode', 'n'))
   endif
 endfunction
 
