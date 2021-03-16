@@ -12,7 +12,7 @@ end
 
 Source.determine = function(_, context)
   return compe.helper.determine(context, {
-    keyword_pattern = [[:\w*$]]
+    keyword_pattern = [[\%(\s\|^\)\zs:\w*]]
   })
 end
 
