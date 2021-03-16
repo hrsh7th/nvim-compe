@@ -388,6 +388,10 @@ Source._normalize_items = function(self, _, items)
     item.original_menu = item.menu
     item.original_dup = Boolean.get(metadata.dup, true) and 1 or 0
 
+    if metadata.sticky_char then
+      item.filter_text = (item.filter_text or item.original_word) .. '_' .. metadata.sticky_char
+    end
+
     table.insert(normalized, item)
   end
   return normalized
