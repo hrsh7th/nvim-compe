@@ -16,10 +16,12 @@ Source.determine = function(_, context)
   })
 end
 
--- Load emoji data from auto-generated file:
-Source._items = require('compe_emoji.data')
-
 Source.complete = function(self, args)
+  -- Lazy load data if not present.
+  if (not(Source._items)) then
+    Source._items = require('compe_emoji.data')
+  end
+
   args.callback({
     items = self._items,
     incomplete = true,
