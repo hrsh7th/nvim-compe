@@ -344,6 +344,11 @@ menu ~
     Specify item's menu (see |complete-items|)
       Type: |String|
 
+suppress_on_manual ~
+    Specify whether the source should provide candidates when completion is
+    triggered manually by |compe#complete()|.
+      Type: |Boolean|
+
 
 ------------------------------------------------------------------------------
 BUILTIN SOURCES                                                *compe-sources*

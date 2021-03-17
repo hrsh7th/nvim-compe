@@ -85,6 +85,10 @@ Source.trigger = function(self, context, callback)
   local characters = state.trigger_character_offset > 0
   local incomplete = self.incomplete and not empty
 
+  if manual and metadata.suppress_on_manual then
+    return self:clear()
+  end
+
   -- Clear current completion if all filter words removed.
   if self.status == 'completed' and not (manual or characters) then
     if context.col == self.keyword_pattern_offset then
