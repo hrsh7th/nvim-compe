@@ -35,6 +35,7 @@ Source.clear = function(self)
   self.trigger_character_offset = 0
   self.is_triggered_by_character = false
   self.context = Context.new_empty()
+  self.request_id = 0
   self.request_time = vim.loop.now()
   self.request_state = {}
   self.incomplete = false
@@ -148,7 +149,7 @@ Source.trigger = function(self, context, callback)
     keyword_pattern_offset = state.keyword_pattern_offset;
     trigger_character_offset = state.trigger_character_offset;
     incomplete = self.incomplete;
-    callback = function(result)
+    callback = vim.schedule_wrap(function(result)
       if self.request_id ~= request_id then
         return
       end
@@ -173,8 +174,8 @@ Source.trigger = function(self, context, callback)
         self:clear()
       end
 
-      vim.schedule(callback)
-    end;
+      callback()
+    end);
     abort = function()
       self:clear()
       vim.schedule(callback)
@@ -235,9 +236,7 @@ Source.documentation = function(self, completed_item)
       end
     })
   else
-    vim.schedule_wrap(function()
-      vim.call('compe#documentation#close')
-    end)
+    vim.call('compe#documentation#close')
   end
 end
 

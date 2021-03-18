@@ -14,6 +14,9 @@ function Source.get_metadata(_)
 end
 
 function Source.determine(_, context)
+  if vim.wo.spell == 0 then
+    return {}
+  end
   return compe.helper.determine(context)
 end
 

@@ -104,14 +104,9 @@ let g:compe.source = {}
 let g:compe.source.path = v:true
 let g:compe.source.buffer = v:true
 let g:compe.source.calc = v:true
-let g:compe.source.vsnip = v:true
 let g:compe.source.nvim_lsp = v:true
 let g:compe.source.nvim_lua = v:true
-let g:compe.source.spell = v:true
-let g:compe.source.tags = v:true
-let g:compe.source.snippets_nvim = v:true
-let g:compe.source.treesitter = v:true
-let g:compe.source.omni = v:true
+let g:compe.source.vsnip = v:true
 ```
 
 #### Lua Config
@@ -135,13 +130,9 @@ require'compe'.setup {
     path = true;
     buffer = true;
     calc = true;
-    vsnip = true;
     nvim_lsp = true;
     nvim_lua = true;
-    spell = true;
-    tags = true;
-    snippets_nvim = true;
-    treesitter = true;
+    vsnip = true;
   };
 }
 ```
@@ -197,7 +188,7 @@ highlight link CompeDocumentation NormalFloat
 - tags
 - spell
 - calc
-- omni
+- omni (Warning: It has a lot of side-effect.)
 
 ### Neovim-specific
 
@@ -223,11 +214,13 @@ highlight link CompeDocumentation NormalFloat
 
 ## FAQ
 
-### Can't get sorting to work correctly.
+### Can't get it work.
 
-If you are using `nvim_lsp` source and `omni` source both, you should remove `set omnifunc=v:lua.vim.lsp.omnifunc` from your configuration.
+If you are enabling the `omni` source, please try to disable it.
 
-See [#230](https://github.com/hrsh7th/nvim-compe/issues/230)
+### How to remove `Pattern not found`?
+
+You can set `set shortmess+=c` in your vimrc.
 
 ### How to use LSP snippet?
 

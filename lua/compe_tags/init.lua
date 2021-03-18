@@ -32,8 +32,8 @@ end
 
 function Source.documentation(_, context)
   local document = {}
-  local tags = vim.fn.taglist(context.completed_item.word)
 
+  local tags = vim.fn.taglist(context.completed_item.word)
   for i, tag in ipairs(tags) do
     if 10 < i then
       table.insert(document, ('...and %d more'):format(#tags - 10))

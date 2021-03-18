@@ -173,7 +173,7 @@ Completion._trigger = function(context)
   for _, source in ipairs(Completion.get_sources()) do
     trigger = source:trigger(context, function()
       Async.debounce('Completion._trigger:callback', 10, function()
-        Completion._display(Completion._new_context(context.option))
+        Completion._display(Completion._context)
       end)
     end) or trigger
   end
@@ -191,7 +191,7 @@ Completion._display = guard(function(context)
     local timeout = Config.get().source_timeout - source:get_processing_time()
     if timeout > 0 then
       Async.debounce('Completion._display', timeout + 1, function()
-        Completion._display(Completion._new_context(context.option))
+        Completion._display(Completion._context)
       end)
       return
     end
