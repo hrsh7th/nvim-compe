@@ -24,45 +24,45 @@ let s:timer = 0
 " compe#documentation#show
 "
 function! compe#documentation#open(text) abort
-  call timer_stop(s:timer)
-
   if getcmdwintype() !=# '' || !pumvisible()
     return compe#documentation#close()
   endif
+  call timer_stop(s:timer)
 
   " Ensure normalized document
   let l:text = type(a:text) == type([]) ? join(a:text, "\n") : a:text
   if !has_key(s:document_cache, l:text)
-    let l:document = map(split(s:MarkupContent.normalize(l:text), "\n"), 'v:val !=# "" ? " " . v:val . " " : ""')
-    silent call deletebufline(s:window.get_bufnr(), 1, '$')
-    silent call setbufline(s:window.get_bufnr(), 1, l:document)
+    let l:normalized = s:MarkupContent.normalize(l:text)
+    let l:document = map(split(l:normalized, "\n"), 'v:val !=# "" ? " " . v:val . " " : ""')
+    silent call nvim_buf_set_lines(s:window.get_bufnr(), 0, -1, v:false, l:document)
     let s:document_cache[l:text] = {}
+    let s:document_cache[l:text].normalized = l:normalized
     let s:document_cache[l:text].document = l:document
     let s:document_cache[l:text].size = s:window.get_size({ 'maxwidth': float2nr(&columns * 0.4), 'maxheight': float2nr(&lines * 0.3), })
   elseif get(s:state, 'text', '') !=# l:text
-    silent call deletebufline(s:window.get_bufnr(), 1, '$')
-    silent call setbufline(s:window.get_bufnr(), 1, s:document_cache[l:text].document)
+    silent call nvim_buf_set_lines(s:window.get_bufnr(), 0, -1, v:false, s:document_cache[l:text].document)
   endif
   let l:document = s:document_cache[l:text].document
   let l:size = s:document_cache[l:text].size
-  let l:pos = s:get_screenpos(pum_getpos(), l:size)
-  if empty(l:pos)
-    return compe#documentation#close()
-  endif
 
-  let l:state = { 'pos': l:pos, 'size': l:size, 'document': l:document, 'text': l:text }
+  let l:state = extend({ 'pos': pum_getpos() }, s:document_cache[l:text])
   if s:state == l:state
     return
   endif
   let s:state = l:state
 
+  let l:pos = s:get_screenpos(s:state.pos, l:size)
+  if empty(l:pos)
+    return compe#documentation#close()
+  endif
+
   silent call s:window.open({
-  \   'row': l:state.pos[0] + 1,
-  \   'col': l:state.pos[1] + 1,
+  \   'row': l:pos[0] + 1,
+  \   'col': l:pos[1] + 1,
   \   'width': l:state.size.width,
   \   'height': l:state.size.height,
   \ })
-  silent call s:Window.do(s:window.get_winid(), { -> s:Markdown.apply() })
+  silent call s:Window.do(s:window.get_winid(), { -> s:Markdown.apply({ 'text': s:state.normalized }) })
 endfunction
 
 "

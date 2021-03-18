@@ -135,7 +135,7 @@ Completion.close = function()
 
   vim.call('compe#documentation#close')
   Callback.clear()
-  Completion._show(0, {}, Completion._context)
+  Completion._show(0, {})
   Completion._new_context({})
   Completion._current_items = {}
   Completion._current_offset = 0
@@ -150,7 +150,7 @@ Completion.complete = guard(function(option)
 
   -- Restore
   if not Completion._selected_manually and context.is_completing and context.prev_context.is_completing and not context.pumvisible then
-    Completion._show(Completion._current_offset, Completion._current_items, context)
+    Completion._show(Completion._current_offset, Completion._current_items)
   end
 
   -- Trigger
@@ -182,104 +182,92 @@ end
 
 --- _display
 Completion._display = guard(function(context)
-  Async.debounce('Completion._display', 0, function() end)
+  local timeout = context.pumvisible and Config.get().throttle_time or 0
+  Async.throttle('Completion._display', timeout, Async.guard('Completion._display', guard(function()
+    local context = Completion._context
 
-  -- Check completing sources.
-  local sources = {}
-  local has_triggered_by_character = false
-  for _, source in ipairs(Completion.get_sources()) do
-    local timeout = Config.get().source_timeout - source:get_processing_time()
-    if timeout > 0 then
-      Async.debounce('Completion._display', timeout + 1, function()
-        Completion._display(Completion._context)
-      end)
-      return
+    Async.debounce('Completion._display', 0, function() end)
+
+    -- Check completing sources.
+    local sources = {}
+    local has_triggered_by_character = false
+    for _, source in ipairs(Completion.get_sources()) do
+      local timeout = Config.get().source_timeout - source:get_processing_time()
+      if timeout > 0 then
+        Async.debounce('Completion._display', timeout + 1, function()
+          Completion._display(Completion._context)
+        end)
+        return
+      end
+      if source:is_completing(context) then
+        has_triggered_by_character = has_triggered_by_character or source.is_triggered_by_character
+        table.insert(sources, source)
+      end
     end
-    if source:is_completing(context) then
-      has_triggered_by_character = has_triggered_by_character or source.is_triggered_by_character
-      table.insert(sources, source)
-    end
-  end
 
-  local start_offset = Completion._get_start_offset(context)
-  local items = {}
-  local items_uniq = {}
-  for _, source in ipairs(sources) do
-    if not has_triggered_by_character or source.is_triggered_by_character then
-      local source_items = source:get_filtered_items(context)
-      if #source_items > 0 and start_offset == source:get_start_offset() then
-        for _, item in ipairs(source_items) do
-          if items_uniq[item.original_word] == nil or item.original_dup == 1 then
-            items_uniq[item.original_word] = true
-            item.word = item.original_word
-            item.abbr = item.original_abbr
-            item.kind = item.original_kind or ''
-            item.menu = item.original_menu or ''
+    local start_offset = Completion._get_start_offset(context)
+    local items = {}
+    local items_uniq = {}
+    for _, source in ipairs(sources) do
+      if not has_triggered_by_character or source.is_triggered_by_character then
+        local source_items = source:get_filtered_items(context)
+        if #source_items > 0 and start_offset == source:get_start_offset() then
+          for _, item in ipairs(source_items) do
+            if items_uniq[item.original_word] == nil or item.original_dup == 1 then
+              items_uniq[item.original_word] = true
+              item.word = item.original_word
+              item.abbr = item.original_abbr
+              item.kind = item.original_kind or ''
+              item.menu = item.original_menu or ''
 
-            -- trim to specified width.
-            item.abbr = String.omit(item.abbr, Config.get().max_abbr_width)
-            item.kind = String.omit(item.kind, Config.get().max_kind_width)
-            item.menu = String.omit(item.menu, Config.get().max_menu_width)
-            table.insert(items, item)
+              -- trim to specified width.
+              item.abbr = String.omit(item.abbr, Config.get().max_abbr_width)
+              item.kind = String.omit(item.kind, Config.get().max_kind_width)
+              item.menu = String.omit(item.menu, Config.get().max_menu_width)
+              table.insert(items, item)
+            end
           end
         end
       end
     end
-  end
 
-  --- Sort items
-  table.sort(items, function(item1, item2)
-    return Matcher.compare(item1, item2, Completion._history)
-  end)
+    --- Sort items
+    table.sort(items, function(item1, item2)
+      return Matcher.compare(item1, item2, Completion._history)
+    end)
 
-  if #items == 0 then
-    Completion._show(0, {}, context)
-  else
-    Completion._show(start_offset, items, context)
-  end
+    if #items == 0 then
+      Completion._show(0, {})
+    else
+      Completion._show(start_offset, items)
+    end
+  end)))
 end)
 
 --- _show
-Completion._show = function(start_offset, items, context)
-  local prev_should_visible = (Completion._current_offset ~= 0 and #Completion._current_items ~= 0)
-  local next_should_visible = (start_offset ~= 0 and #items ~= 0)
-  local pummove = start_offset ~= Completion._current_offset
-  local timeout = (function()
-    if prev_should_visible ~= next_should_visible then
-      return 0
-    end
-    if prev_should_visible and not context.pumvisible then
-      return 0 -- maybe restore
-    end
-    if pummove then
-      return 0
-    end
-    return Config.get().throttle_time
-  end)()
-
+Completion._show = Async.guard('Completion._show', guard(function(start_offset, items)
   Completion._current_offset = start_offset
   Completion._current_items = items
-  Async.throttle('Completion._show', timeout, Async.guard('Completion._show', guard(function()
-    local should_preselect = false
-    if items[1] then
-      should_preselect = should_preselect or (Config.get().preselect == 'enable' and items[1].preselect)
-      should_preselect = should_preselect or (Config.get().preselect == 'always')
-    end
 
-    local completeopt = vim.o.completeopt
-    if should_preselect then
-      vim.cmd('set completeopt=menuone,noinsert')
-    else
-      vim.cmd('set completeopt=menuone,noselect')
-    end
-    vim.call('complete', math.max(1, start_offset), items) -- start_offset=0 should close pum with `complete(1, [])`
-    vim.cmd('set completeopt=' .. completeopt)
+  local should_preselect = false
+  if items[1] then
+    should_preselect = should_preselect or (Config.get().preselect == 'enable' and items[1].preselect)
+    should_preselect = should_preselect or (Config.get().preselect == 'always')
+  end
 
-    if context.prev_context.pumvisible and not context.pumvisible then
-      vim.call('compe#documentation#close')
-    end
-  end)))
-end
+  local completeopt = vim.o.completeopt
+  if should_preselect then
+    vim.cmd('set completeopt=menuone,noinsert')
+  else
+    vim.cmd('set completeopt=menuone,noselect')
+  end
+  vim.call('complete', math.max(1, start_offset), items) -- start_offset=0 should close pum with `complete(1, [])`
+  vim.cmd('set completeopt=' .. completeopt)
+
+  if #items == 0 then
+    vim.call('compe#documentation#close')
+  end
+end))
 
 --- _new_context
 Completion._new_context = function(option)

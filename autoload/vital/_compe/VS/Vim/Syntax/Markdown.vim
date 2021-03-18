@@ -11,6 +11,8 @@ delfunction s:_SID
 " apply
 "
 function! s:apply(...) abort
+  let l:args = get(a:000, 0, {})
+
   if !exists('b:___VS_Vim_Syntax_Markdown')
     call s:_execute('runtime! syntax/markdown.vim')
 
@@ -45,9 +47,10 @@ function! s:apply(...) abort
     let b:___VS_Vim_Syntax_Markdown = {}
   endif
 
-  let l:bufnr = bufnr('%')
+  let l:text = has_key(l:args, 'text') ? l:args.text : getbufline('%', 1, '$')
+  let l:text = type(l:text) == v:t_list ? join(l:text, "\n") : l:text
   try
-    for [l:mark, l:filetype] in items(s:_get_filetype_map(l:bufnr, get(a:000, 0, {})))
+    for [l:mark, l:filetype] in items(s:_get_filetype_map(l:text))
       let l:group = substitute(toupper(l:mark), '\.', '_', 'g')
       if has_key(b:___VS_Vim_Syntax_Markdown, l:group)
         continue
@@ -97,10 +100,10 @@ endfunction
 "
 " _get_filetype_map
 "
-function! s:_get_filetype_map(bufnr, filetype_map) abort
+function! s:_get_filetype_map(text) abort
   let l:filetype_map = {}
-  for l:mark in s:_find_marks(a:bufnr)
-    let l:filetype_map[l:mark] = s:_get_filetype_from_mark(l:mark, a:filetype_map)
+  for l:mark in s:_find_marks(a:text)
+    let l:filetype_map[l:mark] = s:_get_filetype_from_mark(l:mark)
   endfor
   return l:filetype_map
 endfunction
@@ -108,11 +111,11 @@ endfunction
 "
 " _find_marks
 "
-function! s:_find_marks(bufnr) abort
+function! s:_find_marks(text) abort
   let l:marks = {}
 
   " find from buffer contents.
-  let l:text = join(getbufline(a:bufnr, '^', '$'), "\n")
+  let l:text = a:text
   let l:pos = 0
   while 1
     let l:match = matchstrpos(l:text, '```\s*\zs\w\+', l:pos, 1)
@@ -129,7 +132,7 @@ endfunction
 "
 " _get_filetype_from_mark
 "
-function! s:_get_filetype_from_mark(mark, filetype_map) abort
+function! s:_get_filetype_from_mark(mark) abort
   for l:config in get(g:, 'markdown_fenced_languages', [])
     if l:config !~# '='
       if l:config ==# a:mark
@@ -142,6 +145,6 @@ function! s:_get_filetype_from_mark(mark, filetype_map) abort
       endif
     endif
   endfor
-  return get(a:filetype_map, a:mark, a:mark)
+  return a:mark
 endfunction
 
