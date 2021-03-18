@@ -58,8 +58,8 @@ Helper.convert_lsp = function(args)
   local request = args.request
   local response = args.response or {}
 
-  local complete_items = {}
-  for _, completion_item in ipairs(response.items or response) do
+  local completion_items = response.items or response
+  for i, completion_item in ipairs(completion_items) do
     local word = ''
     local abbr = ''
     if completion_item.insertTextFormat == 2 then
@@ -116,7 +116,7 @@ Helper.convert_lsp = function(args)
       end
     end
 
-    table.insert(complete_items, {
+    completion_items[i] = {
       word = word,
       abbr = abbr,
       kind = vim.lsp.protocol.CompletionItemKind[completion_item.kind] or nil;
@@ -130,16 +130,16 @@ Helper.convert_lsp = function(args)
       sort_text = completion_item.sortText or abbr;
       preselect = completion_item.preselect or false;
       suggest_offset = suggest_offset;
-    })
+    }
   end
 
   local leading = string.sub(context.before_line, keyword_pattern_offset, args.keyword_pattern_offset - 1)
-  for _, complete_item in ipairs(complete_items) do
-    complete_item.word = String.get_word(complete_item.word, leading)
+  for _, completion_items in ipairs(completion_items) do
+    completion_items.word = String.get_word(completion_items.word, leading)
   end
 
   return {
-    items = complete_items,
+    items = completion_items,
     incomplete = response.isIncomplete or false,
     keyword_pattern_offset = keyword_pattern_offset;
   }

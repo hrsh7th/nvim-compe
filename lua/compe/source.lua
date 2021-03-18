@@ -342,8 +342,7 @@ end
 Source._normalize_items = function(self, _, items)
   local metadata = self:get_metadata()
 
-  local normalized = {}
-  for _, item in ipairs(items) do
+  for i, item in ipairs(items) do
     self.item_id = self.item_id + 1
 
     -- string to completed_item
@@ -376,9 +375,10 @@ Source._normalize_items = function(self, _, items)
     item.suggest_offset = item.suggest_offset or self.keyword_pattern_offset
 
     -- matcher related properties (will be overwrote)
-    item.index = 0
+    item.prefix = false
     item.score = 0
     item.fuzzy = false
+    item.index = 0
 
     -- save original properties
     item.original_word = item.word
@@ -387,9 +387,9 @@ Source._normalize_items = function(self, _, items)
     item.original_menu = item.menu
     item.original_dup = Boolean.get(metadata.dup, true) and 1 or 0
 
-    table.insert(normalized, item)
+    items[i] = item
   end
-  return normalized
+  return items
 end
 
 return Source
