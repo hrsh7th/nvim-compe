@@ -10,8 +10,6 @@ delfunction s:_SID
 "
 " apply
 "
-" NOTE: Currently, this module supports only tpope/vim-markdown or vim/neovim's syntax.
-"
 function! s:apply(...) abort
   if !exists('b:___VS_Vim_Syntax_Markdown')
     call s:_execute('runtime! syntax/markdown.vim')

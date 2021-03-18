@@ -31,8 +31,10 @@ function! s:normalize(markup_content) abort
     return s:_compact(join(a:markup_content, "\n"))
   elseif type(a:markup_content) == type({})
     let l:string = a:markup_content.value
-    if has_key(a:markup_content, 'language')
+    if has_key(a:markup_content, 'language') " MarkedString
       let l:string = '```' . a:markup_content.language . ' ' . l:string . '```'
+    elseif get(a:markup_content, 'kind', 'plaintext') ==# 'plaintext' " MarkupContent
+      let l:string = '```plaintext ' . l:string . '```'
     endif
     return s:_compact(l:string)
   endif

@@ -26,24 +26,20 @@ let s:timer = 0
 function! compe#documentation#open(text) abort
   call timer_stop(s:timer)
 
-  if getcmdwintype() !=# ''
+  if getcmdwintype() !=# '' || !pumvisible()
     return compe#documentation#close()
-  endif
-
-  if !pumvisible()
-    return
   endif
 
   " Ensure normalized document
   let l:text = type(a:text) == type([]) ? join(a:text, "\n") : a:text
   if !has_key(s:document_cache, l:text)
-    let l:document = map(split(s:MarkupContent.normalize(l:text), "\n"), '" " . v:val . " "')
+    let l:document = map(split(s:MarkupContent.normalize(l:text), "\n"), 'v:val !=# "" ? " " . v:val . " " : ""')
     silent call deletebufline(s:window.get_bufnr(), 1, '$')
     silent call setbufline(s:window.get_bufnr(), 1, l:document)
     let s:document_cache[l:text] = {}
     let s:document_cache[l:text].document = l:document
     let s:document_cache[l:text].size = s:window.get_size({ 'maxwidth': float2nr(&columns * 0.4), 'maxheight': float2nr(&lines * 0.3), })
-  else
+  elseif get(s:state, 'text', '') !=# l:text
     silent call deletebufline(s:window.get_bufnr(), 1, '$')
     silent call setbufline(s:window.get_bufnr(), 1, s:document_cache[l:text].document)
   endif
@@ -54,7 +50,7 @@ function! compe#documentation#open(text) abort
     return compe#documentation#close()
   endif
 
-  let l:state = { 'pos': l:pos, 'size': l:size, 'document': l:document }
+  let l:state = { 'pos': l:pos, 'size': l:size, 'document': l:document, 'text': l:text }
   if s:state == l:state
     return
   endif
