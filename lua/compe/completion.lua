@@ -98,8 +98,10 @@ Completion.confirm = function()
       end
     end
   end
-
   Completion.close()
+
+  vim.cmd([[doautocmd User CompeConfirmDone]])
+
   Completion.complete({ trigger_character_only = true })
 end
 

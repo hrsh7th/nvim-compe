@@ -9,6 +9,7 @@ augroup compe
   autocmd InsertEnter * call s:on_insert_enter()
   autocmd InsertLeave * call s:on_insert_leave()
   autocmd TextChangedI,TextChangedP * call s:on_text_changed()
+  autocmd User CompeConfirmDone silent
 augroup END
 
 "
