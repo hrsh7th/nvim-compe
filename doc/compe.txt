@@ -355,6 +355,7 @@ tags                Tag completion.
 spell               Spell file completion.
 calc                Lua math expressions.
 omni                Omni completion. (Warning: It has a lot of side-effect.)
+emoji               Emoji completion.
 
 Neovim-specific: ~
 nvim_lsp            Neovim's builtin LSP completion.
@@ -400,6 +401,7 @@ Vimscript:
   let g:compe.source.nvim_lsp = v:true
   let g:compe.source.nvim_lua = v:true
   let g:compe.source.vsnip = v:true
+  let g:compe.source.emoji = v:true
 <
 Lua:
 >
@@ -424,6 +426,7 @@ Lua:
       nvim_lsp = true;
       nvim_lua = true;
       vsnip = true;
+      emoji = true;
     };
   }
 <
