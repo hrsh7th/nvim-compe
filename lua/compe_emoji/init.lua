@@ -13,7 +13,6 @@ end
 Source.determine = function(_, context)
   return compe.helper.determine(context, {
     keyword_pattern = [[\%(\s\|^\)\zs:\w*]],
-    trigger_characters = { ':' },
   })
 end
 
