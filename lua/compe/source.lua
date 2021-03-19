@@ -129,7 +129,7 @@ Source.trigger = function(self, context, callback)
   if incomplete then
     if not (manual or characters) then
       -- Skip for incomplete completion.
-      if (vim.loop.now() - self.request_time) < Config.get().incomplete_delay then
+      if self.status == 'processing' or (vim.loop.now() - self.request_time) < Config.get().incomplete_delay then
         return
       end
     end
@@ -154,13 +154,10 @@ Source.trigger = function(self, context, callback)
         return
       end
 
-      -- Reset for new completion.
-      result.keyword_pattern_offset = result.keyword_pattern_offset or state.keyword_pattern_offset
-
       self.revision = self.revision + 1
       self.status = 'completed'
       self.incomplete = result.incomplete or false
-      self.keyword_pattern_offset = result.keyword_pattern_offset
+      self.keyword_pattern_offset = result.keyword_pattern_offset or state.keyword_pattern_offset
       self.trigger_character_offset = state.trigger_character_offset
 
       -- incomplete handling.

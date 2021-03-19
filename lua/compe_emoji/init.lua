@@ -12,14 +12,15 @@ end
 
 Source.determine = function(_, context)
   return compe.helper.determine(context, {
-    keyword_pattern = [[\%(\s\|^\)\zs:\w*]]
+    keyword_pattern = [[\%(\s\|^\)\zs:\w*]],
+    trigger_characters = { ':' },
   })
 end
 
 Source.complete = function(self, args)
   -- Lazy load data if not present.
   if (not(Source._items)) then
-    Source._items = require('compe_emoji.data')
+    Source._items = require('compe_emoji.items')
   end
 
   args.callback({
