@@ -204,7 +204,7 @@ highlight link CompeDocumentation NormalFloat
 - [vim-vsnip](https://github.com/hrsh7th/vim-vsnip)
 - [ultisnips](https://github.com/SirVer/ultisnips)
 - [snippets.nvim](https://github.com/norcalli/snippets.nvim)
-- [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter)
+- [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter) (Warning: it sometimes really slow.)
 
 ## External sources
 
@@ -220,9 +220,14 @@ highlight link CompeDocumentation NormalFloat
 
 If you are enabling the `omni` source, please try to disable it.
 
+### Incredibly lagging.
+
+If you are enabling the `treesitter` source, please try to disable it.
+
 ### How to remove `Pattern not found`?
 
 You can set `set shortmess+=c` in your vimrc.
+
 
 ### How to use LSP snippet?
 

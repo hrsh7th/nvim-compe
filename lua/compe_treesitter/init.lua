@@ -46,7 +46,10 @@ function Source.complete(self, args)
         accept = accept and start_line <= (args.context.lnum - 1)
         if accept then
           complete_items_uniq[text] = true
-          table.insert(complete_items, { word = text, kind = match.kind })
+          table.insert(complete_items, {
+            word = text .. '',
+            kind = match.kind .. ''
+          })
         end
       end
     end
