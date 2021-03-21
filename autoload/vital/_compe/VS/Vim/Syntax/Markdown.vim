@@ -12,6 +12,8 @@ delfunction s:_SID
 "
 function! s:apply(...) abort
   let l:args = get(a:000, 0, {})
+  let l:text = has_key(l:args, 'text') ? l:args.text : getbufline('%', 1, '$')
+  let l:text = type(l:text) == v:t_list ? join(l:text, "\n") : l:text
 
   if !exists('b:___VS_Vim_Syntax_Markdown')
     call s:_execute('runtime! syntax/markdown.vim')
@@ -47,8 +49,6 @@ function! s:apply(...) abort
     let b:___VS_Vim_Syntax_Markdown = {}
   endif
 
-  let l:text = has_key(l:args, 'text') ? l:args.text : getbufline('%', 1, '$')
-  let l:text = type(l:text) == v:t_list ? join(l:text, "\n") : l:text
   try
     for [l:mark, l:filetype] in items(s:_get_filetype_map(l:text))
       let l:group = substitute(toupper(l:mark), '\.', '_', 'g')
