@@ -168,7 +168,7 @@ Completion.complete = guard(function(option)
   end
 
   -- Filter
-  if not triggered then
+  if not triggered and context.is_completing then
     Completion._display(context)
   end
 end)
