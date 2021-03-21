@@ -100,7 +100,7 @@ Completion.confirm = function()
   end
   Completion.close()
 
-  vim.cmd([[doautocmd User CompeConfirmDone]])
+  vim.cmd([[doautocmd <nomodeline> User CompeConfirmDone]])
 
   Completion.complete({ trigger_character_only = true })
 end
