@@ -212,6 +212,7 @@ highlight link CompeDocumentation NormalFloat
 - [zsh](https://github.com/tamago324/compe-zsh)
 - [conjure](https://github.com/tami5/compe-conjure)
 - [dadbod](https://github.com/kristijanhusak/vim-dadbod-completion)
+- [latex-symbols](https://github.com/GoldsteinE/compe-latex-symbols)
 
 
 ## FAQ
