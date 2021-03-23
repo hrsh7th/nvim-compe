@@ -1,5 +1,6 @@
 local Cache = require'compe.utils.cache'
 local Async = require'compe.utils.async'
+local String = require'compe.utils.string'
 local Boolean = require'compe.utils.boolean'
 local Config = require'compe.config'
 local Matcher = require'compe.matcher'
@@ -383,6 +384,11 @@ Source._normalize_items = function(self, _, items)
     item.original_kind = item.kind
     item.original_menu = item.menu
     item.original_dup = Boolean.get(metadata.dup, true) and 1 or 0
+
+    -- trim abbr/kind/menu
+    item.abbr = String.omit(item.abbr, Config.get().max_abbr_width)
+    item.kind = String.omit(item.kind, Config.get().max_kind_width)
+    item.menu = String.omit(item.menu, Config.get().max_menu_width)
 
     items[i] = item
   end

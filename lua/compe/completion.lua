@@ -223,15 +223,6 @@ Completion._display = guard(function(context)
           for _, item in ipairs(source_items) do
             if items_uniq[item.original_word] == nil or item.original_dup == 1 then
               items_uniq[item.original_word] = true
-              item.word = item.original_word
-              item.abbr = item.original_abbr
-              item.kind = item.original_kind or ''
-              item.menu = item.original_menu or ''
-
-              -- trim to specified width.
-              item.abbr = String.omit(item.abbr, Config.get().max_abbr_width)
-              item.kind = String.omit(item.kind, Config.get().max_kind_width)
-              item.menu = String.omit(item.menu, Config.get().max_menu_width)
               table.insert(items, item)
             end
           end
