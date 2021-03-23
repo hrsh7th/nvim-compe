@@ -25,10 +25,15 @@ end
 function Source.complete(_, context)
   local items = {}
 
-  local snippets_list = vim.tbl_extend ('force',
-    snippets_nvim.snippets._global or {},
-    snippets_nvim.snippets[vim.bo.filetype] or {}
-  )
+  local snippets_list = {}
+  local filetypes = vim.split(vim.bo.filetype, ".", true)
+  table.insert(filetypes, '_global')
+  for _ , ft in ipairs(filetypes) do
+    snippets_list = vim.tbl_extend ('force',
+    snippets_nvim.snippets[ft] or {},
+    snippets_list
+    )
+  end
 
   for name, expansion in pairs(snippets_list) do
     table.insert(items, {
@@ -63,9 +68,21 @@ function Source._parse_result(snippet_doc)
 end
 
 function Source.documentation(self, context)
-  local doc = self._parse_result(snippets_nvim.lookup_snippet(
-    vim.bo.filetype, context.completed_item.word
-  ))
+  local filetypes = vim.split(vim.bo.filetype, ".", true)
+  local snippet = nil
+  local _global_snippet = snippets_nvim.lookup_snippet(
+                            '', context.completed_item.word
+                          )
+  for _ , ft in ipairs(filetypes) do
+    s = snippets_nvim.lookup_snippet(ft, context.completed_item.word)
+    if s ~= _global_snippet then
+      -- snippet from first filetype will be used
+      snippet = snippet or s
+    end
+  end
+  -- if there is only a _global snippet
+  snippet = snippet or _global_snippet
+  local doc = self._parse_result(snippet)
 
   context.callback(doc)
 end
