@@ -36,7 +36,7 @@ Source.clear = function(self)
   self.trigger_character_offset = 0
   self.is_triggered_by_character = false
   self.context = Context.new_empty()
-  self.request_id = 0
+  self.request_id = self.request_id + 1
   self.request_time = vim.loop.now()
   self.request_state = {}
   self.incomplete = false
@@ -85,7 +85,7 @@ Source.trigger = function(self, context, callback)
   -- Detect completion trigger reason.
   local manual = context.manual
   local characters = state.trigger_character_offset > 0
-  local incomplete = self.incomplete and not empty
+  local incomplete = self.incomplete and not empty and self.status == 'completed'
 
   -- Clear current completion if all filter words removed.
   if self.status == 'completed' and not (manual or characters) then
@@ -155,18 +155,18 @@ Source.trigger = function(self, context, callback)
         return
       end
 
+      -- Continue current completion
+      if count > 0 and #result.items == 0 then
+        self.status = 'completed'
+        return callback()
+      end
+
       self.revision = self.revision + 1
       self.status = 'completed'
       self.incomplete = result.incomplete or false
       self.keyword_pattern_offset = result.keyword_pattern_offset or state.keyword_pattern_offset
       self.trigger_character_offset = state.trigger_character_offset
-
-      -- incomplete handling.
-      if incomplete and #result.items == 0 then
-        self.items = self.items
-      else
-        self.items = self:_normalize_items(context, result.items)
-      end
+      self.items = self:_normalize_items(context, result.items)
 
       if #self.items == 0 then
         self:clear()
@@ -271,41 +271,33 @@ end
 --- get_filtered_items
 Source.get_filtered_items = function(self, context)
   local start_offset = self:get_start_offset()
-  local input = context:get_input(start_offset)
+  if start_offset == 0 then
+    return {}
+  end
 
-  local cache_group_key = {}
-  table.insert(cache_group_key, 'source.get_filtered_items')
-  table.insert(cache_group_key, self.id)
-  cache_group_key = table.concat(cache_group_key, ':')
+  local cache_group_key = table.concat({ 'source.get_filtered_items', self.id }, ':')
+
+  local prev_items = (function()
+    local prev_cache_key = {}
+    table.insert(prev_cache_key, self.revision)
+    table.insert(prev_cache_key, context.lnum)
+    table.insert(prev_cache_key, start_offset)
+    for i = context.col - 1, start_offset, -1 do
+      prev_cache_key[4] = string.sub(context.before_line, start_offset, i)
+      local prev_items = Cache.get(cache_group_key, table.concat(prev_cache_key, ':'))
+      if prev_items then
+        return prev_items
+      end
+    end
+    return nil
+  end)()
 
   local curr_cache_key = {}
   table.insert(curr_cache_key, self.revision)
   table.insert(curr_cache_key, context.lnum)
   table.insert(curr_cache_key, start_offset)
-  table.insert(curr_cache_key, input)
-  curr_cache_key = table.concat(curr_cache_key, ':')
-
-  local prev_items = (function()
-    if #input == 0 then
-      return nil
-    end
-
-    local prev_cache_key = {}
-    table.insert(prev_cache_key, self.revision)
-    table.insert(prev_cache_key, context.lnum)
-    table.insert(prev_cache_key, start_offset)
-    for i = #input, 1, -1 do
-      table.insert(prev_cache_key, input:sub(1, i))
-      local prev_items = Cache.get(cache_group_key, table.concat(prev_cache_key, ':'))
-      if prev_items then
-        return prev_items
-      end
-      table.remove(prev_cache_key, #prev_cache_key)
-    end
-    return nil
-  end)()
-
-  return Cache.ensure(cache_group_key, curr_cache_key, function()
+  table.insert(curr_cache_key, string.sub(context.before_line, start_offset))
+  return Cache.ensure(cache_group_key, table.concat(curr_cache_key, ':'), function()
     if prev_items then
       return Matcher.match(context, self, prev_items)
     end

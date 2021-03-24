@@ -1,6 +1,5 @@
 local Async = require'compe.utils.async'
 local Cache = require'compe.utils.cache'
-local String = require'compe.utils.string'
 local Callback = require'compe.utils.callback'
 local Config = require'compe.config'
 local Context = require'compe.context'
