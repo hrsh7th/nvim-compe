@@ -7,9 +7,9 @@ Matcher.WORD_BOUNDALY_ORDER_FACTOR = 5
 --- match
 Matcher.match = function(context, source, items)
   -- filter
+  local input = context:get_input(source:get_start_offset())
   local matches = {}
   for i, item in ipairs(items) do
-    local input = context:get_input(item.suggest_offset)
     local word = item.original_word
     if #input > 0 then
       if item.filter_text and #item.filter_text > 0 then
