@@ -156,7 +156,7 @@ Source.trigger = function(self, context, callback)
       end
 
       -- Continue current completion
-      if count > 0 and #result.items == 0 then
+      if (incomplete or count > 0) and #result.items == 0 then
         self.status = 'completed'
         return callback()
       end
