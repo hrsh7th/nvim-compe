@@ -11,9 +11,13 @@ Source.get_metadata = function(_)
 end
 
 Source.determine = function(_, context)
-  return compe.helper.determine(context, {
-    keyword_pattern = [[\%(\s\|^\)\zs:\w*]],
+  local trigger = compe.helper.determine(context, {
+    keyword_pattern = [[\%(\s\|^\)\zs:\w*$]],
   })
+  if trigger then
+    trigger.trigger_character_offset = trigger.keyword_pattern_offset
+  end
+  return trigger
 end
 
 Source.complete = function(self, args)
