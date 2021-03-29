@@ -2,6 +2,7 @@ local Cache = require'compe.utils.cache'
 local Async = require'compe.utils.async'
 local String = require'compe.utils.string'
 local Boolean = require'compe.utils.boolean'
+local Character = require'compe.utils.character'
 local Config = require'compe.config'
 local Matcher = require'compe.matcher'
 local Context = require'compe.context'
@@ -125,7 +126,7 @@ Source.trigger = function(self, context, callback)
     end
   end
   if characters then
-    self.is_triggered_by_character = true
+    self.is_triggered_by_character = Character.is_symbol(string.byte(context.before_char))
   end
   if incomplete then
     if not (manual or characters) then

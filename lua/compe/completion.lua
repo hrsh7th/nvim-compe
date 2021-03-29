@@ -207,7 +207,7 @@ Completion._display = guard(function(context)
         return
       end
       if source:is_completing(context) then
-        has_triggered_by_character = has_triggered_by_character or source.is_triggered_by_character
+        has_triggered_by_character = has_triggered_by_character or (source.is_triggered_by_character and #source:get_filtered_items(context) > 0)
         table.insert(sources, source)
       end
     end
