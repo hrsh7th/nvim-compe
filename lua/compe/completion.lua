@@ -1,5 +1,6 @@
 local Async = require'compe.utils.async'
 local Cache = require'compe.utils.cache'
+local String = require'compe.utils.string'
 local Callback = require'compe.utils.callback'
 local Config = require'compe.config'
 local Context = require'compe.context'
@@ -33,6 +34,7 @@ Completion._current_offset = 0
 Completion._current_items = {}
 Completion._selected_item = nil
 Completion._selected_manually = false
+Completion._after_line = nil
 Completion._history = {}
 
 --- register_source
@@ -114,19 +116,35 @@ end
 Completion.select = function(args)
   local completed_item = Completion._current_items[(args.index == -2 and 0 or args.index) + 1]
   if completed_item then
-    Completion._selected_item = completed_item
-    Completion._selected_manually = args.manual or false
+    vim.schedule(function()
+      if vim.call('compe#_is_selected_manually') then
+        Completion._after_line = Completion._context.after_line
+      end
 
-    if args.documentation and Config.get().documentation then
-      for _, source in ipairs(Completion.get_sources()) do
-        if source.id == completed_item.source_id then
-          vim.schedule(Async.guard('documentation', function()
-            source:documentation(completed_item)
-          end))
-          break
+      if Completion._after_line then
+        local before_line = string.sub(vim.fn.getline('.'), 1, vim.fn.col('.') - 1)
+        local index = String.find_overlap(completed_item.word, Completion._after_line)
+        if index ~= 0 then
+          vim.fn.setline('.', before_line .. string.sub(Completion._after_line, index + 1))
+        else
+          vim.fn.setline('.', before_line .. Completion._after_line)
         end
       end
-    end
+
+      Completion._selected_item = completed_item
+      Completion._selected_manually = args.manual or false
+
+      if args.documentation and Config.get().documentation then
+        for _, source in ipairs(Completion.get_sources()) do
+          if source.id == completed_item.source_id then
+            vim.schedule(Async.guard('documentation', function()
+              source:documentation(completed_item)
+            end))
+            break
+          end
+        end
+      end
+    end)
   else
     vim.schedule(Async.guard('documentation', function()
       vim.call('compe#documentation#close')
@@ -147,6 +165,7 @@ Completion.close = function()
   Completion._current_items = {}
   Completion._current_offset = 0
   Completion._selected_item = nil
+  Completion._after_line = nil
 end
 
 --- complete
