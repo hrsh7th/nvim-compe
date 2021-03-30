@@ -5,6 +5,8 @@ local Config = require'compe.config'
 local Context = require'compe.context'
 local Matcher = require'compe.matcher'
 
+local REPLACE_MARK = vim.api.nvim_create_namespace('compe:replace-mark')
+
 local VALID_COMPLETE_MODE = {
   [''] = true;
   ['eval'] = true;
@@ -118,34 +120,33 @@ Completion.select = function(args)
   Completion._selected_item = Completion._current_items[(args.index == -2 and 0 or args.index) + 1]
   Completion._selected_manually = args.manual or false
 
-  vim.schedule(Async.guard('Completion.select', function()
-    local before_line = string.sub(vim.fn.getline('.'), 1, vim.fn.col('.') - 1)
-    local after_line = Completion._selected_context.after_line
-    local item = Completion._selected_item
-    if item then
-      -- replace.
-      if item.replace_range then
-        vim.fn.setline('.', before_line .. string.sub(after_line, item.replace_range.e - item.request_offset + 1))
-      else
-        vim.fn.setline('.', before_line .. after_line)
-      end
+  vim.api.nvim_buf_clear_namespace(Completion._context.bufnr, REPLACE_MARK, 0, -1)
 
-      -- documentation.
-      if args.documentation and Config.get().documentation then
-        for _, source in ipairs(Completion.get_sources()) do
-          if source.id == item.source_id then
-            source:documentation(item)
-            break
-          end
+  local item = Completion._selected_item
+  if item then
+    -- annotate replace.
+    if item.replace_range and item.replace_range.e - item.request_offset > 0 then
+      local context = Completion._selected_context
+      local col = vim.fn.col('.')
+      vim.api.nvim_buf_set_extmark(context.bufnr, REPLACE_MARK, context.lnum - 1, col - 1, {
+        end_line = context.lnum - 1,
+        end_col = col + (item.replace_range.e - item.request_offset) - 1,
+        hl_group = 'MatchParen',
+      })
+    end
+
+    -- documentation.
+    if args.documentation and Config.get().documentation then
+      for _, source in ipairs(Completion.get_sources()) do
+        if source.id == item.source_id then
+          source:documentation(item)
+          break
         end
       end
-    else
-      if vim.fn.getline('.') ~= before_line .. after_line then
-        vim.fn.setline('.', before_line .. after_line)
-      end
-      vim.call('compe#documentation#close')
     end
-  end))
+  else
+    vim.call('compe#documentation#close')
+  end
 end
 
 --- close
@@ -155,6 +156,7 @@ Completion.close = function()
   end
 
   vim.call('compe#documentation#close')
+  vim.api.nvim_buf_clear_namespace(Completion._context.bufnr, REPLACE_MARK, 0, -1)
   Callback.clear()
   Completion._show(0, {})
   Completion._new_context({})
@@ -280,6 +282,7 @@ Completion._show = Async.guard('Completion._show', guard(function(start_offset, 
   vim.cmd('set completeopt=' .. completeopt)
 
   if #items == 0 then
+    vim.api.nvim_buf_clear_namespace(Completion._context.bufnr, REPLACE_MARK, 0, -1)
     vim.call('compe#documentation#close')
   end
 end))
