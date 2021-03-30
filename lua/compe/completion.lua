@@ -95,8 +95,8 @@ end
 Completion.confirm = function(option)
   local item = Completion._selected_item
   if item then
-    Completion._history[item.abbr] = Completion._history[item.abbr] or 0
-    Completion._history[item.abbr] = Completion._history[item.abbr] + 1
+    Completion._history[item.original_abbr] = Completion._history[item.original_abbr] or 0
+    Completion._history[item.original_abbr] = Completion._history[item.original_abbr] + 1
 
     if option.replace then
       if item.replace_range and item.replace_range.e - item.request_offset > 0 then
@@ -168,8 +168,6 @@ Completion.close = function()
   Completion._new_context({})
   Completion._current_items = {}
   Completion._current_offset = 0
-  Completion._selected_item = nil
-  Completion._selected_manually = nil
 end
 
 --- complete
@@ -293,6 +291,8 @@ end))
 Completion._deselect = function()
   vim.api.nvim_buf_clear_namespace(Completion._context.bufnr, REPLACE_MARK, 0, -1)
   vim.call('compe#documentation#close')
+  Completion._selected_item = nil
+  Completion._selected_manually = nil
 end
 
 --- _new_context
