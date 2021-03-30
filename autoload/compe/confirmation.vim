@@ -30,6 +30,8 @@ function! s:expand_snippet(args) abort
     call vsnip#anonymous(a:args.body)
   elseif luaeval('pcall(require, "snippets")')
     call luaeval('require"snippets".expand_at_cursor((require"snippets".u.match_indentation(_A)))', a:args.body)
+  elseif luaeval('pcall(require, "luasnip")')
+  	call luaeval('require"luasnip".lsp_expand(_A)', a:args.body)
   else
     call s:simple_expand_snippet(a:args.body)
   endif
