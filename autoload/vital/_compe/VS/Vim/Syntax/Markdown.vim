@@ -66,7 +66,9 @@ function! s:apply(...) abort
         \   l:group
         \ )
       catch /.*/
-        unsilent echomsg printf('[VS.Vim.Syntax.Markdown] The `%s` is not valid filetype! You can add `"let g:markdown_fenced_languages = ["FILETYPE=%s"]`.', l:mark, l:mark)
+        if has_key(l:args, 'verbose')
+          unsilent echomsg printf('[VS.Vim.Syntax.Markdown] The `%s` is not valid filetype! You can add `"let g:markdown_fenced_languages = ["FILETYPE=%s"]`.', l:mark, l:mark)
+        endif
       endtry
     endfor
   catch /.*/
