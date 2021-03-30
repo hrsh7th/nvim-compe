@@ -41,10 +41,12 @@ endfunction
 "
 " confirm
 "
+let g:___compe_confirm_option = {}
+inoremap <silent><nowait> <Plug>(compe-confirm) <C-r>=luaeval('require"compe"._confirm_pre()')<CR><C-y><C-r>=luaeval('require"compe"._confirm(_A)', g:___compe_confirm_option)<CR>
 function! compe#confirm(...) abort
-  let l:completeopts = split(&completeopt, ',')
+  " Check completeopt
   for l:opt in ['menuone', 'noselect']
-    if index(l:completeopts, l:opt) == -1
+    if stridx(&completeopt, l:opt) == -1
       echohl ErrorMsg
       echomsg '[nvim-compe] You must set `set completeopt=menuone,noselect` in your vimrc.'
       echohl None
@@ -55,7 +57,7 @@ function! compe#confirm(...) abort
   let l:select = get(l:option, 'select', v:false)
   let l:selected = complete_info(['selected']).selected != -1
   if mode()[0] ==# 'i' && pumvisible() && (l:select || l:selected)
-    call luaeval('require"compe"._confirm_pre()')
+    let g:___compe_confirm_option = l:option
     let l:confirm = ''
     let l:confirm .= l:select && !l:selected ? "\<C-n>" : ''
     let l:confirm .= "\<Plug>(compe-confirm)"
@@ -65,7 +67,6 @@ function! compe#confirm(...) abort
   endif
   return "\<Ignore>"
 endfunction
-inoremap <silent><nowait> <Plug>(compe-confirm) <C-y><C-r>=luaeval('require"compe"._confirm()')<CR>
 
 "
 " compe#close

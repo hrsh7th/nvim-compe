@@ -44,6 +44,10 @@ if !hlexists('CompeDocumentation')
   highlight def link CompeDocumentation NormalFloat
 endif
 
+if !hlexists('CompeReplacement')
+  highlight def link CompeReplacement Folded
+endif
+
 "
 " setup
 "

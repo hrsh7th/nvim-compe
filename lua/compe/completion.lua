@@ -94,15 +94,26 @@ Completion.confirm_pre = function(args)
 end
 
 --- confirm
-Completion.confirm = function()
-  local completed_item = Completion._selected_item
-  if completed_item then
-    Completion._history[completed_item.abbr] = Completion._history[completed_item.abbr] or 0
-    Completion._history[completed_item.abbr] = Completion._history[completed_item.abbr] + 1
+Completion.confirm = function(option)
+  local item = Completion._selected_item
+  if item then
+    Completion._history[item.abbr] = Completion._history[item.abbr] or 0
+    Completion._history[item.abbr] = Completion._history[item.abbr] + 1
+
+    if option.replace then
+      if item.replace_range and item.replace_range.e - item.request_offset > 0 then
+        -- TODO: We should support VSCode confirmation implementation for generally instead of source.confirm.
+        local col = vim.fn.col('.')
+        local line = vim.fn.getline('.')
+        local before = string.sub(line, 1, col - 1)
+        local after = string.sub(line, col + 1)
+        vim.fn.setline('.', before .. string.sub(after, item.replace_range.e - item.request_offset))
+      end
+    end
 
     for _, source in ipairs(Completion.get_sources()) do
-      if source.id == completed_item.source_id then
-        source:confirm(completed_item)
+      if source.id == item.source_id then
+        source:confirm(option, item)
         break
       end
     end
@@ -130,8 +141,8 @@ Completion.select = function(args)
       local col = vim.fn.col('.')
       vim.api.nvim_buf_set_extmark(context.bufnr, REPLACE_MARK, context.lnum - 1, col - 1, {
         end_line = context.lnum - 1,
-        end_col = col + (item.replace_range.e - item.request_offset) - 1,
-        hl_group = 'MatchParen',
+        end_col = col + item.replace_range.e - item.request_offset - 1,
+        hl_group = 'CompeReplacement',
       })
     end
 

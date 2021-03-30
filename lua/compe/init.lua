@@ -79,8 +79,8 @@ compe._confirm_pre = enable(function()
 end)
 
 --- _confirm
-compe._confirm = enable(suppress(function()
-  Completion.confirm()
+compe._confirm = enable(suppress(function(option)
+  Completion.confirm(option)
 end))
 
 --- _register_vim_source

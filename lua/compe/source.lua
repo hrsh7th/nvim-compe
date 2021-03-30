@@ -241,13 +241,14 @@ Source.documentation = function(self, completed_item)
 end
 
 --- confirm
-Source.confirm = function(self, completed_item)
+Source.confirm = function(self, option, completed_item)
   if self.source.confirm then
     local resolved = false
     self:resolve({
       completed_item = completed_item,
       callback = function(resolved_completed_item)
         self.source:confirm({
+          option = option,
           completed_item = resolved_completed_item,
         })
         resolved = true
