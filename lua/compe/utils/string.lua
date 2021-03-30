@@ -11,16 +11,6 @@ String.INVALID_CHARS[string.byte('(')] = true
 String.INVALID_CHARS[string.byte('"')] = true
 String.INVALID_CHARS[string.byte("'")] = true
 
-String.find_overlap = function(before, after)
-  for i = #before, 1, -1 do
-    if string.sub(before, #before - i + 1) == string.sub(after, 1, i) then
-      return i
-    end
-  end
-  return 0
-end
-
-
 --- omit
 String.omit = function(text, width)
   if width == 0 then
