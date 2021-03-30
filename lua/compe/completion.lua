@@ -33,10 +33,8 @@ Completion._sources = {}
 Completion._context = Context.new_empty()
 Completion._current_offset = 0
 Completion._current_items = {}
-Completion._selected_context = nil
 Completion._selected_item = nil
 Completion._selected_manually = false
-Completion._after_line = nil
 Completion._history = {}
 
 --- register_source
@@ -127,18 +125,16 @@ end
 
 --- select
 Completion.select = function(args)
-  Completion._selected_context = Completion._context
   Completion._selected_item = Completion._current_items[(args.index == -2 and 0 or args.index) + 1]
   Completion._selected_manually = args.manual or false
-
-  vim.api.nvim_buf_clear_namespace(Completion._context.bufnr, REPLACE_MARK, 0, -1)
 
   local item = Completion._selected_item
   if item then
     -- annotate replace.
     if item.replace_range and item.replace_range.e - item.request_offset > 0 then
-      local context = Completion._selected_context
+      local context = Completion._context
       local col = vim.fn.col('.')
+      vim.api.nvim_buf_clear_namespace(Completion._context.bufnr, REPLACE_MARK, 0, -1)
       vim.api.nvim_buf_set_extmark(context.bufnr, REPLACE_MARK, context.lnum - 1, col - 1, {
         end_line = context.lnum - 1,
         end_col = col + item.replace_range.e - item.request_offset - 1,
@@ -156,7 +152,7 @@ Completion.select = function(args)
       end
     end
   else
-    vim.call('compe#documentation#close')
+    Completion._deselect()
   end
 end
 
@@ -166,17 +162,14 @@ Completion.close = function()
     source:clear()
   end
 
-  vim.call('compe#documentation#close')
-  vim.api.nvim_buf_clear_namespace(Completion._context.bufnr, REPLACE_MARK, 0, -1)
   Callback.clear()
   Completion._show(0, {})
+  Completion._deselect()
   Completion._new_context({})
   Completion._current_items = {}
   Completion._current_offset = 0
-  Completion._selected_context = nil
   Completion._selected_item = nil
   Completion._selected_manually = nil
-  Completion._after_line = nil
 end
 
 --- complete
@@ -293,10 +286,14 @@ Completion._show = Async.guard('Completion._show', guard(function(start_offset, 
   vim.cmd('set completeopt=' .. completeopt)
 
   if #items == 0 then
-    vim.api.nvim_buf_clear_namespace(Completion._context.bufnr, REPLACE_MARK, 0, -1)
-    vim.call('compe#documentation#close')
+    Completion._deselect()
   end
 end))
+
+Completion._deselect = function()
+  vim.api.nvim_buf_clear_namespace(Completion._context.bufnr, REPLACE_MARK, 0, -1)
+  vim.call('compe#documentation#close')
+end
 
 --- _new_context
 Completion._new_context = function(option)
