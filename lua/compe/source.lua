@@ -2,6 +2,7 @@ local Cache = require'compe.utils.cache'
 local Async = require'compe.utils.async'
 local String = require'compe.utils.string'
 local Boolean = require'compe.utils.boolean'
+local Pattern = require'compe.pattern'
 local Config = require'compe.config'
 local Matcher = require'compe.matcher'
 local Context = require'compe.context'
@@ -66,6 +67,7 @@ Source.trigger = function(self, context, callback)
   state.trigger_character_offset = state.trigger_character_offset == nil and 0 or state.trigger_character_offset
   state.keyword_pattern_offset = state.keyword_pattern_offset == nil and 0 or state.keyword_pattern_offset
   state.keyword_pattern_offset = state.keyword_pattern_offset == 0 and state.trigger_character_offset or state.keyword_pattern_offset
+  state.keyword_pattern = state.keyword_pattern or Pattern.get_keyword_pattern(context)
 
   -- Detect some trigger conditions.
   local count = #self:get_filtered_items(context)
@@ -166,7 +168,7 @@ Source.trigger = function(self, context, callback)
       self.incomplete = result.incomplete or false
       self.keyword_pattern_offset = result.keyword_pattern_offset or state.keyword_pattern_offset
       self.trigger_character_offset = state.trigger_character_offset
-      self.items = self:_normalize_items(context, result.items)
+      self.items = self:_normalize_items(context, state, result.items)
 
       if #self.items == 0 then
         self:clear()
@@ -329,8 +331,21 @@ Source.is_completing = function(self, context)
 end
 
 --- _normalize_items
-Source._normalize_items = function(self, _, items)
+Source._normalize_items = function(self, context, state, items)
   local metadata = self:get_metadata()
+
+  local default_insert_range = {
+    s = state.keyword_pattern_offset,
+    e = context.col
+  }
+  local default_replace_range = (function()
+    local text = string.sub(context.before_line .. context.after_line, state.keyword_pattern_offset)
+    local e = Pattern.matchend(text, state.keyword_pattern)
+    if not e then
+      return default_insert_range
+    end
+    return { s = default_insert_range.s, e = default_insert_range.s + e }
+  end)()
 
   for i, item in ipairs(items) do
     self.item_id = self.item_id + 1
@@ -363,6 +378,9 @@ Source._normalize_items = function(self, _, items)
     item.priority = metadata.priority or 0
     item.sort = Boolean.get(metadata.sort, true)
     item.suggest_offset = item.suggest_offset or self.keyword_pattern_offset
+    item.request_offset = context.col
+    item.insert_range = item.insert_range or default_insert_range
+    item.replace_range = item.replace_range or default_replace_range
 
     -- matcher related properties (will be overwrote)
     item.prefix = false

@@ -24,7 +24,7 @@ end
 --- determine
 Source.determine = function(_, context)
   return compe.helper.determine(context, {
-    keyword_pattern = ([[/\zs%s*$]]):format(NAME_PATTERN),
+    keyword_pattern = ([[/\zs%s*]]):format(NAME_PATTERN),
     trigger_characters = { '/', '.' }
   })
 end

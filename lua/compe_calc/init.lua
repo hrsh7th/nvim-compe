@@ -12,7 +12,7 @@ end
 
 Source.determine = function(_, context)
   return compe.helper.determine(context, {
-    keyword_pattern = [[\d\+\%(\.\d\+\)\?\%(\s\+\|\d\+\%(\.\d\+\)\?\|+\|\-\|/\|\*\|%\|\^\|(\|)\)\+$]]
+    keyword_pattern = [[\d\+\%(\.\d\+\)\?\%(\s\+\|\d\+\%(\.\d\+\)\?\|+\|\-\|/\|\*\|%\|\^\|(\|)\)\+]]
   })
 end
 

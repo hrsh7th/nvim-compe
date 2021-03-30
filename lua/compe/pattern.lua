@@ -25,8 +25,8 @@ end
 
 --- get_keyword_offset
 Pattern.get_keyword_offset = function(context)
-  local keyword_pattern = Pattern.get_keyword_pattern(context.filetype) .. '$'
-  local default_pattern = Pattern.get_default_pattern() .. '$'
+  local keyword_pattern = Pattern.get_keyword_pattern(context.filetype)
+  local default_pattern = Pattern.get_default_pattern()
 
   local s1, s2
   if keyword_pattern == default_pattern then
@@ -48,12 +48,17 @@ end
 
 --- get_pattern_offset
 Pattern.get_pattern_offset = function(before_line, pattern)
-  local regex = Pattern.regex(pattern)
+  local regex = Pattern.regex(pattern .. '$')
   local s = regex:match_str(before_line)
   if s == nil then
     return 0
   end
   return s + 1
+end
+
+Pattern.matchend = function(text, pattern)
+  local _, e = Pattern.regex('^' .. pattern):match_str(text)
+  return e
 end
 
 

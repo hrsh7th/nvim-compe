@@ -23,6 +23,7 @@ Helper.determine = function(context, option)
   end
 
   return {
+    keyword_pattern = option.keyword_pattern or Pattern.get_keyword_pattern(context.filetype);
     keyword_pattern_offset = keyword_pattern_offset;
     trigger_character_offset = trigger_character_offset;
   }

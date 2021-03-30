@@ -1,6 +1,5 @@
 local Async = require'compe.utils.async'
 local Cache = require'compe.utils.cache'
-local String = require'compe.utils.string'
 local Callback = require'compe.utils.callback'
 local Config = require'compe.config'
 local Context = require'compe.context'
@@ -32,6 +31,7 @@ Completion._sources = {}
 Completion._context = Context.new_empty()
 Completion._current_offset = 0
 Completion._current_items = {}
+Completion._selected_context = nil
 Completion._selected_item = nil
 Completion._selected_manually = false
 Completion._after_line = nil
@@ -114,42 +114,38 @@ end
 
 --- select
 Completion.select = function(args)
-  local completed_item = Completion._current_items[(args.index == -2 and 0 or args.index) + 1]
-  if completed_item then
-    vim.schedule(function()
-      if vim.call('compe#_is_selected_manually') then
-        Completion._after_line = Completion._context.after_line
+  Completion._selected_context = Completion._context
+  Completion._selected_item = Completion._current_items[(args.index == -2 and 0 or args.index) + 1]
+  Completion._selected_manually = args.manual or false
+
+  vim.schedule(Async.guard('Completion.select', function()
+    local before_line = string.sub(vim.fn.getline('.'), 1, vim.fn.col('.') - 1)
+    local after_line = Completion._selected_context.after_line
+    local item = Completion._selected_item
+    if item then
+      -- replace.
+      if item.replace_range then
+        vim.fn.setline('.', before_line .. string.sub(after_line, item.replace_range.e - item.request_offset + 1))
+      else
+        vim.fn.setline('.', before_line .. after_line)
       end
 
-      if Completion._after_line then
-        local before_line = string.sub(vim.fn.getline('.'), 1, vim.fn.col('.') - 1)
-        local index = String.find_overlap(completed_item.word, Completion._after_line)
-        if index ~= 0 then
-          vim.fn.setline('.', before_line .. string.sub(Completion._after_line, index + 1))
-        else
-          vim.fn.setline('.', before_line .. Completion._after_line)
-        end
-      end
-
-      Completion._selected_item = completed_item
-      Completion._selected_manually = args.manual or false
-
+      -- documentation.
       if args.documentation and Config.get().documentation then
         for _, source in ipairs(Completion.get_sources()) do
-          if source.id == completed_item.source_id then
-            vim.schedule(Async.guard('documentation', function()
-              source:documentation(completed_item)
-            end))
+          if source.id == item.source_id then
+            source:documentation(item)
             break
           end
         end
       end
-    end)
-  else
-    vim.schedule(Async.guard('documentation', function()
+    else
+      if vim.fn.getline('.') ~= before_line .. after_line then
+        vim.fn.setline('.', before_line .. after_line)
+      end
       vim.call('compe#documentation#close')
-    end))
-  end
+    end
+  end))
 end
 
 --- close
@@ -164,7 +160,9 @@ Completion.close = function()
   Completion._new_context({})
   Completion._current_items = {}
   Completion._current_offset = 0
+  Completion._selected_context = nil
   Completion._selected_item = nil
+  Completion._selected_manually = nil
   Completion._after_line = nil
 end
 
