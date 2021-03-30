@@ -140,7 +140,7 @@ Helper.convert_lsp = function(args)
 
   return {
     items = completion_items,
-    incomplete = response.isIncomplete or false,
+    incomplete = response.isIncomplete,
     keyword_pattern_offset = keyword_pattern_offset;
   }
 end

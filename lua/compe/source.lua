@@ -163,7 +163,7 @@ Source.trigger = function(self, context, callback)
 
       self.revision = self.revision + 1
       self.status = 'completed'
-      self.incomplete = result.incomplete or false
+      self.incomplete = type(result.incomplete) == 'boolean' and result.incomplete or (self.incomplete and incomplete)
       self.keyword_pattern_offset = result.keyword_pattern_offset or state.keyword_pattern_offset
       self.trigger_character_offset = state.trigger_character_offset
       self.items = self:_normalize_items(context, result.items)
