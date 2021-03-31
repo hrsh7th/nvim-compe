@@ -19,16 +19,10 @@ Matcher.match = function(context, source, items)
       end
     end
 
-    item.prefix = false
-    item.score = 0
-    item.fuzzy = false
-    item.index = i
     if #word >= #input then
-      local prefix, score, fuzzy = Matcher.score(input, word)
-      item.prefix = prefix
-      item.score = score
-      item.fuzzy = fuzzy
-      if item.score >= 1 or #input == 0 then
+      item.match = Matcher.analyze(input, word, item.match or {})
+      item.match.index = i
+      if item.match.score >= 1 then
         table.insert(matches, item)
       end
     end
@@ -94,15 +88,32 @@ end
 --
 --      * The `accept`'s `a` should not match to `candle`'s `a`
 --
-Matcher.score = function(input, word)
+Matcher.analyze = function(input, word, match)
+  -- Exact
+  if input == word then
+    match.exact = true
+    match.prefix = true
+    match.fuzzy = false
+    match.score = 1
+    return match
+  end
+
   -- Empty input
   if #input == 0 then
-    return true, 1, false
+    match.exact = false
+    match.prefix = true
+    match.fuzzy = false
+    match.score = 1
+    return match
   end
 
   -- Ignore if input is long than word
   if #input > #word then
-    return false, 0, false
+    match.exact = false
+    match.prefix = false
+    match.fuzzy = false
+    match.score = 0
+    return match
   end
 
   --- Gather matched regions
@@ -126,7 +137,11 @@ Matcher.score = function(input, word)
   end
 
   if #matches == 0 then
-    return false, 0, false
+    match.exact = false
+    match.prefix = false
+    match.fuzzy = false
+    match.score = 0
+    return match
   end
 
   -- Compute prefix match score
@@ -154,7 +169,11 @@ Matcher.score = function(input, word)
 
     -- If input is remaining but all word consumed, it does not match.
     if last_match.word_match_end >= #word then
-      return prefix, 0, false
+      match.exact = false
+      match.exact = prefix
+      match.fuzzy = false
+      match.score = 0
+      return match
     end
 
     for word_index = last_match.word_match_end + 1, #word do
@@ -171,13 +190,25 @@ Matcher.score = function(input, word)
         word_offset = word_offset + 1
       end
       if input_index - 1 == #input then
-        return prefix, score, true
+        match.exact = false
+        match.exact = prefix
+        match.fuzzy = true
+        match.score = score
+        return match
       end
     end
-    return false, 0, false
+    match.exact = false
+    match.exact = prefix
+    match.fuzzy = false
+    match.score = 0
+    return match
   end
 
-  return prefix, score, false
+  match.exact = false
+  match.exact = prefix
+  match.fuzzy = false
+  match.score = score
+  return match
 end
 
 --- find_match_region
@@ -241,22 +272,15 @@ end
 
 --- compare
 Matcher.compare = function(item1, item2, history)
-  if item1.prefix ~= item2.prefix then
-    if item1.prefix then
-      return true
-    end
-    if item2.prefix then
-      return false
-    end
+  if item1.match.exact ~= item2.match.exact then
+    return item1.match.exact
+  end
+  if item1.match.prefix ~= item2.match.prefix then
+    return item1.match.prefix
   end
 
-  if item1.fuzzy ~= item2.fuzzy then
-    if item1.fuzzy then
-      return false
-    end
-    if item2.fuzzy then
-      return true
-    end
+  if item1.match.fuzzy ~= item2.match.fuzzy then
+    return item2.match.fuzzy
   end
 
   if item1.priority ~= item2.priority then
@@ -273,8 +297,8 @@ Matcher.compare = function(item1, item2, history)
   end
 
   if item1.sort or item2.sort then
-    if item1.score ~= item2.score then
-      return item1.score > item2.score
+    if item1.match.score ~= item2.match.score then
+      return item1.match.score > item2.match.score
     end
 
     local history_score1 = history[item1.abbr] or 0
