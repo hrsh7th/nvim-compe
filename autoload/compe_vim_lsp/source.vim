@@ -93,6 +93,9 @@ function! s:on_complete(args, request, response) abort
   if !has_key(a:response, 'result')
     return a:args.abort()
   endif
+  if a:response.result is# v:null
+    return a:args.abort()
+  endif
   call a:args.callback(compe#helper#convert_lsp({
   \   'keyword_pattern_offset': a:args.keyword_pattern_offset,
   \   'context': a:args.context,

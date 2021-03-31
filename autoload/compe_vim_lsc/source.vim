@@ -74,6 +74,9 @@ function! s:complete(server, args) abort
   call a:server.request('textDocument/completion', l:request, function('s:on_complete', [a:args, l:request]))
 endfunction
 function! s:on_complete(args, request, response) abort
+  if a:response is# v:null
+    return a:args.abort()
+  endif
   call a:args.callback(compe#helper#convert_lsp({
   \   'keyword_pattern_offset': a:args.keyword_pattern_offset,
   \   'context': a:args.context,

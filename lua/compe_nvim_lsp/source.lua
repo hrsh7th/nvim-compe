@@ -40,7 +40,7 @@ function Source.complete(self, args)
   end
 
   self.client.request('textDocument/completion', request, function(err, _, response)
-    if err then
+    if err or response == nil then
       return args.abort()
     end
     args.callback(compe.helper.convert_lsp({
