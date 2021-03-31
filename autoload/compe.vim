@@ -60,10 +60,9 @@ function! compe#confirm(...) abort
     let l:confirm .= l:select && !l:selected ? "\<C-n>" : ''
     let l:confirm .= "\<Plug>(compe-confirm)"
     call feedkeys(l:confirm)
-  else
-    call s:fallback(l:option)
+    return "\<Ignore>"
   endif
-  return "\<Ignore>"
+  return s:fallback(l:option)
 endfunction
 inoremap <silent><nowait> <Plug>(compe-confirm) <C-y><C-r>=luaeval('require"compe"._confirm()')<CR>
 
@@ -74,8 +73,7 @@ function! compe#close(...) abort
   if mode()[0] ==# 'i' && pumvisible()
     return "\<C-e>\<C-r>=luaeval('require\"compe\"._close()')\<CR>"
   endif
-  call s:fallback(s:normalize(get(a:000, 0, {})))
-  return "\<Ignore>"
+  return s:fallback(s:normalize(get(a:000, 0, {})))
 endfunction
 
 "
@@ -130,8 +128,10 @@ endfunction
 " fallback
 "
 function! s:fallback(option) abort
-  if has_key(a:option, 'keys') && !empty(a:option.keys)
-    call feedkeys(a:option.keys, get(a:option, 'mode', 'n'))
+  if has_key(a:option, 'keys') && get(a:option, 'mode', 'n') !=# 'n'
+    call feedkeys(a:option.keys, a:option.mode)
+    return "\<Ignore>"
   endif
+  return get(a:option, 'keys', "\<Ignore>")
 endfunction
 
