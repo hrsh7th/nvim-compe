@@ -31,18 +31,18 @@ function Source.complete(_, context)
   for i = 1, #filetypes do
     local ft_table = luasnip.snippets[filetypes[i]]
     if ft_table then
-		for j, snip in ipairs(ft_table) do
-		  items[#items+1] = {
-			word = snip.trigger,
-			kind = filetypes[i],
-			abbr = snip.trigger,
-			user_data = {
-			  -- store index of snip in ft-table, no search when expanding.
-			  ft_indx = j
-			}
-		  }
-		end
-	end
+      for j, snip in ipairs(ft_table) do
+        items[#items+1] = {
+          word = snip.trigger,
+          kind = filetypes[i],
+          abbr = snip.trigger,
+          user_data = {
+            -- store index of snip in ft-table, no search when expanding.
+            ft_indx = j
+          }
+        }
+      end
+    end
   end
 
   context.callback({
