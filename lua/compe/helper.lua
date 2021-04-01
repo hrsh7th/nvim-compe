@@ -55,7 +55,6 @@ end
 Helper.convert_lsp = function(args)
   local keyword_pattern_offset = args.keyword_pattern_offset
   local context = args.context
-  local request = args.request
   local response = args.response or {}
 
   local completion_items = response.items or response
@@ -122,7 +121,7 @@ Helper.convert_lsp = function(args)
       kind = vim.lsp.protocol.CompletionItemKind[completion_item.kind] or nil;
       user_data = {
         compe = {
-          request_position = request.position;
+          request_position = { line = context.lnum - 1, character = context.col - 1 };
           completion_item = completion_item;
         };
       };

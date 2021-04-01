@@ -6,6 +6,7 @@ local Character = require'compe.utils.character'
 local Config = require'compe.config'
 local Matcher = require'compe.matcher'
 local Context = require'compe.context'
+local Entry = require'compe.entry'
 
 local Source =  {}
 
@@ -39,7 +40,7 @@ Source.clear = function(self)
   self.context = Context.new_empty()
   self.request_id = self.request_id + 1
   self.request_time = vim.loop.now()
-  self.request_state = {}
+  self.request_trigger = {}
   self.incomplete = false
   return false
 end
@@ -63,10 +64,10 @@ Source.trigger = function(self, context, callback)
   end
 
   -- Normalize trigger offsets
-  local state = self.source:determine(context) or {}
-  state.trigger_character_offset = state.trigger_character_offset == nil and 0 or state.trigger_character_offset
-  state.keyword_pattern_offset = state.keyword_pattern_offset == nil and 0 or state.keyword_pattern_offset
-  state.keyword_pattern_offset = state.keyword_pattern_offset == 0 and state.trigger_character_offset or state.keyword_pattern_offset
+  local trigger = self.source:determine(context) or {}
+  trigger.trigger_character_offset = trigger.trigger_character_offset == nil and 0 or trigger.trigger_character_offset
+  trigger.keyword_pattern_offset = trigger.keyword_pattern_offset == nil and 0 or trigger.keyword_pattern_offset
+  trigger.keyword_pattern_offset = trigger.keyword_pattern_offset == 0 and trigger.trigger_character_offset or trigger.keyword_pattern_offset
 
   -- Detect some trigger conditions.
   local count = #self:get_filtered_items(context)
@@ -74,18 +75,18 @@ Source.trigger = function(self, context, callback)
     if self.status ~= 'waiting' and self.keyword_pattern_offset ~= 0 then
       return #context:get_input(self.keyword_pattern_offset) < Config.get().min_length
     end
-    return #context:get_input(state.keyword_pattern_offset) < Config.get().min_length
+    return #context:get_input(trigger.keyword_pattern_offset) < Config.get().min_length
   end)()
   local empty = (function()
     if context.is_trigger_character_only then
-      return state.trigger_character_offset == 0
+      return trigger.trigger_character_offset == 0
     end
-    return state.keyword_pattern_offset == 0 and state.trigger_character_offset == 0
+    return trigger.keyword_pattern_offset == 0 and trigger.trigger_character_offset == 0
   end)()
 
   -- Detect completion trigger reason.
   local manual = context.manual
-  local characters = state.trigger_character_offset > 0
+  local characters = trigger.trigger_character_offset > 0
   local incomplete = self.incomplete and not empty and self.status == 'completed'
 
   -- Clear current completion if all filter words removed.
@@ -114,15 +115,15 @@ Source.trigger = function(self, context, callback)
 
     -- Stay completed or processing state.
     if self.status ~= 'waiting' then
-      if count ~= 0 or self.request_state.keyword_pattern_offset == state.keyword_pattern_offset then
+      if count ~= 0 or self.request_trigger.keyword_pattern_offset == trigger.keyword_pattern_offset then
         return false
       end
     end
   end
 
   if manual then
-    if state.keyword_pattern_offset == 0 then
-      state.keyword_pattern_offset = context.col
+    if trigger.keyword_pattern_offset == 0 then
+      trigger.keyword_pattern_offset = context.col
     end
   end
   if characters then
@@ -140,21 +141,23 @@ Source.trigger = function(self, context, callback)
   self.status = 'processing'
   self.request_id = self.request_id + 1
   self.request_time = vim.loop.now()
-  self.request_state = state
+  self.request_trigger = trigger
 
   local request_id = self.request_id
 
   -- Completion
   self.source:complete({
     context = self.context;
-    input = self.context:get_input(state.keyword_pattern_offset);
-    keyword_pattern_offset = state.keyword_pattern_offset;
-    trigger_character_offset = state.trigger_character_offset;
+    input = self.context:get_input(trigger.keyword_pattern_offset);
+    keyword_pattern_offset = trigger.keyword_pattern_offset;
+    trigger_character_offset = trigger.trigger_character_offset;
     incomplete = self.incomplete;
     callback = vim.schedule_wrap(function(result)
       if self.request_id ~= request_id then
         return
       end
+
+      result = Entry.create(context, trigger, result)
 
       -- Continue current completion
       if count > 0 and #result.items == 0 then
@@ -165,8 +168,8 @@ Source.trigger = function(self, context, callback)
       self.revision = self.revision + 1
       self.status = 'completed'
       self.incomplete = result.incomplete or false
-      self.keyword_pattern_offset = result.keyword_pattern_offset or state.keyword_pattern_offset
-      self.trigger_character_offset = state.trigger_character_offset
+      self.keyword_pattern_offset = result.keyword_pattern_offset or trigger.keyword_pattern_offset
+      self.trigger_character_offset = trigger.trigger_character_offset
       self.items = self:_normalize_items(context, result.items)
 
       if #self.items == 0 then
