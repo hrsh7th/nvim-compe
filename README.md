@@ -204,6 +204,7 @@ highlight link CompeDocumentation NormalFloat
 - [vim-vsnip](https://github.com/hrsh7th/vim-vsnip)
 - [ultisnips](https://github.com/SirVer/ultisnips)
 - [snippets.nvim](https://github.com/norcalli/snippets.nvim)
+- [luasnip](https://github.com/L3MON4D3/LuaSnip)
 - [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter) (Warning: it sometimes really slow.)
 
 ## External sources
