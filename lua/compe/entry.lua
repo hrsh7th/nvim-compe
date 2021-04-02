@@ -50,6 +50,7 @@ end
 
 -- Convert compe's entry
 Entry._convert = function(context, trigger, item)
+  -- TODO: More intelligent word creation
   local word = ''
   local abbr = ''
   if item.insertTextFormat == 2 then
