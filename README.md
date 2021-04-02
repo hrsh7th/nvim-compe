@@ -214,7 +214,7 @@ highlight link CompeDocumentation NormalFloat
 - [conjure](https://github.com/tami5/compe-conjure)
 - [dadbod](https://github.com/kristijanhusak/vim-dadbod-completion)
 - [latex-symbols](https://github.com/GoldsteinE/compe-latex-symbols)
-
+- [tmux](https://github.com/andersevenrud/compe-tmux)
 
 ## FAQ
 
