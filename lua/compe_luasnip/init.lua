@@ -16,10 +16,6 @@ function Source.get_metadata(_)
 end
 
 function Source.determine(_, context)
-  if not luasnip_exists then
-    error("Cannot add source 'luasnip' without LuaSnip installed!")
-    return {}
-  end
   return compe.helper.determine(context)
 end
 
