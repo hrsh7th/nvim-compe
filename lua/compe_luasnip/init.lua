@@ -33,7 +33,7 @@ function Source.complete(_, context)
     if ft_table then
       for j, snip in ipairs(ft_table) do
         items[#items+1] = {
-          word = snip.trigger,
+          word = snip.name or snip.trigger,
           kind = filetypes[i],
           abbr = snip.trigger,
           user_data = {
