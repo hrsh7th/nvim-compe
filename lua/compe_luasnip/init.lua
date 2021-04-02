@@ -1,6 +1,6 @@
 local compe = require("compe")
 local Source = {}
-local luasnip_exists, luasnip = pcall(require, "luasnip")
+local luasnip = require"luasnip"
 
 function Source.new()
   return setmetatable({}, { __index = Source })
