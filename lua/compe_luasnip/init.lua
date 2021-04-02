@@ -23,6 +23,11 @@ function Source.determine(_, context)
   return compe.helper.determine(context)
 end
 
+function Source.documentation(self, context)
+  local item = context.completed_item
+  context.callback(luasnip.snippets[item.kind][item.user_data.ft_indx].dscr)
+end
+
 function Source.complete(_, context)
   local items = {}
 
