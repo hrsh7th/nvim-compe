@@ -1,29 +1,35 @@
-local helper = require'compe.helper'
+local String = require'compe.utils.string'
 
 local Entry = {}
 
 Entry.create = function(context, trigger, response)
   response = response or {}
-  if not (response.items or response.isIncomplete ~= nil) then
+
+  if type(response.incomplete) == 'boolean' then
+    -- Legacy format.
+    response = {
+      items = response.items,
+      isIncomplete = response.incomplete,
+    }
+  elseif not response.items then
+    -- LSP or Legacy format.
     response = {
       items = response,
       isIncomplete = false,
     }
+  else
+    --- LSP format with isIncomplete.
+    response.isIncomplete = response.isIncomplete or false
   end
 
   for i, item in ipairs(response.items) do
-    response.items[i] = Entry._to_item(item)
+    response.items[i] = Entry._convert(context, trigger, Entry._compat(item))
   end
-
-  return helper.convert_lsp({
-    keyword_pattern_offset = trigger.keyword_pattern_offset,
-    context = context,
-    response = response
-  })
+  return response;
 end
 
 --- Convert any type item as LSP format.
-Entry._to_item = function(item)
+Entry._compat = function(item)
   -- Handle string item.
   if type(item) == 'string' then
     return { label = item }
@@ -40,6 +46,43 @@ Entry._to_item = function(item)
   end
 
   return item
+end
+
+-- Convert compe's entry
+Entry._convert = function(context, trigger, item)
+  local word = ''
+  local abbr = ''
+  if item.insertTextFormat == 2 then
+    word = String.trim(item.label)
+    abbr = String.trim(item.label) .. '~'
+  else
+    word = item.insertText or String.trim(item.label)
+    abbr = String.trim(item.label)
+  end
+
+  local suggest_offset = trigger.keyword_pattern_offset
+  if item.textEdit and item.textEdit.range then
+    for idx = item.textEdit.range.start.character + 1, trigger.keyword_pattern_offset - 1 do
+      if string.byte(context.before_line, idx) == string.byte(word, 1) then
+        suggest_offset = idx
+        break
+      end
+    end
+  end
+
+  return {
+    vim = {
+      word = word,
+      abbr = abbr,
+      kind = vim.lsp.protocol.CompletionItemKind[item.kind] or nil,
+      empty = 1,
+      equal = 1,
+      dup = 1
+    },
+    lsp = item,
+    suggest_offset = suggest_offset,
+    request_offset = context.col,
+  }
 end
 
 return Entry

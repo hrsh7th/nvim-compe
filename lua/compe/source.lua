@@ -170,7 +170,7 @@ Source.trigger = function(self, context, callback)
       self.incomplete = result.incomplete or false
       self.keyword_pattern_offset = result.keyword_pattern_offset or trigger.keyword_pattern_offset
       self.trigger_character_offset = trigger.trigger_character_offset
-      self.items = self:_normalize_items(context, result.items)
+      self.items = result.items
 
       if #self.items == 0 then
         self:clear()

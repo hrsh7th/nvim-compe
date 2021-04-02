@@ -2,7 +2,11 @@ local Config = require'compe.config'
 
 local Pattern = {}
 
-Pattern._filetypes = {}
+Pattern._filetypes = {
+  php = {
+    keyword_pattern = [[\%(\$\w*\|\h\w*\)]]
+  }
+}
 Pattern._regexes = {}
 
 --- set
@@ -54,6 +58,16 @@ Pattern.get_pattern_offset = function(before_line, pattern)
     return 0
   end
   return s + 1
+end
+
+--- match
+Pattern.match = function(text, pattern)
+  local regex = Pattern.regex(pattern)
+  local s, e = regex:match_str(text)
+  if s == nil then
+    return nil
+  end
+  return string.sub(text, s + 1, e)
 end
 
 

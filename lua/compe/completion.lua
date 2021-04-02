@@ -213,16 +213,16 @@ Completion._display = guard(function(context)
     end
 
     local start_offset = Completion._get_start_offset(context)
-    local items = {}
-    local items_uniq = {}
+    local entries = {}
+    local entries_map = {}
     for _, source in ipairs(sources) do
       if not has_triggered_by_character or source.is_triggered_by_character then
-        local source_items = source:get_filtered_items(context)
-        if #source_items > 0 and start_offset == source:get_start_offset() then
-          for _, item in ipairs(source_items) do
-            if items_uniq[item.original_word] == nil or item.original_dup == 1 then
-              items_uniq[item.original_word] = true
-              table.insert(items, item)
+        local source_entries = source:get_filtered_items(context)
+        if #source_entries > 0 and start_offset == source:get_start_offset() then
+          for _, entry in ipairs(source_entries) do
+            if entries_map[entry.lsp.label] == nil or entry.original_dup == 1 then
+              entries_map[entry.lsp.label] = true
+              table.insert(entries, entry)
             end
           end
         end
@@ -230,40 +230,45 @@ Completion._display = guard(function(context)
     end
 
     --- Sort items
-    table.sort(items, function(item1, item2)
-      return Matcher.compare(item1, item2, Completion._history)
+    table.sort(entries, function(entry1, entry2)
+      return Matcher.compare(entry1, entry2, Completion._history)
     end)
 
-    if #items == 0 then
+    if #entries == 0 then
       Completion._show(0, {})
     else
-      Completion._show(start_offset, items)
+      Completion._show(start_offset, entries)
     end
   end)))
 end)
 
 --- _show
-Completion._show = Async.guard('Completion._show', guard(function(start_offset, items)
+Completion._show = Async.guard('Completion._show', guard(function(start_offset, entries)
   Completion._current_offset = start_offset
-  Completion._current_items = items
+  Completion._current_entries = entries
 
   local should_preselect = false
-  if items[1] then
-    should_preselect = should_preselect or (Config.get().preselect == 'enable' and items[1].preselect)
+  if entries[1] then
+    should_preselect = should_preselect or (Config.get().preselect == 'enable' and entries[1].lsp.preselect)
     should_preselect = should_preselect or (Config.get().preselect == 'always')
   end
 
-  local completeopt = vim.o.completeopt
-  if should_preselect then
-    vim.cmd('set completeopt=menuone,noinsert')
-  else
-    vim.cmd('set completeopt=menuone,noselect')
-  end
-  vim.call('complete', math.max(1, start_offset), items) -- start_offset=0 should close pum with `complete(1, [])`
-  vim.cmd('set completeopt=' .. completeopt)
-
-  if #items == 0 then
+  if start_offset == 0 or #entries == 0 then
+    vim.call('complete', 1, {}) -- start_offset=0 should close pum with `complete(1, [])`
     vim.call('compe#documentation#close')
+  else
+    local completeopt = vim.o.completeopt
+    if should_preselect then
+      vim.cmd('set completeopt=menuone,noinsert')
+    else
+      vim.cmd('set completeopt=menuone,noselect')
+    end
+    local items = {}
+    for i, entry in ipairs(entries) do
+      items[i] = entry.vim
+    end
+    vim.call('complete', math.max(1, start_offset), items) -- start_offset=0 should close pum with `complete(1, [])`
+    vim.cmd('set completeopt=' .. completeopt)
   end
 end))
 

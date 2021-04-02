@@ -5,25 +5,25 @@ local Matcher = {}
 Matcher.WORD_BOUNDALY_ORDER_FACTOR = 5
 
 --- match
-Matcher.match = function(context, source, items)
+Matcher.match = function(context, source, entries)
   -- filter
   local input = context:get_input(source:get_start_offset())
   local matches = {}
-  for i, item in ipairs(items) do
-    local word = item.original_word
+  for i, entry in ipairs(entries) do
+    local word = entry.lsp.label
     if #input > 0 then
-      if item.filter_text and #item.filter_text > 0 then
-        if Character.match(string.byte(input, 1), string.byte(item.filter_text, 1)) then
-          word = item.filter_text
+      if entry.lsp.filterText and #entry.lsp.filterText > 0 then
+        if Character.match(string.byte(input, 1), string.byte(entry.lsp.filterText, 1)) then
+          word = entry.lsp.filterText
         end
       end
     end
 
     if #word >= #input then
-      item.match = Matcher.analyze(input, word, item.match or {})
-      item.match.index = i
-      if item.match.score >= 1 then
-        table.insert(matches, item)
+      entry.match = Matcher.analyze(input, word, entry.match or {})
+      entry.match.index = i
+      if entry.match.score >= 1 or #input == 0 then
+        table.insert(matches, entry)
       end
     end
   end
@@ -271,57 +271,57 @@ Matcher.find_match_region = function(input, input_start_index, input_end_index, 
 end
 
 --- compare
-Matcher.compare = function(item1, item2, history)
-  if item1.match.exact ~= item2.match.exact then
-    return item1.match.exact
+Matcher.compare = function(entry1, entry2, history)
+  if entry1.match.exact ~= entry2.match.exact then
+    return entry1.match.exact
   end
-  if item1.match.prefix ~= item2.match.prefix then
-    return item1.match.prefix
-  end
-
-  if item1.match.fuzzy ~= item2.match.fuzzy then
-    return item2.match.fuzzy
+  if entry1.match.prefix ~= entry2.match.prefix then
+    return entry1.match.prefix
   end
 
-  if item1.priority ~= item2.priority then
-    if not item1.priority then
+  if entry1.match.fuzzy ~= entry2.match.fuzzy then
+    return entry2.match.fuzzy
+  end
+
+  if entry1.priority ~= entry2.priority then
+    if not entry1.priority then
       return false
-    elseif not item2.priority then
+    elseif not entry2.priority then
       return true
     end
-    return item1.priority > item2.priority
+    return entry1.priority > entry2.priority
   end
 
-  if item1.preselect ~= item2.preselect then
-    return item1.preselect
+  if entry1.lsp.preselect ~= entry2.lsp.preselect then
+    return entry1.preselect
   end
 
-  if item1.sort or item2.sort then
-    if item1.match.score ~= item2.match.score then
-      return item1.match.score > item2.match.score
+  if entry1.sort or entry2.sort then
+    if entry1.match.score ~= entry2.match.score then
+      return entry1.match.score > entry2.match.score
     end
 
-    local history_score1 = history[item1.abbr] or 0
-    local history_score2 = history[item2.abbr] or 0
+    local history_score1 = history[entry1.lsp.label] or 0
+    local history_score2 = history[entry2.lsp.label] or 0
     if history_score1 ~= history_score2 then
       return history_score1 > history_score2
     end
 
-    if item1.sort_text and item2.sort_text then
-      if item1.sort_text ~= item2.sort_text then
-        return item1.sort_text < item2.sort_text
+    if entry1.lsp.sortText and entry2.lsp.sortText then
+      if entry1.lsp.sortText ~= entry2.lsp.sortText then
+        return entry1.lsp.sortText < entry2.lsp.sortText
       end
     end
 
-    local upper1 = Character.is_upper(string.byte(item1.abbr, 1))
-    local upper2 = Character.is_upper(string.byte(item2.abbr, 1))
+    local upper1 = Character.is_upper(string.byte(entry1.lsp.label, 1))
+    local upper2 = Character.is_upper(string.byte(entry2.lsp.label, 1))
     if upper1 ~= upper2 then
       return not upper1
     end
-    return item1.abbr < item2.abbr
+    return entry1.lsp.label < entry2.lsp.label
   end
 
-  return item1.index < item2.index
+  return entry1.match.index < entry2.match.index
 end
 
 --- logger

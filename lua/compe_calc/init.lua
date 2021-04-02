@@ -11,9 +11,13 @@ Source.get_metadata = function(_)
 end
 
 Source.determine = function(_, context)
-  return compe.helper.determine(context, {
-    keyword_pattern = [[\d\+\%(\.\d\+\)\?\%(\s\+\|\d\+\%(\.\d\+\)\?\|+\|\-\|/\|\*\|%\|\^\|(\|)\)\+$]]
+  local trigger = compe.helper.determine(context, {
+    keyword_pattern = [[\d\+\%(\.\d\+\)\?\%(\s\+\|\d\+\%(\.\d\+\)\?\|,\|+\|\-\|/\|\*\|%\|\^\|(\|)\)\+$]]
   })
+  if trigger then
+    trigger.trigger_character_offset = trigger.keyword_pattern_offset
+  end
+  return trigger
 end
 
 Source.complete = function(self, args)
@@ -23,7 +27,7 @@ Source.complete = function(self, args)
   end
 
   -- Ignore if failed to interpret to Lua.
-  local m = load(('return (%s)'):format(args.input))
+  local m = load(('return (%s)'):format(string.gsub(args.input, ',', '')))
   if type(m) ~= 'function' then
     return args.abort()
   end
