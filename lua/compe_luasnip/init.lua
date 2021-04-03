@@ -54,6 +54,8 @@ end
 function Source.confirm(_, context)
   local item = context.completed_item
   local snip = luasnip.snippets[item.kind][item.user_data.ft_indx]:copy()
+  -- trigger will be deleted in 'trigger_expand', compe inserts the snippet name.
+  snip.trigger = snip.name
   snip:trigger_expand(Luasnip_current_nodes[vim.api.nvim_get_current_buf()])
 end
 
