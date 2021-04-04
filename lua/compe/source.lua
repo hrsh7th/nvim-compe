@@ -361,7 +361,9 @@ Source._normalize_items = function(self, _, items)
     -- internal properties
     item.item_id = self.item_id
     item.source_id = self.id
-    item.priority = metadata.priority or 0
+    if not item.priority then
+       item.priority = metadata.priority or 0
+    end
     item.sort = Boolean.get(metadata.sort, true)
     item.suggest_offset = item.suggest_offset or self.keyword_pattern_offset
 
