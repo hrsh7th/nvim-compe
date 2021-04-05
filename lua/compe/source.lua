@@ -162,12 +162,14 @@ Source.trigger = function(self, context, callback)
         return callback()
       end
 
+      result = result or {}
+
       self.revision = self.revision + 1
       self.status = 'completed'
       self.incomplete = result.incomplete or false
       self.keyword_pattern_offset = result.keyword_pattern_offset or state.keyword_pattern_offset
       self.trigger_character_offset = state.trigger_character_offset
-      self.items = self:_normalize_items(context, result.items)
+      self.items = self:_normalize_items(context, result.items or {})
 
       if #self.items == 0 then
         self:clear()
