@@ -54,18 +54,20 @@ end
 
 --- resolve
 function Source.resolve(self, args)
-  local completion_item = self:_get_paths(args, { 'completed_item', 'user_data', 'compe', 'completion_item' })
   local has_resolve = self:_get_paths(self.client.server_capabilities, { 'completionProvider', 'resolveProvider' })
-  if has_resolve and completion_item then
-    self.client.request('completionItem/resolve', completion_item, function(err, _, result)
-      if not err and result then
-        args.completed_item.user_data.compe.completion_item = result
-      end
-      args.callback(args.completed_item)
-    end)
-  else
+  if not has_resolve then
     args.callback(args.completed_item)
+    return 
   end
+
+  local completion_item = self:_get_paths(args, { 'completed_item', 'user_data', 'compe', 'completion_item' })
+  self.client.request('completionItem/resolve', completion_item, function(err, _, result)
+    if not err and result then
+      args.completed_item.user_data.compe.completion_item = result
+      args.completed_item.info = self:_create_document(result)
+    end
+    args.callback(args.completed_item)
+  end)
 end
 
 --- confirm
@@ -82,36 +84,23 @@ function Source.confirm(self, args)
   end
 end
 
---- documentation
-function Source.documentation(self, args)
-  local completion_item = self:_get_paths(args, { 'completed_item', 'user_data', 'compe', 'completion_item' })
-  if completion_item then
-    local document = self:_create_document(args.context.filetype, completion_item)
-    if #document > 0 then
-      args.callback(document)
-    else
-      args.abort()
-    end
-  end
-end
-
 --- _create_document
-function Source._create_document(self, filetype, completion_item)
+function Source._create_document(self, completion_item)
   local document = {}
   if completion_item.detail and completion_item.detail ~= '' then
-    table.insert(document, '```' .. filetype)
+    table.insert(document, '```' .. vim.bo.filetype)
     table.insert(document, completion_item.detail)
     table.insert(document, '```')
   end
   if completion_item.documentation then
     if completion_item.detail then
-      table.insert(document, ' ')
+      table.insert(document, '')
     end
     for _, line in ipairs(util.convert_input_to_markdown_lines(completion_item.documentation)) do
       table.insert(document, line)
     end
   end
-  return document
+  return table.concat(document, "\n")
 end
 
 --- _get_paths
