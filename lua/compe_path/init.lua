@@ -2,7 +2,7 @@ local compe = require'compe'
 
 -- TODO: ' or " or ` is valid as filename
 local NAME_PATTERN = [[\%([^/\\:\*?<>'"`\|]\)]]
-local DIRNAME_REGEX = vim.regex(([[\%(/PAT\+\)*\ze/PAT*$]]):gsub('PAT', NAME_PATTERN))
+local DIRNAME_REGEX = vim.regex(([[\%(\$PAT\+\)\?\%(/PAT\+\)*\ze/PAT*$]]):gsub('PAT', NAME_PATTERN))
 local MENU = {
   DIR = '[Dir]',
   FILE = '[File]',
@@ -72,6 +72,8 @@ Source._dirname = function(self, context)
     return vim.fn.resolve(buf_dirname .. '/' .. dirname)
   elseif prefix:match('~/$') then
     return vim.fn.expand('~/' .. dirname)
+  elseif prefix:match('^%$$') then
+    return vim.fn.expand(dirname)
   elseif prefix:match('/$') then
     local accept = true
     -- Ignore URL components
