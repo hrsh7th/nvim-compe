@@ -66,7 +66,7 @@ Source._dirname = function(self, context)
   local prefix = string.sub(context.before_line, 1, s + 1)
 
   local buf_dirname = vim.fn.expand(('#%d:p:h'):format(context.bufnr))
-  if prefix:match('%../$') then
+  if prefix:match('%.%./$') then
     return vim.fn.resolve(buf_dirname .. '/../' .. dirname)
   elseif prefix:match('%./$') then
     return vim.fn.resolve(buf_dirname .. '/' .. dirname)
