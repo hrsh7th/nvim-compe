@@ -22,6 +22,7 @@ Matcher.match = function(context, source, items)
     if #word >= #input then
       item.match = Matcher.analyze(input, word, item.match or {})
       item.match.index = i
+      item.match.exact = input == item.original_abbr
       if item.match.score >= 1 then
         table.insert(matches, item)
       end
@@ -91,7 +92,6 @@ end
 Matcher.analyze = function(input, word, match)
   -- Exact
   if input == word then
-    match.exact = true
     match.prefix = true
     match.fuzzy = false
     match.score = 1
@@ -100,7 +100,6 @@ Matcher.analyze = function(input, word, match)
 
   -- Empty input
   if #input == 0 then
-    match.exact = false
     match.prefix = true
     match.fuzzy = false
     match.score = 1
@@ -109,7 +108,6 @@ Matcher.analyze = function(input, word, match)
 
   -- Ignore if input is long than word
   if #input > #word then
-    match.exact = false
     match.prefix = false
     match.fuzzy = false
     match.score = 0
@@ -137,7 +135,6 @@ Matcher.analyze = function(input, word, match)
   end
 
   if #matches == 0 then
-    match.exact = false
     match.prefix = false
     match.fuzzy = false
     match.score = 0
@@ -169,8 +166,7 @@ Matcher.analyze = function(input, word, match)
 
     -- If input is remaining but all word consumed, it does not match.
     if last_match.word_match_end >= #word then
-      match.exact = false
-      match.exact = prefix
+      match.prefix = prefix
       match.fuzzy = false
       match.score = 0
       return match
@@ -190,22 +186,19 @@ Matcher.analyze = function(input, word, match)
         word_offset = word_offset + 1
       end
       if input_index - 1 == #input then
-        match.exact = false
-        match.exact = prefix
+        match.prefix = prefix
         match.fuzzy = true
         match.score = score
         return match
       end
     end
-    match.exact = false
-    match.exact = prefix
+    match.prefix = prefix
     match.fuzzy = false
     match.score = 0
     return match
   end
 
-  match.exact = false
-  match.exact = prefix
+  match.prefix = prefix
   match.fuzzy = false
   match.score = score
   return match

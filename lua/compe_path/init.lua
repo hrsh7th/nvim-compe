@@ -130,18 +130,20 @@ Source._candidates = function(_, include_hidden, dirname, callback)
         })
       elseif type == 'link' then
         local stat = vim.loop.fs_stat(dirname .. '/' .. name)
-        if stat.type == 'directory' then
-          table.insert(items, {
-            word = name,
-            abbr = '/' .. name,
-            menu = MENU.DIR_LINK,
-          })
-        else
-          table.insert(items, {
-            word = name,
-            abbr = name,
-            menu = MENU.FILE_LINK,
-          })
+        if stat then
+          if stat.type == 'directory' then
+            table.insert(items, {
+              word = name,
+              abbr = '/' .. name,
+              menu = MENU.DIR_LINK,
+            })
+          else
+            table.insert(items, {
+              word = name,
+              abbr = name,
+              menu = MENU.FILE_LINK,
+            })
+          end
         end
       else
         table.insert(items, {
