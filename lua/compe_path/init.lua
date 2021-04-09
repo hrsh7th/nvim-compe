@@ -72,6 +72,8 @@ Source._dirname = function(self, context)
     return vim.fn.resolve(buf_dirname .. '/' .. dirname)
   elseif prefix:match('~/$') then
     return vim.fn.expand('~/' .. dirname)
+  elseif prefix:match('%$[%a_]+/$') then
+    return vim.fn.expand(prefix:match('%$[%a_]+/$') .. dirname)
   elseif prefix:match('/$') then
     local accept = true
     -- Ignore URL components
