@@ -10,6 +10,8 @@ Matcher.match = function(context, source, items)
   local input = context:get_input(source:get_start_offset())
   local matches = {}
   for i, item in ipairs(items) do
+    item.index = i
+
     local word = item.original_word
     if #input > 0 then
       if item.filter_text and #item.filter_text > 0 then
@@ -21,7 +23,6 @@ Matcher.match = function(context, source, items)
 
     if #word >= #input then
       item.match = Matcher.analyze(input, word, item.match or {})
-      item.match.index = i
       item.match.exact = input == item.original_abbr
       if item.match.score >= 1 then
         table.insert(matches, item)
