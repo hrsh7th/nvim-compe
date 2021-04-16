@@ -71,16 +71,9 @@ compe._close = enable(function()
   return ''
 end)
 
---- _confirm_pre
-compe._confirm_pre = enable(function()
-  Completion.confirm_pre({
-    index = vim.call('complete_info', {'selected' }).selected or -1;
-  })
-end)
-
 --- _confirm
-compe._confirm = enable(suppress(function()
-  Completion.confirm()
+compe._confirm = enable(suppress(function(args)
+  Completion.confirm(args)
 end))
 
 --- _register_vim_source

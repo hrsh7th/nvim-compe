@@ -2,6 +2,7 @@ local Async = require'compe.utils.async'
 local Cache = require'compe.utils.cache'
 local Callback = require'compe.utils.callback'
 local Config = require'compe.config'
+local Helper = require'compe.helper'
 local Context = require'compe.context'
 local Matcher = require'compe.matcher'
 
@@ -81,20 +82,29 @@ Completion.leave_insert = function()
   Completion._get_sources_cache_key = Completion._get_sources_cache_key + 1
 end
 
---- confirm_pre
-Completion.confirm_pre = function(args)
-  Completion.select({
-    index = args.index,
-    documentation = false,
-  })
-end
-
 --- confirm
-Completion.confirm = function()
-  local completed_item = Completion._selected_item
+Completion.confirm = function(args)
+  local offset = Completion._current_offset
+  local completed_item = Completion._current_items[(args.index == -2 and 0 or args.index) + 1]
   if completed_item then
     Completion._history[completed_item.abbr] = Completion._history[completed_item.abbr] or 0
     Completion._history[completed_item.abbr] = Completion._history[completed_item.abbr] + 1
+
+    Helper.set_text(vim.api.nvim_get_current_buf(), {
+      {
+        range = {
+          start = {
+            line = vim.fn.line('.') - 1;
+            character = offset - 1;
+          };
+          ['end'] = {
+            line = vim.fn.line('.') - 1;
+            character = vim.fn.col('.') - 1;
+          };
+        };
+        newText = completed_item.word;
+      }
+    })
 
     for _, source in ipairs(Completion.get_sources()) do
       if source.id == completed_item.source_id then

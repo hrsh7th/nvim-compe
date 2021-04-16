@@ -3,6 +3,7 @@ compe
 
 VS.LSP.MarkupContent
 VS.LSP.CompletionItem
+VS.LSP.TextEdit
 VS.Vim.Buffer
 VS.Vim.Syntax.Markdown
 VS.Vim.Window

@@ -38,6 +38,11 @@ Helper.get_default_pattern = function()
   return Pattern.get_default_pattern()
 end
 
+--- set_text
+Helper.set_text = function(bufnr, text_edits)
+  vim.call('compe#helper#set_text', bufnr, text_edits)
+end
+
 --- convert_lsp
 --
 -- This method will convert LSP.CompletionItem.

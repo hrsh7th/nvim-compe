@@ -52,14 +52,11 @@ function! compe#confirm(...) abort
   endfor
 
   let l:option = s:normalize(get(a:000, 0, {}))
+  let l:index = complete_info(['selected']).selected
   let l:select = get(l:option, 'select', v:false)
-  let l:selected = complete_info(['selected']).selected != -1
+  let l:selected = l:index != -1
   if mode()[0] ==# 'i' && pumvisible() && (l:select || l:selected)
-    call luaeval('require"compe"._confirm_pre()')
-    let l:confirm = ''
-    let l:confirm .= l:select && !l:selected ? "\<C-n>" : ''
-    let l:confirm .= "\<Plug>(compe-confirm)"
-    call feedkeys(l:confirm)
+    call timer_start(0, { -> luaeval('require"compe"._confirm(_A)', { 'index': l:selected ? l:index : 0 }) })
     return "\<Ignore>"
   endif
   return s:fallback(l:option)

@@ -1,3 +1,5 @@
+let s:TextEdit = vital#compe#import('VS.LSP.TextEdit')
+
 "
 " compe#helper#determine
 "
@@ -20,9 +22,15 @@ function! compe#helper#get_default_pattern() abort
 endfunction
 
 "
+" compe#helper#set_text
+"
+function! compe#helper#set_text(bufnr, text_edits) abort
+  call s:TextEdit.apply(a:bufnr, a:text_edits)
+endfunction
+
+"
 " compe#helper#convert_lsp
 "
 function! compe#helper#convert_lsp(args) abort
   return luaeval('require"compe".helper.convert_lsp(_A)', a:args)
 endfunction
-
