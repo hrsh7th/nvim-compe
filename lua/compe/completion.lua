@@ -6,11 +6,6 @@ local Helper = require'compe.helper'
 local Context = require'compe.context'
 local Matcher = require'compe.matcher'
 
-local VALID_COMPLETE_MODE = {
-  [''] = true;
-  ['eval'] = true;
-}
-
 --- guard
 local guard = function(callback)
   return function(...)
@@ -18,7 +13,6 @@ local guard = function(callback)
     invalid = invalid or vim.call('compe#_is_selected_manually')
     invalid = invalid or vim.call('getbufvar', '%', '&buftype') == 'prompt'
     invalid = invalid or string.sub(vim.call('mode'), 1, 1) ~= 'i'
-    invalid = invalid or not VALID_COMPLETE_MODE[vim.fn.complete_info({ 'mode' }).mode]
     if not invalid then
       callback(...)
     end
@@ -82,6 +76,30 @@ Completion.leave_insert = function()
   Completion._get_sources_cache_key = Completion._get_sources_cache_key + 1
 end
 
+--- select
+Completion.select = function(args)
+  local completed_item = Completion._current_items[(args.index == -2 and 0 or args.index) + 1]
+  if completed_item then
+    Completion._selected_item = completed_item
+    Completion._selected_manually = args.manual or false
+
+    if args.documentation and Config.get().documentation then
+      for _, source in ipairs(Completion.get_sources()) do
+        if source.id == completed_item.source_id then
+          vim.schedule(Async.guard('documentation', function()
+            source:documentation(completed_item)
+          end))
+          break
+        end
+      end
+    end
+  else
+    vim.schedule(Async.guard('documentation', function()
+      vim.call('compe#documentation#close')
+    end))
+  end
+end
+
 --- confirm
 Completion.confirm = function(args)
   local offset = Completion._current_offset
@@ -113,35 +131,11 @@ Completion.confirm = function(args)
       end
     end
   end
-  Completion.close()
 
   vim.cmd([[doautocmd <nomodeline> User CompeConfirmDone]])
 
+  Completion.close()
   Completion.complete({ trigger_character_only = true })
-end
-
---- select
-Completion.select = function(args)
-  local completed_item = Completion._current_items[(args.index == -2 and 0 or args.index) + 1]
-  if completed_item then
-    Completion._selected_item = completed_item
-    Completion._selected_manually = args.manual or false
-
-    if args.documentation and Config.get().documentation then
-      for _, source in ipairs(Completion.get_sources()) do
-        if source.id == completed_item.source_id then
-          vim.schedule(Async.guard('documentation', function()
-            source:documentation(completed_item)
-          end))
-          break
-        end
-      end
-    end
-  else
-    vim.schedule(Async.guard('documentation', function()
-      vim.call('compe#documentation#close')
-    end))
-  end
 end
 
 --- close
@@ -150,9 +144,11 @@ Completion.close = function()
     source:clear()
   end
 
+  if string.sub(vim.api.nvim_get_mode().mode, 1, 1) == 'i' then
+    vim.call('complete', 1, {})
+  end
   vim.call('compe#documentation#close')
   Callback.clear()
-  Completion._show(0, {})
   Completion._new_context({})
   Completion._current_items = {}
   Completion._current_offset = 0
