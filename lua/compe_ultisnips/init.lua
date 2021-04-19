@@ -2,6 +2,32 @@ local compe = require'compe'
 
 local M = {}
 
+local function get_snippet_preview(data, args)
+  local filepath = string.gsub(data.location, '.snippets:%d*', '.snippets')
+  local _, _, linenr = string.find(data.location, ':(%d+)')
+  local content = vim.fn.readfile(filepath)
+
+  local snippet = {}
+  local count = 0
+
+  table.insert(snippet, '```' .. args.context.filetype)
+  for i, line in pairs(content) do
+    if i > linenr - 1 then
+      local is_snippet_header = line:find('^snippet%s[^%s]') ~= nil
+      count = count + 1
+      if line:find('^endsnippet') ~= nil or is_snippet_header and count ~= 1 then
+        break
+      end
+      if not is_snippet_header then
+        table.insert(snippet, line)
+      end
+    end
+  end
+  table.insert(snippet, '```')
+
+  return snippet
+end
+
 function M:get_metadata()
   return {
     priority = 50,
@@ -15,13 +41,17 @@ function M:determine(context)
 end
 
 function M:complete(args)
-  local received_snippets = vim.F.npcall(vim.call, 'UltiSnips#SnippetsInCurrentScope') or {}
+  local received_snippets = vim.F.npcall(vim.call, 'UltiSnips#SnippetsInCurrentScope', 1) or {}
+
   if vim.tbl_isempty(received_snippets) then
     args.abort()
     return
   end
+
+  local snippets_list = vim.g.current_ulti_dict_info
+
   local completion_list = {}
-  for key, value in pairs(received_snippets) do
+  for key, value in pairs(snippets_list) do
     local item = {
       word =  key,
       abbr =  key,
@@ -43,7 +73,7 @@ function M:documentation(args)
     args.abort()
     return
   end
-  args.callback(user_data)
+  args.callback(get_snippet_preview(user_data, args))
 end
 
 function M:confirm(_, _)
