@@ -1336,4 +1336,6 @@ return {
 { word = '〽️'; abbr = '〽️'; kind = ':part_alternation_mark:'; filter_text = ':part_alternation_mark:' };
 { word = '㊗️'; abbr = '㊗️'; kind = ':congratulations:'; filter_text = ':congratulations:' };
 { word = '㊙️'; abbr = '㊙️'; kind = ':secret:'; filter_text = ':secret:' };
+{ word = '✗'; abbr = '✗'; kind = ':ballot_x:'; filter_text = ':ballot_x:' };
+{ word = '✘'; abbr = '✘'; kind = ':heavy_ballot_x:'; filter_text = ':heavy_ballot_x:' };
 }
