@@ -263,6 +263,12 @@ You can set `set shortmess+=c` in your vimrc.
    Plug 'norcalli/snippets.nvim'
    ```
 
+   or `UltiSnips`
+
+   ```viml
+   Plug 'SirVer/ultisnips'
+   ```
+
 ### How to use tab to navigate completion menu?
 
 `Tab` and `S-Tab` keys need to be mapped to `<C-n>` and `<C-p>` when completion
