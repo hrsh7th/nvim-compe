@@ -32,7 +32,7 @@ function! s:expand_snippet(args) abort
     call luaeval('require"snippets".expand_at_cursor((require"snippets".u.match_indentation(_A)))', a:args.body)
   elseif luaeval('pcall(require, "luasnip")')
   	call luaeval('require"luasnip".lsp_expand(_A)', a:args.body)
-  elseif exists('g:did_plugin_ultisnips') && g:did_plugin_ultisnips == 1
+  elseif exists('g:did_plugin_ultisnips')
   	call UltiSnips#Anon(a:args.body)
   else
     call s:simple_expand_snippet(a:args.body)
