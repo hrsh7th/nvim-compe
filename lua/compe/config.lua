@@ -1,4 +1,5 @@
 local Boolean = require'compe.utils.boolean'
+local Lazy = require'compe.lazy'
 
 local THROTTLE_TIME = 120
 local SOURCE_TIMEOUT = 200
@@ -13,7 +14,8 @@ Config._bufnrs = {}
 Config.setup = function(config, bufnr)
   if bufnr == nil then
     -- global config
-    Config._config = Config._normalize(config)
+    config = Config._normalize(config)
+    Config._config = config
   else
     -- buffer config
     for key, value in pairs(Config._config) do
@@ -23,7 +25,13 @@ Config.setup = function(config, bufnr)
     end
 
     bufnr = (bufnr == 0 and vim.api.nvim_get_current_buf()) or bufnr
-    Config._bufnrs[bufnr] = Config._normalize(config)
+    config = Config._normalize(config)
+    Config._bufnrs[bufnr] = config
+  end
+  for source_name, source in pairs(config.source) do
+    if not source.disabled then
+      Lazy.load(source_name)
+    end
   end
 end
 
