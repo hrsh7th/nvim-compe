@@ -326,6 +326,45 @@ vim.api.nvim_set_keymap("s", "<S-Tab>", "v:lua.s_tab_complete()", {expr = true})
 
 Use `compe#confirm()` mapping, as described in section [Mappings](#mappings).
 
+## Advanced configuration
+
+If you want to customize how compe displays completion options, compe allows you
+to run custom formatting code before the list get's displayed.
+For this, use the `formatting_functions` configuration option.
+Here you can functions for each provider to change the displayed data along the way.
+Currently, there are two formatters you can set: 
+
+- `results`: Change the list of completion results.
+- `documentation`: Change the documentation text.
+
+For example, you could use a results formatter to show the type information
+and other details in the completion list. 
+(Note that the `details` feature used here is not supported by many language servers.)
+
+```lua
+formatting_functions = {
+  nvim_lsp = {
+    results = function(items)
+      local max_col_width = 0
+      for _, item in ipairs(items) do
+        max_col_width = math.max(max_col_width, vim.fn.strwidth(item.abbr))
+      end
+      for _, item in ipairs(items) do
+        local detail = item.user_data 
+          and item.user_data.compe 
+          and item.user_data.compe.completion_item 
+          and item.user_data.compe.completion_item.detail
+        if detail then
+          local padding = string.rep(" ", max_col_width - vim.fn.strwidth(item.abbr) + 1)
+          item.abbr = item.abbr .. padding .. item.user_data.compe.completion_item.detail
+        end
+      end
+      return items
+    end
+  }
+}
+```
+
 ## Demo
 
 ### Auto Import

@@ -225,6 +225,11 @@ Source.documentation = function(self, completed_item)
           context = Context.new({}, {});
           callback = Async.guard('Source.documentation#callback', vim.schedule_wrap(function(document)
             if document and #document ~= 0 then
+
+              local formatter = Config.get_formatter(self.name, "documentation")
+              if formatter then
+                document = formatter(document)
+              end
               vim.call('compe#documentation#open', document)
             else
               vim.call('compe#documentation#close')
