@@ -28,6 +28,8 @@ Config.setup = function(config, bufnr)
     config = Config._normalize(config)
     Config._bufnrs[bufnr] = config
   end
+
+  -- lazy load builtin sources
   for source_name, source in pairs(config.source) do
     if not source.disabled then
       Lazy.load(source_name)

@@ -1,1 +1,1 @@
-lua require'compe.lazy'.after()
+lua require'compe.lazy'.load_deferred()

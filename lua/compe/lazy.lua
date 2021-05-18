@@ -80,28 +80,29 @@ Lazy._sources = {
 
 }
 
-Lazy._load = function(source_name)
+Lazy._deferred = {}
+
+local function _load(source_name)
   if Lazy._sources[source_name] ~= nil then
     Lazy._sources[source_name]()
     Lazy._sources[source_name] = nil
   end
 end
 
-Lazy.after = function()
-  if Lazy._requests ~= nil then
-    for source_name, _ in pairs(Lazy._requests) do
-      Lazy._load(source_name)
-      Lazy._requests[source_name] = nil
+Lazy.load_deferred = function()
+  if Lazy._deferred ~= nil then
+    for source_name, _ in pairs(Lazy._deferred) do
+      _load(source_name)
     end
-    Lazy._requests = nil
+    Lazy._deferred = nil
   end
 end
 
 Lazy.load = function(source_name)
-  if Lazy._requests == nil then
-    Lazy._load(source_name)
+  if Lazy._deferred == nil then
+    _load(source_name)
   else
-    Lazy._requests[source_name] = true
+    Lazy._deferred[source_name] = true
   end
 end
 
