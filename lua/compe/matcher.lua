@@ -12,13 +12,18 @@ Matcher.match = function(context, source, items)
   for i, item in ipairs(items) do
     item.index = i
 
-    local word = item.original_word
+    local word = nil
     if #input > 0 then
-      if item.filter_text and #item.filter_text > 0 then
-        if Character.match(string.byte(input, 1), string.byte(item.filter_text, 1)) then
-          word = item.filter_text
+      for _, key in ipairs({ 'original_abbr', 'filter_text', 'original_word' }) do
+        if item[key] and #item[key] > 0 then
+          word = item[key]
+          if Character.match(string.byte(input, 1), string.byte(item[key], 1)) then
+            break
+          end
         end
       end
+    else
+      word = item.original_word
     end
 
     if #word >= #input then
