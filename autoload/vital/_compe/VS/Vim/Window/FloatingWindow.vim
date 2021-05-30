@@ -421,6 +421,9 @@ function! s:_resolve_style(style) abort
   elseif a:style.origin ==# 'bottomcenter'
     let a:style.col = a:style.col - float2nr(a:style.width / 2)
     let a:style.row = a:style.row - (a:style.height - 1)
+  elseif a:style.origin ==# 'centercenter'
+    let a:style.col = a:style.col - float2nr(a:style.width / 2)
+    let a:style.row = a:style.row - float2nr(a:style.height / 2)
   endif
   return a:style
 endfunction

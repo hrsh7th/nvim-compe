@@ -6,6 +6,11 @@ local Helper = require'compe.helper'
 local Context = require'compe.context'
 local Matcher = require'compe.matcher'
 
+local VALID_COMPLETE_MODE = {
+  [''] = true;
+  ['eval'] = true;
+}
+
 --- guard
 local guard = function(callback)
   return function(...)
@@ -13,6 +18,7 @@ local guard = function(callback)
     invalid = invalid or vim.call('compe#_is_selected_manually')
     invalid = invalid or vim.call('getbufvar', '%', '&buftype') == 'prompt'
     invalid = invalid or string.sub(vim.call('mode'), 1, 1) ~= 'i'
+    invalid = invalid or not VALID_COMPLETE_MODE[vim.fn.complete_info({ 'mode' }).mode]
     if not invalid then
       callback(...)
     end
