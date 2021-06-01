@@ -142,8 +142,8 @@ function! s:_get_filetype_from_mark(mark) abort
       endif
     else
       let l:config = split(l:config, '=')
-      if l:config[1] ==# a:mark
-        return l:config[0]
+      if l:config[0] ==# a:mark
+        return l:config[1]
       endif
     endif
   endfor

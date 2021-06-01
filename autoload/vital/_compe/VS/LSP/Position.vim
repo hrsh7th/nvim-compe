@@ -46,24 +46,17 @@ endfunction
 "
 " _get_buffer_line
 "
-if exists('*bufload')
-  function! s:_get_buffer_line(expr, lnum) abort
-    if bufloaded(bufnr(a:expr))
-      return get(getbufline(a:expr, a:lnum), 0, v:null)
-    elseif filereadable(a:expr)
-      call bufload(bufnr(a:expr, v:true))
-      return get(getbufline(a:expr, a:lnum), 0, v:null)
-    endif
-    return v:null
-  endfunction
-else
-  function! s:_get_buffer_line(expr, lnum) abort
-    if bufloaded(bufnr(a:expr))
-      return get(getbufline(a:expr, a:lnum), 0, v:null)
-    elseif filereadable(a:expr)
-      return get(readfile(a:expr, '', a:lnum), 0, v:null)
-    endif
-    return v:null
-  endfunction
-endif
+function! s:_get_buffer_line(expr, lnum) abort
+  try
+    let l:expr = bufnr(a:expr)
+  catch /.*/
+    let l:expr = a:expr
+  endtry
+  if bufloaded(l:expr)
+    return get(getbufline(l:expr, a:lnum), 0, v:null)
+  elseif filereadable(a:expr)
+    return get(readfile(a:expr, '', a:lnum), 0, v:null)
+  endif
+  return v:null
+endfunction
 
