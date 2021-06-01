@@ -449,7 +449,7 @@ if has('nvim')
       if &ambiwidth ==# 'single'
         let a:style.border = ['┌', '─', '┐', '│', '┘', '─', '└', '│']
       else
-        let a:style.border = [ "/", "-", "\\", "|" ]
+        let a:style.border = ['+', '-', '+', '|', '+', '-', '+', '|']
       endif
     elseif has_key(a:style, 'border')
       unlet a:style.border

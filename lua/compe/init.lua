@@ -71,9 +71,14 @@ compe._close = enable(function()
   return ''
 end)
 
+--- _info
+compe._info = function()
+  return Completion.info()
+end
+
 --- _confirm
-compe._confirm = enable(suppress(function(args)
-  Completion.confirm(args)
+compe._confirm = enable(suppress(function()
+  Completion.confirm()
 end))
 
 --- _register_vim_source
