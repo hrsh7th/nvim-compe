@@ -11,11 +11,6 @@ call s:window.set_var('&breakindent', 1)
 call s:window.set_var('&linebreak', 1)
 call s:window.set_var('&winhighlight', 'NormalFloat:CompeDocumentation')
 call s:window.set_var('compe_documentation', 1)
-call s:window.set_bufnr(s:Buffer.create())
-call setbufvar(s:window.get_bufnr(), '&buftype', 'nofile')
-call setbufvar(s:window.get_bufnr(), '&bufhidden', 'hide')
-call setbufvar(s:window.get_bufnr(), '&buflisted', 0)
-call setbufvar(s:window.get_bufnr(), '&swapfile', 0)
 
 let s:document_cache = {}
 let s:state = {}
@@ -29,6 +24,7 @@ function! compe#documentation#open(text) abort
     return compe#documentation#close()
   endif
   call timer_stop(s:timer)
+  call s:ensure_buffer()
 
   " Ensure normalized document
   let l:text = type(a:text) == type([]) ? join(a:text, "\n") : a:text
@@ -103,3 +99,15 @@ function! s:get_screenpos(event, size) abort
   return [a:event.row, l:col]
 endfunction
 
+"
+" ensure_buffer
+"
+function! s:ensure_buffer() abort
+  if !bufexists(s:window.get_bufnr())
+    call s:window.set_bufnr(s:Buffer.create())
+    call setbufvar(s:window.get_bufnr(), '&buftype', 'nofile')
+    call setbufvar(s:window.get_bufnr(), '&bufhidden', 'hide')
+    call setbufvar(s:window.get_bufnr(), '&buflisted', 0)
+    call setbufvar(s:window.get_bufnr(), '&swapfile', 0)
+  endif
+endfunction
