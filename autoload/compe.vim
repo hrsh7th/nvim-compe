@@ -58,7 +58,7 @@ function! compe#confirm(...) abort
   let l:selected = l:index != -1
   if mode()[0] ==# 'i' && pumvisible() && (l:select || l:selected)
     let l:info = luaeval('require"compe"._info()')
-    call feedkeys(repeat("\<BS>", col('.') - l:info.offset), 'n')
+    call feedkeys(repeat("\<BS>", strchars(getline('.')[l:info.offset - 1 : col('.') - 1], 1)), 'n')
     call feedkeys(l:info.item.word, 'n')
     call feedkeys("\<Plug>(compe-confirm)", '')
     return "\<Ignore>"

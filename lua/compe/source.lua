@@ -128,60 +128,63 @@ Source.trigger = function(self, context, callback)
   if characters then
     self.is_triggered_by_character = Character.is_symbol(string.byte(context.before_char))
   end
-  if incomplete then
-    if not (manual or characters) then
-      -- Skip for incomplete completion.
-      if self.status == 'processing' or (vim.loop.now() - self.request_time) < Config.get().incomplete_delay then
-        return
+
+  local delay = (function()
+    if incomplete then
+      if not (manual or characters) then
+        return Config.get().incomplete_delay - (vim.loop.now() - self.request_time)
       end
     end
-  end
+    return -1
+  end)()
 
-  self.status = 'processing'
-  self.request_id = self.request_id + 1
-  self.request_time = vim.loop.now()
-  self.request_state = state
+  Async.debounce(self.id, delay, function()
+    self.status = 'processing'
+    self.request_id = self.request_id + 1
+    self.request_time = vim.loop.now()
+    self.request_state = state
 
-  local request_id = self.request_id
+    local request_id = self.request_id
 
-  -- Completion
-  self.source:complete({
-    context = self.context;
-    input = self.context:get_input(state.keyword_pattern_offset);
-    keyword_pattern_offset = state.keyword_pattern_offset;
-    trigger_character_offset = state.trigger_character_offset;
-    incomplete = self.incomplete;
-    callback = vim.schedule_wrap(function(result)
-      if self.request_id ~= request_id then
-        return
-      end
+    -- Completion
+    self.source:complete({
+      context = self.context;
+      input = self.context:get_input(state.keyword_pattern_offset);
+      keyword_pattern_offset = state.keyword_pattern_offset;
+      trigger_character_offset = state.trigger_character_offset;
+      incomplete = self.incomplete;
+      callback = vim.schedule_wrap(function(result)
+        if self.request_id ~= request_id then
+          return
+        end
 
-      -- Continue current completion
-      if count > 0 and #result.items == 0 then
+        -- Continue current completion
+        if count > 0 and #result.items == 0 then
+          self.status = 'completed'
+          return callback()
+        end
+
+        result = result or {}
+
+        self.revision = self.revision + 1
         self.status = 'completed'
-        return callback()
-      end
+        self.incomplete = result.incomplete or false
+        self.keyword_pattern_offset = result.keyword_pattern_offset or state.keyword_pattern_offset
+        self.trigger_character_offset = state.trigger_character_offset
+        self.items = self:_normalize_items(context, result.items or {})
 
-      result = result or {}
+        if #self.items == 0 then
+          self:clear()
+        end
 
-      self.revision = self.revision + 1
-      self.status = 'completed'
-      self.incomplete = result.incomplete or false
-      self.keyword_pattern_offset = result.keyword_pattern_offset or state.keyword_pattern_offset
-      self.trigger_character_offset = state.trigger_character_offset
-      self.items = self:_normalize_items(context, result.items or {})
-
-      if #self.items == 0 then
+        callback()
+      end);
+      abort = function()
         self:clear()
-      end
-
-      callback()
-    end);
-    abort = function()
-      self:clear()
-      vim.schedule(callback)
-    end;
-  })
+        vim.schedule(callback)
+      end;
+    })
+  end)
   return true
 end
 
