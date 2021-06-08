@@ -228,6 +228,13 @@ If you are enabling the `omni` source, please try to disable it.
 
 If you are enabling the `treesitter` source, please try to disable it.
 
+### Does not work function signature window.
+
+The signature help is out of scope of compe.
+It should be another plugin e.g. lsp_signature.nvim](https://github.com/ray-x/lsp_signature.nvim)
+
+If you are enabling the `treesitter` source, please try to disable it.
+
 ### How to remove `Pattern not found`?
 
 You can set `set shortmess+=c` in your vimrc.
