@@ -220,6 +220,12 @@ Completion._display = guard(function(context)
     for _, source in ipairs(sources) do
       if not has_triggered_by_character or source.is_triggered_by_character then
         local source_items = source:get_filtered_items(context)
+
+        local formatter = Config.get_formatter(source.name, "results")
+        if formatter then
+          source_items = formatter(vim.deepcopy(source_items))
+        end
+
         if #source_items > 0 and start_offset == source:get_start_offset() then
           for _, item in ipairs(source_items) do
             if items_uniq[item.original_word] == nil or item.original_dup == 1 then

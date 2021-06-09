@@ -302,6 +302,40 @@ source ~
           For dictionary, see |compe-source| for the list of source options.
 
 
+formatting_functions ~
+    Custom output formatting functions. Optional.
+      Type: |Dictionary| of:
+        Key: |String|
+          Source name.
+          For the list of builtin sources, see |compe-sources|.
+        Value: |Dictionary| of:
+          results ~
+            This function get's called with the list of completion results
+            before displaying the list.
+            It takes and returns the list of completion results,
+            and may transform it.
+              Type: |Function|
+              Takes 1 argument:
+                completion_items:
+                  Type: |Table| of completion items.
+              Returns:
+                The transformed list.
+                Type: |Table| of completion items.
+
+          documentation ~
+              This function get's called with the documentation of the
+              currently selected completion item, and may return the text
+              changed in any way.
+              Type: |Function|
+              Takes 1 argument:
+                document:
+                  Type: |Table| of lines of the documentation text.
+              Returns:
+                The transformed documentation.
+                Type: |Table| of lines of the documentation text.
+
+
+
 ------------------------------------------------------------------------------
 HIGHLIGHT                                                    *compe-highlight*
 

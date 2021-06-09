@@ -42,6 +42,12 @@ Config.get = function()
   return Config._bufnrs[vim.api.nvim_get_current_buf()] or Config._config
 end
 
+-- get_formatter
+Config.get_formatter = function(source_name, subject)
+  local source_functions = Config.get().formatting_functions[source_name]
+  return source_functions and source_functions[subject]
+end
+
 --- get_metadata
 Config.get_metadata = function(source_name)
   return Config.get().source[source_name]
@@ -70,6 +76,7 @@ Config._normalize = function(config)
   config.max_menu_width = config.max_menu_width or 100
   config.autocomplete = Boolean.get(config.autocomplete, true)
   config.documentation = Boolean.get(config.documentation, true)
+  config.formatting_functions = config.formatting_functions or {}
 
   -- normalize source metadata
   if config.source then
