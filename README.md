@@ -334,6 +334,30 @@ vim.api.nvim_set_keymap("s", "<S-Tab>", "v:lua.s_tab_complete()", {expr = true})
 
 Use `compe#confirm()` mapping, as described in section [Mappings](#mappings).
 
+
+### ESC does not close the completion menu
+
+Another plugin might be interfering with it. [`vim-autoclose`](https://github.com/Townk/vim-autoclose)
+does this. You can check the mapping of `<ESC>` by running
+
+```
+imap <ESC>
+```
+
+`vim-autoclose`'s function looks similar to this:
+
+```
+<Esc> *@pumvisible() ? '<C-E>' : '<C-R>=<SNR>110_FlushBuffer()<CR><Esc>'
+```
+
+In the particular case of `vim-autoclose`, the problem can be fixed by adding this setting:
+
+```
+let g:AutoClosePumvisible = {"ENTER": "<C-Y>", "ESC": "<ESC>"}
+```
+
+Other plugins might need other custom settings.
+
 ## Demo
 
 ### Auto Import
