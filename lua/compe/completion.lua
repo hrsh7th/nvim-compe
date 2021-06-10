@@ -2,7 +2,6 @@ local Async = require'compe.utils.async'
 local Cache = require'compe.utils.cache'
 local Callback = require'compe.utils.callback'
 local Config = require'compe.config'
-local Helper = require'compe.helper'
 local Context = require'compe.context'
 local Matcher = require'compe.matcher'
 
@@ -106,17 +105,19 @@ Completion.select = function(args)
   end
 end
 
-Completion.info = function()
+--- confirm_pre
+Completion.confirm_pre = function()
+  Completion._selected_item = Completion._selected_item or Completion._current_items[1]
   return {
     offset = Completion._current_offset,
-    item = Completion._selected_item or Completion._current_items[1],
+    item = Completion._selected_item
   }
 end
 
 --- confirm
 Completion.confirm = function()
-  local completed_item = Completion._selected_item or Completion._current_items[1]
-  if completed_item then
+  if Completion._selected_item then
+    local completed_item = Completion._selected_item
     Completion._history[completed_item.abbr] = Completion._history[completed_item.abbr] or 0
     Completion._history[completed_item.abbr] = Completion._history[completed_item.abbr] + 1
 

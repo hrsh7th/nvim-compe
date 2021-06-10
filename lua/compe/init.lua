@@ -17,6 +17,7 @@ local suppress = function(callback)
     if not status then
       Debug.log(value)
     end
+    return value
   end
 end
 
@@ -71,10 +72,10 @@ compe._close = enable(function()
   return ''
 end)
 
---- _info
-compe._info = function()
-  return Completion.info()
-end
+--- _confirm_pre
+compe._confirm_pre = enable(suppress(function()
+  return Completion.confirm_pre()
+end))
 
 --- _confirm
 compe._confirm = enable(suppress(function()
