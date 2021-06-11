@@ -1,4 +1,5 @@
 local Character = require'compe.utils.character'
+local String = require'compe.utils.string'
 
 local Matcher = {}
 
@@ -12,11 +13,12 @@ Matcher.match = function(context, source, items)
   for i, item in ipairs(items) do
     item.index = i
 
-    local word = item.original_word
-    if #input > 0 then
-      if item.filter_text and #item.filter_text > 0 then
-        if Character.match(string.byte(input, 1), string.byte(item.filter_text, 1)) then
-          word = item.filter_text
+    local word = nil
+    for _, key in ipairs({ 'original_word', 'filter_text', 'original_abbr' }) do
+      if item[key] and #item[key] > 0 then
+        word = item[key]
+        if String.match_prefix(item[key], input) then
+          break
         end
       end
     end

@@ -10,11 +10,11 @@ function! compe#confirmation#lsp(args) abort
   let l:completed_item = a:args.completed_item
   let l:completion_item = a:args.completion_item
   let l:suggest_position = { 'line': line('.') - 1, 'character': strchars(strpart(l:current_line, 0, l:completed_item.suggest_offset - 1)) }
-  let l:request_position = a:args.request_position
   let l:current_position = s:Position.cursor()
+  let l:request_position = a:args.request_position
   call s:CompletionItem.confirm({
   \   'suggest_position': l:suggest_position,
-  \   'request_position': l:request_position,
+  \   'request_position': s:min(l:request_position, l:current_position),
   \   'current_position': l:current_position,
   \   'current_line': getline('.'),
   \   'completion_item': l:completion_item,
@@ -54,3 +54,16 @@ function! s:simple_expand_snippet(body) abort
   \ }])
 endfunction
 
+"
+" return minimum position
+"
+function! s:min(pos1, pos2) abort
+  if a:pos1.line < a:pos2.line
+    return a:pos1
+  elseif a:pos1.line == a:pos2.line
+    if a:pos1.character < a:pos2.character
+      return a:pos1
+    endif
+  endif
+  return a:pos2
+endfunction

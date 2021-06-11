@@ -7,9 +7,19 @@ function Buffer.new(bufnr, pattern1, pattern2)
   self.regexes = {}
   self.pattern1 = pattern1
   self.pattern2 = pattern2
+  self.timer = nil
   self.words = {}
   self.processing = false
   return self
+end
+
+function Buffer.close(self)
+  if self.timer then
+    self.timer:stop()
+    self.timer:close()
+    self.timer = nil
+  end
+  self.words = {}
 end
 
 --- index
@@ -17,8 +27,8 @@ function Buffer.index(self)
   self.processing = true
   local index = 1
   local lines = vim.api.nvim_buf_get_lines(self.bufnr, 0, -1, false)
-  local timer = vim.loop.new_timer()
-  timer:start(0, 200, vim.schedule_wrap(function()
+  self.timer = vim.loop.new_timer()
+  self.timer:start(0, 200, vim.schedule_wrap(function()
     local chunk = math.min(index + 1000, #lines)
     for i = index, chunk do
       self:index_line(i, lines[i] or '')
@@ -26,10 +36,10 @@ function Buffer.index(self)
     index = chunk + 1
 
     if chunk >= #lines then
-      if timer then
-        timer:stop()
-        timer:close()
-        timer = nil
+      if self.timer then
+        self.timer:stop()
+        self.timer:close()
+        self.timer = nil
       end
       self.processing = false
     end
@@ -39,8 +49,9 @@ end
 --- watch
 function Buffer.watch(self)
   vim.api.nvim_buf_attach(self.bufnr, false, {
-    on_lines = vim.schedule_wrap(function(_, buf, _, firstline, old_lastline, new_lastline, _, _, _)
+    on_lines = vim.schedule_wrap(function(_, _, _, firstline, old_lastline, new_lastline, _, _, _)
       if not vim.api.nvim_buf_is_valid(self.bufnr) then
+        self:close()
         return true
       end
 
@@ -50,7 +61,7 @@ function Buffer.watch(self)
       end
 
       -- remove
-      for i = new_lastline, old_lastline - 1 do
+      for _ = new_lastline, old_lastline - 1 do
         table.remove(self.words, new_lastline + 1)
       end
 
