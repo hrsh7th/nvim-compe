@@ -11,6 +11,20 @@ String.INVALID_CHARS[string.byte('(')] = true
 String.INVALID_CHARS[string.byte('"')] = true
 String.INVALID_CHARS[string.byte("'")] = true
 
+--- match_prefix
+String.match_prefix = function(text, prefix)
+  if #text < #prefix then
+    return false
+  end
+
+  for i = 1, #prefix do
+    if not Character.match(string.byte(text, i), string.byte(prefix, i)) then
+      return false
+    end
+  end
+  return true
+end
+
 
 --- omit
 String.omit = function(text, width)
