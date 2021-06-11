@@ -1,5 +1,8 @@
 local compe = require'compe'
 
+-- matches any text within backticks, skipping over escaped ones
+local EXPRESSION_REGEX = vim.regex([[`\(\\`\|[^`]\)\+`]])
+
 local M = {}
 
 local function get_snippet_preview(data, args)
@@ -19,6 +22,13 @@ local function get_snippet_preview(data, args)
         break
       end
       if not is_snippet_header then
+        local s, e = EXPRESSION_REGEX:match_str(line)
+        while s do
+          local expr = string.sub(line, s+2, e-1)
+          local evaluated = vim.api.nvim_eval(expr)
+          line = string.sub(line, 1, s+1) .. evaluated .. string.sub(line, e+1)
+          s, e = EXPRESSION_REGEX:match_str(line)
+        end
         table.insert(snippet, line)
       end
     end
