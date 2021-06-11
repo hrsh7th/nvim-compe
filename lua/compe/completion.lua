@@ -10,6 +10,8 @@ local VALID_COMPLETE_MODE = {
   ['eval'] = true;
 }
 
+local Completion = {}
+
 --- guard
 local guard = function(callback)
   return function(...)
@@ -18,13 +20,12 @@ local guard = function(callback)
     invalid = invalid or vim.call('getbufvar', '%', '&buftype') == 'prompt'
     invalid = invalid or string.sub(vim.call('mode'), 1, 1) ~= 'i'
     invalid = invalid or not VALID_COMPLETE_MODE[vim.fn.complete_info({ 'mode' }).mode]
+    invalid = invalid or Completion._is_confirming
     if not invalid then
       callback(...)
     end
   end
 end
-
-local Completion = {}
 
 Completion._get_sources_cache_key = 0
 Completion._sources = {}
@@ -33,6 +34,7 @@ Completion._current_offset = 0
 Completion._current_items = {}
 Completion._selected_item = nil
 Completion._selected_manually = false
+Completion._is_confirming = false
 Completion._history = {}
 
 --- register_source
@@ -107,7 +109,9 @@ end
 
 --- confirm_pre
 Completion.confirm_pre = function()
-  Completion._selected_item = Completion._selected_item or Completion._current_items[1]
+  local index = (vim.call('complete_info', { 'selected' }).selected or 0) + 1
+  Completion._selected_item = Completion._current_items[index]
+  Completion._is_confirming = true
   return {
     offset = Completion._current_offset,
     item = Completion._selected_item
@@ -129,6 +133,7 @@ Completion.confirm = function()
     end
   end
 
+  Completion._is_confirming = false
   vim.cmd([[doautocmd <nomodeline> User CompeConfirmDone]])
 
   Completion.close()
