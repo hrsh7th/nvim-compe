@@ -190,7 +190,7 @@ end
 
 --- resolve
 Source.resolve = function(self, args)
-  local callback = Async.once(args.callback)
+  local callback = Async.guard('Source.resolve', args.callback)
 
   if self.resolved_items[args.completed_item.item_id] then
     return callback(self.resolved_items[args.completed_item.item_id])
@@ -200,13 +200,6 @@ Source.resolve = function(self, args)
     self.resolved_items[args.completed_item.item_id] = args.completed_item
     return callback(self.resolved_items[args.completed_item.item_id])
   end
-
-  Async.set_timeout(function()
-    if not self.resolved_items[args.completed_item.item_id] then
-      self.resolved_items[args.completed_item.item_id] = args.completed_item
-      callback(self.resolved_items[args.completed_item.item_id])
-    end
-  end, 200)
 
   self.source:resolve({
     completed_item = args.completed_item,

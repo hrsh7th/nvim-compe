@@ -304,7 +304,9 @@ else
       let a:self._on_closed = l:On_closed
       return s:_open(a:bufnr, a:style, { -> a:self._on_closed() })
     endif
-    call popup_move(a:winid, s:_style(a:style))
+    let l:style = s:_style(a:style)
+    call popup_move(a:winid, l:style)
+    call popup_setoptions(a:winid, l:style)
     return a:winid
   endfunction
 endif
