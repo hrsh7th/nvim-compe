@@ -23,7 +23,7 @@ Matcher.match = function(context, source, items)
       end
     end
 
-    if #word >= #input then
+    if word ~= nil and #word >= #input then
       item.match = Matcher.analyze(input, word, item.match or {})
       item.match.exact = input == item.original_abbr
       if item.match.score >= 1 then
