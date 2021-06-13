@@ -96,6 +96,7 @@ let g:compe.min_length = 1
 let g:compe.preselect = 'enable'
 let g:compe.throttle_time = 80
 let g:compe.source_timeout = 200
+let g:compe.resolve_timeout = 800
 let g:compe.incomplete_delay = 400
 let g:compe.max_abbr_width = 100
 let g:compe.max_kind_width = 100
@@ -123,6 +124,7 @@ require'compe'.setup {
   preselect = 'enable';
   throttle_time = 80;
   source_timeout = 200;
+  resolve_timeout = 800;
   incomplete_delay = 400;
   max_abbr_width = 100;
   max_kind_width = 100;

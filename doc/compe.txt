@@ -264,6 +264,11 @@ source_timeout ~
       Type: |Number|
       Default: 200
 
+resolve_timeout~
+    Timeout for completionItem/resolve on confirmation.
+      Type: |Number|
+      Default: 800
+
 incomplete_delay ~
     Delay for LSP's isIncomplete.
       Type: |Number|
@@ -388,6 +393,7 @@ Vimscript:
   let g:compe.preselect = 'enable'
   let g:compe.throttle_time = 80
   let g:compe.source_timeout = 200
+  let g:compe.resolve_timeout = 800
   let g:compe.incomplete_delay = 400
   let g:compe.max_abbr_width = 100
   let g:compe.max_kind_width = 100
@@ -413,6 +419,7 @@ Lua:
     preselect = 'enable';
     throttle_time = 80;
     source_timeout = 200;
+    resolve_timeout = 800;
     incomplete_delay = 400;
     max_abbr_width = 100;
     max_kind_width = 100;

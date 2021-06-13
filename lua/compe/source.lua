@@ -250,7 +250,7 @@ Source.confirm = function(self, completed_item)
         resolved = true
       end
     })
-    vim.wait(200, function() return resolved end, 1)
+    vim.wait(Config.get().resolve_timeout, function() return resolved end, 1)
   end
 end
 

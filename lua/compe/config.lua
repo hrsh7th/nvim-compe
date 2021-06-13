@@ -3,6 +3,7 @@ local Lazy = require'compe.lazy'
 
 local THROTTLE_TIME = 120
 local SOURCE_TIMEOUT = 200
+local RESOLVE_TIMEOUT = 800
 local INCOMPLETE_DELAY = 400
 
 local Config = {}
@@ -63,6 +64,7 @@ Config._normalize = function(config)
   config.throttle_time = config.throttle_time or THROTTLE_TIME
   config.default_pattern = config.default_pattern or '\\%(-\\?\\d\\+\\%(\\.\\d\\+\\)\\?\\|\\h\\w*\\%(-\\w*\\)*\\)' -- TODO: https://github.com/microsoft/vscode/blob/main/src/vs/editor/common/model/wordHelper.ts#L15
   config.source_timeout = config.source_timeout or SOURCE_TIMEOUT
+  config.resolve_timeout = config.resolve_timeout or RESOLVE_TIMEOUT
   config.incomplete_delay = config.incomplete_delay or INCOMPLETE_DELAY
   config.allow_prefix_unmatch = Boolean.get(config.allow_prefix_unmatch, false)
   config.max_abbr_width = config.max_abbr_width or 100
