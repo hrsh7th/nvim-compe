@@ -35,6 +35,7 @@ Completion._current_items = {}
 Completion._selected_item = nil
 Completion._selected_manually = false
 Completion._is_confirming = false
+Completion._confirm_item = nil
 Completion._history = {}
 
 --- register_source
@@ -108,20 +109,22 @@ Completion.select = function(args)
 end
 
 --- confirm_pre
-Completion.confirm_pre = function()
-  local index = (vim.call('complete_info', { 'selected' }).selected or 0) + 1
-  Completion._selected_item = Completion._current_items[index]
+Completion.confirm_pre = function(index)
+  if not VALID_COMPLETE_MODE[vim.fn.complete_info({ 'mode' }).mode] then
+    return nil
+  end
+  Completion._confirm_item = Completion._current_items[index]
   Completion._is_confirming = true
   return {
     offset = Completion._current_offset,
-    item = Completion._selected_item
+    item = Completion._confirm_item
   }
 end
 
 --- confirm
 Completion.confirm = function()
-  if Completion._selected_item then
-    local completed_item = Completion._selected_item
+  if Completion._confirm_item then
+    local completed_item = Completion._confirm_item
     Completion._history[completed_item.abbr] = Completion._history[completed_item.abbr] or 0
     Completion._history[completed_item.abbr] = Completion._history[completed_item.abbr] + 1
 

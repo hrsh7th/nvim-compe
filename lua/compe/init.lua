@@ -73,8 +73,8 @@ compe._close = enable(function()
 end)
 
 --- _confirm_pre
-compe._confirm_pre = enable(suppress(function()
-  return Completion.confirm_pre()
+compe._confirm_pre = enable(suppress(function(index)
+  return Completion.confirm_pre(index)
 end))
 
 --- _confirm
