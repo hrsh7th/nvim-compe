@@ -334,6 +334,8 @@ Source._normalize_items = function(self, _, items)
   for i, item in ipairs(items) do
     self.item_id = self.item_id + 1
 
+    local item_id = self.revision .. '.' .. self.item_id
+
     -- string to completed_item
     if type(item) == 'string' then
       item = {
@@ -357,7 +359,7 @@ Source._normalize_items = function(self, _, items)
     item.preselect = item.preselect or false
 
     -- internal properties
-    item.item_id = self.item_id
+    item.item_id = item_id
     item.source_id = self.id
     item.priority = metadata.priority or 0
     item.sort = Boolean.get(metadata.sort, true)
