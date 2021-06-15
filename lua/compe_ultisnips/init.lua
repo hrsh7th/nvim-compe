@@ -39,6 +39,7 @@ local function get_snippet_preview(data, args)
               evaluated = expr
             else
               evaluated = vim.fn.system(expr)
+              evaluated = string.gsub(evaluated, "\n$", "")
             end
             line = string.sub(line, 1, s) .. evaluated .. string.sub(line, e+1)
             start_i = s + #evaluated + 1
