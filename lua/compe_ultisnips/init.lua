@@ -1,7 +1,8 @@
 local compe = require'compe'
 
 -- matches any text within backticks, skipping over escaped ones
-local EXPRESSION_REGEX = vim.regex([[`\(\\`\|[^`]\)\+`]])
+-- there may be an escaped backtick at the start, which is checked for
+local EXPRESSION_REGEX = vim.regex([[\\\?`\(\\`\|[^`]\)\+`]])
 
 local M = {}
 
@@ -22,21 +23,30 @@ local function get_snippet_preview(data, args)
         break
       end
       if not is_snippet_header then
+        local start_i = 1 -- start searching from this index to avoid backticks that should be skipped
         local s, e = EXPRESSION_REGEX:match_str(line)
         while s do
+          s = s + start_i - 1
+          e = e + start_i - 1
           local expr = string.sub(line, s+2, e-1)
           local prefix = string.sub(expr, 1, 2)
           local evaluated
-          if prefix == '!v' then
-            evaluated = vim.api.nvim_eval(string.sub(expr, 3))
-          elseif prefix == '!p' then
-            -- TODO: implement python interpolation (value of snip.rv)
-            evaluated = expr
+          if string.sub(line, s+1, s+1) ~= '\\' then
+            if prefix == '!v' then
+              evaluated = vim.api.nvim_eval(string.sub(expr, 3))
+            elseif prefix == '!p' then
+              -- TODO: implement python interpolation (value of snip.rv)
+              evaluated = expr
+            else
+              evaluated = vim.fn.system(expr)
+            end
+            line = string.sub(line, 1, s) .. evaluated .. string.sub(line, e+1)
+            start_i = s + #evaluated + 1
           else
-            evaluated = vim.fn.system(expr)
+            -- starts with an escaped backtick
+            start_i = s + 3
           end
-          line = string.sub(line, 1, s+1) .. evaluated .. string.sub(line, e+1)
-          s, e = EXPRESSION_REGEX:match_str(line)
+          s, e = EXPRESSION_REGEX:match_str(string.sub(line, start_i))
         end
         table.insert(snippet, line)
       end
