@@ -233,7 +233,7 @@ If you are enabling the `treesitter` source, please try to disable it.
 ### Does not work function signature window.
 
 The signature help is out of scope of compe.
-It should be another plugin e.g. lsp_signature.nvim](https://github.com/ray-x/lsp_signature.nvim)
+It should be another plugin e.g. [lsp_signature.nvim](https://github.com/ray-x/lsp_signature.nvim)
 
 If you are enabling the `treesitter` source, please try to disable it.
 
