@@ -1,7 +1,7 @@
 local Boolean = require'compe.utils.boolean'
 local Lazy = require'compe.lazy'
 
-local THROTTLE_TIME = 120
+local THROTTLE_TIME = 80
 local SOURCE_TIMEOUT = 200
 local RESOLVE_TIMEOUT = 800
 local INCOMPLETE_DELAY = 400
