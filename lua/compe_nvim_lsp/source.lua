@@ -97,21 +97,7 @@ end
 
 --- _create_document
 function Source._create_document(self, filetype, completion_item)
-  local document = {}
-  if completion_item.detail and completion_item.detail ~= '' then
-    table.insert(document, '```' .. filetype)
-    table.insert(document, completion_item.detail)
-    table.insert(document, '```')
-  end
-  if completion_item.documentation then
-    if completion_item.detail then
-      table.insert(document, ' ')
-    end
-    for _, line in ipairs(util.convert_input_to_markdown_lines(completion_item.documentation)) do
-      table.insert(document, line)
-    end
-  end
-  return document
+  return completion_item.documentation and util.convert_input_to_markdown_lines(completion_item.documentation) or {}
 end
 
 --- _get_paths

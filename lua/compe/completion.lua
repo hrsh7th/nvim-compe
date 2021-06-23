@@ -4,6 +4,7 @@ local Callback = require'compe.utils.callback'
 local Config = require'compe.config'
 local Context = require'compe.context'
 local Matcher = require'compe.matcher'
+local Float = require'compe.float'
 
 local VALID_COMPLETE_MODE = {
   [''] = true;
@@ -103,7 +104,7 @@ Completion.select = function(args)
     end
   else
     vim.schedule(Async.guard('documentation', function()
-      vim.call('compe#documentation#close')
+      Float.close()
     end))
   end
 end
@@ -152,7 +153,7 @@ Completion.close = function()
   if string.sub(vim.api.nvim_get_mode().mode, 1, 1) == 'i' then
     vim.call('complete', 1, {})
   end
-  vim.call('compe#documentation#close')
+  Float.close()
   Callback.clear()
   Completion._new_context({})
   Completion._current_items = {}
@@ -274,7 +275,7 @@ Completion._show = Async.guard('Completion._show', guard(function(start_offset, 
   vim.cmd('set completeopt=' .. completeopt)
 
   if #items == 0 then
-    vim.call('compe#documentation#close')
+    Float.close()
   end
 end))
 

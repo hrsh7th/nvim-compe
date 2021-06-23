@@ -82,19 +82,8 @@ endfunction
 " compe#scroll
 "
 function! compe#scroll(option) abort
-  let l:ctx = {}
-  function! l:ctx.callback(option) abort
-    let l:winids = s:Window.find({ winid -> !!getwinvar(winid, 'compe_documentation', v:false) })
-    if !empty(l:winids)
-      let l:delta = get(a:option, 'delta', 4)
-      for l:winid in l:winids
-        call s:Window.scroll(l:winid, s:Window.info(l:winid).topline + l:delta)
-      endfor
-    else
-      call s:fallback(a:option)
-    endif
-  endfunction
-  call timer_start(0, { -> l:ctx.callback(s:normalize(a:option)) })
+  let l:delta = get(a:option, 'delta', 4)
+  let l:foo = luaeval('require("compe.float").scroll(_A)', l:delta)
   return "\<Ignore>"
 endfunction
 
