@@ -97,7 +97,11 @@ end
 
 --- _create_document
 function Source._create_document(self, filetype, completion_item)
-  return completion_item.documentation and util.convert_input_to_markdown_lines(completion_item.documentation) or {}
+  local doc = completion_item.documentation
+  if type(doc) == "string" then
+    doc = string.format("```%s\n%s\n```", filetype, doc)
+  end
+  return doc and util.convert_input_to_markdown_lines(doc) or {}
 end
 
 --- _get_paths
