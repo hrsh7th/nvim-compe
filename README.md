@@ -111,6 +111,7 @@ let g:compe.source.nvim_lsp = v:true
 let g:compe.source.nvim_lua = v:true
 let g:compe.source.vsnip = v:true
 let g:compe.source.ultisnips = v:true
+let g:compe.source.luasnip = v:true
 ```
 
 #### Lua Config
@@ -139,6 +140,7 @@ require'compe'.setup {
     nvim_lua = true;
     vsnip = true;
     ultisnips = true;
+    luasnip = true;
   };
 }
 ```
@@ -278,6 +280,12 @@ You can set `set shortmess+=c` in your vimrc.
 
    ```viml
    Plug 'SirVer/ultisnips'
+   ```
+
+   or `LuaSnip`
+
+   ```viml
+   Plug 'L3MON4D3/LuaSnip'
    ```
 
 ### How to use tab to navigate completion menu?
