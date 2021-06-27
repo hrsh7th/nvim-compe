@@ -214,7 +214,7 @@ function! s:FloatingWindow.open(args) abort
   \ }
 
   if has('nvim')
-    l:style.relative = get(a:args, 'relative', 'editor')
+    let l:style.relative = get(a:args, 'relative', 'editor')
   endif
 
   let l:will_move = self.is_visible()
