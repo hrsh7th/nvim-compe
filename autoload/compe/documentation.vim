@@ -54,6 +54,7 @@ function! compe#documentation#open(text) abort
   endif
 
   silent call s:window.open({
+  \   'relative': 'win',
   \   'row': l:pos[0] + 1,
   \   'col': l:pos[1] + 1,
   \   'width': l:state.size.width,

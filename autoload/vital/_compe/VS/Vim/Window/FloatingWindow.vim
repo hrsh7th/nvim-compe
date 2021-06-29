@@ -213,6 +213,10 @@ function! s:FloatingWindow.open(args) abort
   \   'origin': get(a:args, 'origin', 'topleft'),
   \ }
 
+  if has('nvim')
+    let l:style.relative = get(a:args, 'relative', 'editor')
+  endif
+
   let l:will_move = self.is_visible()
   if l:will_move
     let self._winid = s:_move(self, self._winid, self._bufnr, l:style)
@@ -376,7 +380,7 @@ if has('nvim')
     let l:style = s:_resolve_origin(a:style)
     let l:style = s:_resolve_border(l:style)
     let l:style = {
-    \   'relative': 'editor',
+    \   'relative': has_key(l:style, 'relative') ? l:style.relative : 'editor',
     \   'row': l:style.row - 1,
     \   'col': l:style.col - 1,
     \   'width': l:style.width,
