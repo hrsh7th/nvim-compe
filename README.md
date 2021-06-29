@@ -221,6 +221,7 @@ highlight link CompeDocumentation NormalFloat
 - [dadbod](https://github.com/kristijanhusak/vim-dadbod-completion)
 - [latex-symbols](https://github.com/GoldsteinE/compe-latex-symbols)
 - [tmux](https://github.com/andersevenrud/compe-tmux)
+- [vCard](https://github.com/cbarrete/completion-vcard)
 
 ## FAQ
 
