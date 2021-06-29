@@ -374,6 +374,7 @@ vim_lsp             vim-lsp completion.
 vim_lsc             vim-lsc completion.
 vsnip               vim-vsnip completion.
 ultisnips           UltiSnips completion.
+luasnip             LuaSnip completion.
 snippets_nvim       snippets.nvim completion.
 nvim_treesitter     nvim-treesitter completion. (Warning: it sometimes really slow.)
 
@@ -407,6 +408,7 @@ Vimscript:
   let g:compe.source.nvim_lsp = v:true
   let g:compe.source.nvim_lua = v:true
   let g:compe.source.vsnip = v:true
+  let g:compe.source.luasnip = v:true
   let g:compe.source.emoji = v:true
 <
 Lua:
@@ -433,6 +435,7 @@ Lua:
       nvim_lsp = true;
       nvim_lua = true;
       vsnip = true;
+      luasnip = true;
       emoji = true;
     };
   }
@@ -490,7 +493,7 @@ confirm ~
     Optional.
     A function that gets executed when you confirm a completion item.
     Useful for snippets that needs to be expanded.
-    See vsnip or snippets.nvim source for examples.
+    See the vsnip, snippets.nvim or luasnip sources for examples.
 
 
 You can see example on https://github.com/kristijanhusak/vim-dadbod-completion
