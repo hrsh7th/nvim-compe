@@ -16,17 +16,11 @@ function M.get_options(contents, opts)
   local pum = vim.fn.pum_getpos()
   if pum and not vim.tbl_isempty(pum) then
     -- check space on the right
-    local right_col = pum.col + pum.width + (pum.scrollbar and 1 or 0)
-    if opts.border and opts.border ~= "none" then
-      right_col = right_col + 1
-    end
-    local right_space = vim.o.columns - right_col
+    local right_col = pum.col + pum.width + (pum.scrollbar and 1 or 0) + 1
+    local right_space = vim.o.columns - right_col - 1
 
     -- check space on the left
     local left_space = pum.col - 1
-    if opts.border and opts.border ~= "none" then
-      left_space = left_space - 1
-    end
 
     local max_width = config.documentation.max_width
     local max_height = config.documentation.max_height
@@ -54,11 +48,7 @@ function M.get_options(contents, opts)
       height = config.documentation.min_height
     end
 
-    local col = right and right_col or (pum.col - width - 1)
-    if not right and opts.border and opts.border ~= "none" then
-      col = col - 1
-    end
-
+    local col = right and right_col - 1 or (pum.col - width - 3)
     return {
       relative = "editor",
       style = "minimal",
@@ -96,9 +86,13 @@ function M.show(contents, opts)
   opts.border = config.documentation.border
 
   contents = contents or {}
-  if type(contents) == "string" then
-    contents = vim.split(contents, "\n", true)
+  if type(contents) == "table" then
+    contents = table.concat(contents, "\n")
   end
+  if contents == '' then
+    return M.close()
+  end
+  contents = vim.split(contents, "\n", true)
   -- Clean up input: trim empty lines from the end, pad
   contents = vim.lsp.util._trim(contents, opts)
 
@@ -110,8 +104,11 @@ function M.show(contents, opts)
   end
 
   local buf = vim.api.nvim_create_buf(false, true)
+  vim.api.nvim_buf_set_option(buf, "bufhidden", "wipe")
 
   -- applies the syntax and sets the lines to the buffer
+  opts.width = float_options.width or opts.width
+  opts.height = float_options.height or opts.height
   contents = vim.lsp.util.stylize_markdown(buf, contents, opts)
 
   -- reuse existing window, or create a new one
@@ -125,7 +122,7 @@ function M.show(contents, opts)
   -- conceal
   vim.api.nvim_win_set_option(M.win, "conceallevel", 2)
   vim.api.nvim_win_set_option(M.win, "concealcursor", "n")
-  vim.api.nvim_win_set_option(M.win, "winhighlight", "NormalFloat:" .. config.documentation.winhighlight)
+  vim.api.nvim_win_set_option(M.win, "winhighlight", config.documentation.winhighlight)
 
   -- disable folding
   vim.api.nvim_win_set_option(M.win, "foldenable", false)
@@ -133,9 +130,6 @@ function M.show(contents, opts)
   -- soft wrapping
   vim.api.nvim_win_set_option(M.win, "wrap", true)
   vim.api.nvim_win_set_option(M.win, "scrolloff", 0)
-
-  vim.api.nvim_buf_set_option(buf, "modifiable", false)
-  vim.api.nvim_buf_set_option(buf, "bufhidden", "wipe")
 
   return buf, M.win
 end

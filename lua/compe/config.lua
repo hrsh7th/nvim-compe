@@ -73,10 +73,10 @@ Config._normalize = function(config)
   config.autocomplete = Boolean.get(config.autocomplete, true)
 
   local documentation_defaults = {
-    border = "none",
-    winhighlight = "CompeDocumentation",
+    border = { '', '' ,'', ' ', '', '', '', ' ' },
+    winhighlight = "NormalFloat:CompeDocumentation,FloatBorder:CompeDocumentationBorder",
     max_width = 120,
-    min_width = 40,
+    min_width = 60,
     max_height = math.floor(vim.o.lines * 0.3),
     min_height = 1,
   }
