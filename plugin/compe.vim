@@ -41,7 +41,11 @@ function! s:on_text_changed() abort
 endfunction
 
 if !hlexists('CompeDocumentation')
-  highlight def link CompeDocumentation NormalFloat
+  highlight link CompeDocumentation NormalFloat
+endif
+
+if !hlexists('CompeDocumentationBorder')
+  highlight link CompeDocumentationBorder CompeDocumentation
 endif
 
 "

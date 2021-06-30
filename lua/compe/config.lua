@@ -71,7 +71,20 @@ Config._normalize = function(config)
   config.max_kind_width = config.max_kind_width or 100
   config.max_menu_width = config.max_menu_width or 100
   config.autocomplete = Boolean.get(config.autocomplete, true)
-  config.documentation = Boolean.get(config.documentation, true)
+
+  local documentation_defaults = {
+    border = { '', '' ,'', ' ', '', '', '', ' ' },
+    winhighlight = "NormalFloat:CompeDocumentation,FloatBorder:CompeDocumentationBorder",
+    max_width = 120,
+    min_width = 60,
+    max_height = math.floor(vim.o.lines * 0.3),
+    min_height = 1,
+  }
+  if type(config.documentation) == "table" then
+    config.documentation = vim.tbl_deep_extend("force", {}, documentation_defaults, config.documentation)
+  elseif Boolean.get(config.documentation, true) then
+    config.documentation = documentation_defaults
+  end
 
   -- normalize source metadata
   if config.source then

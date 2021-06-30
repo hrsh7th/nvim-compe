@@ -130,7 +130,14 @@ require'compe'.setup {
   max_abbr_width = 100;
   max_kind_width = 100;
   max_menu_width = 100;
-  documentation = true;
+  documentation = {
+    border = "none", -- the border option is the same as `|help nvim_open_win|`
+    winhighlight = "CompeDocumentation", -- highlight group used for the documentation window
+    max_width = 120,
+    min_width = 40,
+    max_height = math.floor(vim.o.lines * 0.3),
+    min_height = 1,
+  };
 
   source = {
     path = true;
