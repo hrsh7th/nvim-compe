@@ -39,7 +39,35 @@ function Source.documentation(_, context)
       table.insert(document, ('...and %d more'):format(#tags - 10))
       break
     end
-    table.insert(document, tag.filename)
+    local doc =  tag.filename .. ' [' .. tag.kind .. ']'
+    if #tag.cmd >= 5 then
+        doc = doc .. '\n  ' .. tag.cmd:sub(3, -4):gsub('%s+', ' ')
+    end
+    if tag.access ~= nil then
+        doc = doc .. '\n  ' .. tag.access
+    end
+    if tag.implementation ~= nil then
+        doc = doc .. '\n  ' .. tag.implementation
+    end
+    if tag.inherits ~= nil then
+        doc = doc .. '\n  ' .. tag.inherits
+    end
+    if tag.signature ~= nil then
+        doc = doc .. '\n  ' .. tag.signature
+    end
+    if tag.scope ~= nil then
+        doc = doc .. '\n  ' .. tag.scope
+    end
+    if tag.struct ~= nil then
+        doc = doc .. '\n  in ' .. tag.struct
+    end
+    if tag.class ~= nil then
+        doc = doc .. '\n  in ' .. tag.class
+    end
+    if tag.enum ~= nil then
+        doc = doc .. '\n  in ' .. tag.enum
+    end
+    table.insert(document, doc)
   end
 
   context.callback(document)
