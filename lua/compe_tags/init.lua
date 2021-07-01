@@ -40,20 +40,21 @@ function Source.documentation(_, context)
       break
     end
     local doc =  tag.filename .. ' [' .. tag.kind .. ']'
-    if #tag.cmd >= 5 then
-        doc = doc .. '\n  ' .. tag.cmd:sub(3, -3):gsub('%s+', ' ')
+        local doc =  '# ' .. tag.filename .. ' [' .. tag.kind .. ']'
+    if #tag.cmd >= 5 and tag.signature == nil then
+        doc = doc .. '\n  __' .. tag.cmd:sub(3, -3):gsub('%s+', ' ') .. '__'
     end
     if tag.access ~= nil then
         doc = doc .. '\n  ' .. tag.access
     end
     if tag.implementation ~= nil then
-        doc = doc .. '\n  ' .. tag.implementation
+        doc = doc .. '\n  impl: _' .. tag.implementation .. '_'
     end
     if tag.inherits ~= nil then
         doc = doc .. '\n  ' .. tag.inherits
     end
     if tag.signature ~= nil then
-        doc = doc .. '\n  ' .. tag.signature
+        doc = doc .. '\n  sign: _' .. tag.name .. tag.signature .. '_'
     end
     if tag.scope ~= nil then
         doc = doc .. '\n  ' .. tag.scope
@@ -67,6 +68,8 @@ function Source.documentation(_, context)
     if tag.enum ~= nil then
         doc = doc .. '\n  in ' .. tag.enum
     end
+    table.insert(document, doc)
+
     table.insert(document, doc)
   end
 
