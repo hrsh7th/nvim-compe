@@ -41,7 +41,7 @@ function Source.documentation(_, context)
     end
     local doc =  tag.filename .. ' [' .. tag.kind .. ']'
     if #tag.cmd >= 5 then
-        doc = doc .. '\n  ' .. tag.cmd:sub(3, -4):gsub('%s+', ' ')
+        doc = doc .. '\n  ' .. tag.cmd:sub(3, -3):gsub('%s+', ' ')
     end
     if tag.access ~= nil then
         doc = doc .. '\n  ' .. tag.access
