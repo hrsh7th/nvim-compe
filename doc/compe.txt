@@ -408,6 +408,7 @@ Vimscript:
   let g:compe.source.nvim_lsp = v:true
   let g:compe.source.nvim_lua = v:true
   let g:compe.source.vsnip = v:true
+  let g:compe.source.ultisnips = v:true
   let g:compe.source.luasnip = v:true
   let g:compe.source.emoji = v:true
 <
@@ -435,6 +436,7 @@ Lua:
       nvim_lsp = true;
       nvim_lua = true;
       vsnip = true;
+      ultisnips = true;
       luasnip = true;
       emoji = true;
     };

@@ -112,6 +112,7 @@ let g:compe.source.nvim_lua = v:true
 let g:compe.source.vsnip = v:true
 let g:compe.source.ultisnips = v:true
 let g:compe.source.luasnip = v:true
+let g:compe.source.emoji = v:true
 ```
 
 #### Lua Config
