@@ -376,7 +376,7 @@ vsnip               vim-vsnip completion.
 ultisnips           UltiSnips completion.
 luasnip             LuaSnip completion.
 snippets_nvim       snippets.nvim completion.
-nvim_treesitter     nvim-treesitter completion. (Warning: it sometimes really slow.)
+treesitter          nvim-treesitter completion. (Warning: it sometimes really slow.)
 
 
 ------------------------------------------------------------------------------
