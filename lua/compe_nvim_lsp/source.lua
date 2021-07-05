@@ -97,7 +97,7 @@ end
 
 --- _create_document
 function Source._create_document(self, filetype, completion_item)
-  local doc = completion_item.documentation
+  local doc = completion_item.documentation or {}
   if type(doc) == "string" then
     doc = string.format("```%s\n%s\n```", filetype, doc)
   end
