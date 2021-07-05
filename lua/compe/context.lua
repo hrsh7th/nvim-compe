@@ -52,6 +52,11 @@ Context.should_auto_complete = function(self)
   return self.lnum ~= self.prev_context.lnum or self.col ~= self.prev_context.col
 end
 
+--- changed
+Context.changed = function(self)
+  return self.bufnr ~= self.prev_context.bufnr or self.lnum ~= self.prev_context.lnum or self.col ~= self.prev_context.col
+end
+
 
 --- maybe_backspace
 Context.maybe_backspace = function(self)

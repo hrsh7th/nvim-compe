@@ -195,7 +195,7 @@ Completion.complete = guard(function(option)
 
   -- Trigger
   local triggered = false
-  if is_manual_completing or is_completing_backspace or context:should_auto_complete() then
+  if (context:changed() and (is_manual_completing or is_completing_backspace)) or context:should_auto_complete() then
     triggered = Completion._trigger(context)
   end
 
