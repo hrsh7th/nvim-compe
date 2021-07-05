@@ -5,6 +5,7 @@ local String = {}
 String.INVALID_CHARS = {}
 String.INVALID_CHARS[string.byte(' ')] = true
 String.INVALID_CHARS[string.byte('\t')] = true
+String.INVALID_CHARS[string.byte('\n')] = true
 String.INVALID_CHARS[string.byte('=')] = true
 String.INVALID_CHARS[string.byte('$')] = true
 String.INVALID_CHARS[string.byte('(')] = true
