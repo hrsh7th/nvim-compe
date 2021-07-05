@@ -66,7 +66,7 @@ Detailed docs in [here](./doc/compe.txt) or `:help compe`.
 
 ### Prerequisite
 
-Neovim version 0.5.0 or above (not released yet, use nightlies or build from source).
+Neovim version 0.5.0 or above.
 
 You must set `completeopt` to `menuone,noselect` which can be easily done
 as follows.
