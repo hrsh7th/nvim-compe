@@ -103,7 +103,9 @@ function Source._create_document(self, filetype, completion_item)
   end
   -- HACK: make a deepcopy to prevent double escaping of plaintext
   -- see also https://github.com/hrsh7th/nvim-compe/issues/440
-  doc = vim.tbl_deep_extend("force", {}, doc)
+  if type(doc) == "table" then
+    doc = vim.tbl_deep_extend("force", {}, doc)
+  end
   return doc and util.convert_input_to_markdown_lines(doc) or {}
 end
 
