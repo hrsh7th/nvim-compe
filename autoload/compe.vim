@@ -62,8 +62,10 @@ function! compe#confirm(...) abort
       call feedkeys(repeat("\<BS>", strchars(getline('.')[l:info.offset - 1 : col('.') - 2], 1)), 'n')
       call feedkeys(l:info.item.word, 'n')
       call feedkeys("\<Plug>(compe-confirm)", '')
-      return "\<Ignore>"
+    else
+      return "\<C-y>" " fallback for other plugin's completion menu
     endif
+    return "\<Ignore>"
   endif
   return s:fallback(l:option)
 endfunction

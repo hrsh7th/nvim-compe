@@ -111,11 +111,32 @@ end
 
 --- confirm_pre
 Completion.confirm_pre = function(index)
-  if not VALID_COMPLETE_MODE[vim.fn.complete_info({ 'mode' }).mode] then
+  local info = vim.fn.complete_info({ 'mode', 'items', 'selected' })
+  if not VALID_COMPLETE_MODE[info.mode] then
     return nil
   end
-  Completion._confirm_item = Completion._current_items[index]
+
+  local selected_item = info.items[info.selected + 1]
+  if not selected_item then
+    return nil
+  end
+
+  local confirm_item = Completion._current_items[index]
+  if not confirm_item then
+    return nil
+  end
+
+  local same = true
+  same = same and selected_item.abbr == confirm_item.abbr
+  same = same and selected_item.word == confirm_item.word
+  same = same and selected_item.menu == confirm_item.menu
+  same = same and selected_item.kind == confirm_item.kind
+  if not same then
+    return nil
+  end
+
   Completion._is_confirming = true
+  Completion._confirm_item = confirm_item
   return {
     offset = Completion._current_offset,
     item = Completion._confirm_item
