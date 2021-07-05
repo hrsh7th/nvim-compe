@@ -101,6 +101,9 @@ function Source._create_document(self, filetype, completion_item)
   if type(doc) == "string" then
     doc = string.format("```%s\n%s\n```", filetype, doc)
   end
+  -- HACK: make a deepcopy to prevent double escaping of plaintext
+  -- see also https://github.com/hrsh7th/nvim-compe/issues/440
+  doc = vim.tbl_deep_extend("force", {}, doc)
   return doc and util.convert_input_to_markdown_lines(doc) or {}
 end
 
