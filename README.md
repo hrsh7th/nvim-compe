@@ -22,6 +22,7 @@ Auto completion plugin for nvim.
   - [How to use LSP snippet?](#how-to-use-lsp-snippet)
   - [How to use tab to navigate completion menu?](#how-to-use-tab-to-navigate-completion-menu)
   - [How to expand snippets from completion menu?](#how-to-expand-snippets-from-completion-menu)
+  - [How to automatically select the first match?](#how-to-automatically-select-the-first-match)
 - [Demo](#demo)
   - [Auto Import](#auto-import)
   - [LSP + Magic Completion](#lsp--rust_analyzers-magic-completion)
@@ -358,6 +359,14 @@ vim.api.nvim_set_keymap("s", "<S-Tab>", "v:lua.s_tab_complete()", {expr = true})
 ### How to expand snippets from completion menu?
 
 Use `compe#confirm()` mapping, as described in section [Mappings](#mappings).
+
+### How to automatically select the first match?
+
+`compe#confirm()` with the select option set to true will select the first item when none has been manually selected. For example:
+
+```lua
+vim.api.nvim_set_keymap("i", "<CR>", "compe#confirm({ 'keys': '<CR>', 'select': v:true })", { expr = true })
+```
 
 
 ### ESC does not close the completion menu
