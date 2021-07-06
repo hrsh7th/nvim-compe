@@ -116,23 +116,21 @@ Completion.confirm_pre = function(index)
     return nil
   end
 
-  local selected_item = info.items[info.selected + 1]
-  if not selected_item then
-    return nil
-  end
-
   local confirm_item = Completion._current_items[index]
   if not confirm_item then
     return nil
   end
 
-  local same = true
-  same = same and selected_item.abbr == confirm_item.abbr
-  same = same and selected_item.word == confirm_item.word
-  same = same and selected_item.menu == confirm_item.menu
-  same = same and selected_item.kind == confirm_item.kind
-  if not same then
-    return nil
+  local selected_item = info.items[info.selected + 1]
+  if selected_item then
+    local same = true
+    same = same and selected_item.abbr == confirm_item.abbr
+    same = same and selected_item.word == confirm_item.word
+    same = same and selected_item.menu == confirm_item.menu
+    same = same and selected_item.kind == confirm_item.kind
+    if not same then
+      return nil
+    end
   end
 
   Completion._is_confirming = true
