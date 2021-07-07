@@ -31,6 +31,9 @@ function Source.complete(self, args)
   if vim.lsp.client_is_stopped(self.client.id) then
     return args.abort()
   end
+  if not self:_get_paths(self.client.server_capabilities, { 'completionProvider' }) then
+    return args.abort()
+  end
 
   local request = vim.lsp.util.make_position_params()
   request.context = {}
