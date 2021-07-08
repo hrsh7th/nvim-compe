@@ -96,20 +96,20 @@ function M.show(contents, opts)
   -- Clean up input: trim empty lines from the end, pad
   contents = vim.lsp.util._trim(contents, opts)
 
-  local float_options = M.get_options(contents, opts)
-
   -- close if nothing to display
-  if not float_options or #contents == 0 then
+  if #contents == 0 then
     return M.close()
   end
 
   local buf = vim.api.nvim_create_buf(false, true)
   vim.api.nvim_buf_set_option(buf, "bufhidden", "wipe")
+  contents = vim.lsp.util.stylize_markdown(buf, contents, opts)
+
+  local float_options = M.get_options(contents, opts)
 
   -- applies the syntax and sets the lines to the buffer
   opts.width = float_options.width or opts.width
   opts.height = float_options.height or opts.height
-  contents = vim.lsp.util.stylize_markdown(buf, contents, opts)
 
   -- reuse existing window, or create a new one
   if M.win and vim.api.nvim_win_is_valid(M.win) then
