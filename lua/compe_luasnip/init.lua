@@ -12,7 +12,7 @@ function Source.get_metadata(_)
     priority = 10,
     -- keep Snippets with same trigger but different filetype.
     dup = true,
-    menu = "[Snippets]"
+    menu = "[LuaSnip]"
   }
 end
 
