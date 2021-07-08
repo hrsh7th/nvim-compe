@@ -69,7 +69,7 @@ function M.scroll(delta)
     local top = info.topline or 1
     top = top + delta
     top = math.max(top, 1)
-    top = math.min(top, vim.api.nvim_buf_line_count(buf))
+    top = math.min(top, vim.api.nvim_buf_line_count(buf) - info.height + 1)
 
     vim.defer_fn(function()
       vim.api.nvim_buf_call(buf, function()
