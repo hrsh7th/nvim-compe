@@ -24,7 +24,9 @@ function Source.documentation(self, args)
   local item = args.completed_item
   local snip = luasnip.snippets[item.kind][item.user_data.ft_indx]
   local header = (snip.name or "") .. " - `[" .. args.context.filetype .. "]`\n"
-  local documentation = header .. string.rep("=", string.len(header) - 3) .. "\n\n" .. (snip.dscr or "")
+
+  -- table is flattened in convert_input_to_markdown_lines().
+  local documentation = {header .. string.rep("=", string.len(header) - 3), "", (snip.dscr or "")}
   args.callback(util.convert_input_to_markdown_lines(documentation))
 end
 
