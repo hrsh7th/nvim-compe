@@ -31,6 +31,15 @@ local enable = function(callback)
   end
 end
 
+local idle = function(callback)
+  return function(...)
+    if vim.fn.getchar(1) ~= 0 then
+      return
+    end
+    return callback(...) or ''
+  end
+end
+
 local compe = {}
 
 --- Public API
@@ -90,28 +99,28 @@ compe._register_vim_source = function(name, bridge_id, methods)
 end
 
 --- _on_insert_enter
-compe._on_insert_enter = enable(suppress(function()
+compe._on_insert_enter = idle(enable(suppress(function()
   Completion.enter_insert()
-end))
+end)))
 
 --- _on_insert_leave
-compe._on_insert_leave = enable(suppress(function()
+compe._on_insert_leave = idle(enable(suppress(function()
   Completion.leave_insert()
-end))
+end)))
 
 --- _on_text_changed
-compe._on_text_changed = enable(suppress(function()
+compe._on_text_changed = idle(enable(suppress(function()
   Completion.complete({})
-end))
+end)))
 
 --- _on_complete_changed
-compe._on_complete_changed = enable(suppress(function()
+compe._on_complete_changed = idle(enable(suppress(function()
   Completion.select({
     index = vim.call('complete_info', {'selected' }).selected or -1;
     manual = vim.call('compe#_is_selected_manually');
     documentation = true;
   })
-end))
+end)))
 
 --- _on_callback
 compe._on_callback = function(id, ...)
