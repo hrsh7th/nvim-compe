@@ -101,7 +101,7 @@ end
 --- _create_document
 function Source._create_document(_, filetype, completion_item)
   local detail = (function()
-    if completion_item.detail then
+    if completion_item.detail and completion_item.detail ~= '' then
       return string.format("```%s\n%s\n```", filetype, completion_item.detail)
     end
   end)()
