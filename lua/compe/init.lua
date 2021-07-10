@@ -33,9 +33,9 @@ end
 
 local idle = function(callback)
   return function(...)
-    if vim.fn.getchar(1) ~= 0 then
-      return
-    end
+    -- if vim.fn.getchar(1) ~= 0 then
+    --   return
+    -- end
     return callback(...) or ''
   end
 end
