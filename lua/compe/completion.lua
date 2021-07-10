@@ -284,14 +284,16 @@ Completion._show = Async.guard('Completion._show', guard(function(start_offset, 
     should_preselect = should_preselect or (Config.get().preselect == 'always')
   end
 
-  local completeopt = vim.o.completeopt
-  if should_preselect then
-    vim.cmd('set completeopt=menuone,noinsert')
-  else
-    vim.cmd('set completeopt=menuone,noselect')
+  if #items > 0 or vim.fn.pumvisible() == 1 then
+    local completeopt = vim.o.completeopt
+    if should_preselect then
+      vim.cmd('set completeopt=menuone,noinsert')
+    else
+      vim.cmd('set completeopt=menuone,noselect')
+    end
+    vim.call('complete', math.max(1, start_offset), items) -- start_offset=0 should close pum with `complete(1, [])`
+    vim.cmd('set completeopt=' .. completeopt)
   end
-  vim.call('complete', math.max(1, start_offset), items) -- start_offset=0 should close pum with `complete(1, [])`
-  vim.cmd('set completeopt=' .. completeopt)
 
   if #items == 0 then
     Float.close()
