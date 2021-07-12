@@ -69,7 +69,7 @@ function M.scroll(delta)
     local top = info.topline or 1
     top = top + delta
     top = math.max(top, 1)
-    top = math.min(top, vim.api.nvim_buf_line_count(buf))
+    top = math.min(top, vim.api.nvim_buf_line_count(buf) - info.height + 1)
 
     vim.defer_fn(function()
       vim.api.nvim_buf_call(buf, function()
@@ -96,10 +96,8 @@ function M.show(contents, opts)
   -- Clean up input: trim empty lines from the end, pad
   contents = vim.lsp.util._trim(contents, opts)
 
-  local float_options = M.get_options(contents, opts)
-
   -- close if nothing to display
-  if not float_options or #contents == 0 then
+  if #contents == 0 then
     return M.close()
   end
 
@@ -107,9 +105,12 @@ function M.show(contents, opts)
   vim.api.nvim_buf_set_option(buf, "bufhidden", "wipe")
 
   -- applies the syntax and sets the lines to the buffer
-  opts.width = float_options.width or opts.width
-  opts.height = float_options.height or opts.height
   contents = vim.lsp.util.stylize_markdown(buf, contents, opts)
+
+  local float_options = M.get_options(contents, opts)
+  if not float_options then
+    return
+  end
 
   -- reuse existing window, or create a new one
   if M.win and vim.api.nvim_win_is_valid(M.win) then
