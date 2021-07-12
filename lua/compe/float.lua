@@ -103,16 +103,14 @@ function M.show(contents, opts)
 
   local buf = vim.api.nvim_create_buf(false, true)
   vim.api.nvim_buf_set_option(buf, "bufhidden", "wipe")
+
+  -- applies the syntax and sets the lines to the buffer
   contents = vim.lsp.util.stylize_markdown(buf, contents, opts)
 
   local float_options = M.get_options(contents, opts)
   if not float_options then
     return
   end
-
-  -- applies the syntax and sets the lines to the buffer
-  opts.width = float_options.width or opts.width
-  opts.height = float_options.height or opts.height
 
   -- reuse existing window, or create a new one
   if M.win and vim.api.nvim_win_is_valid(M.win) then
