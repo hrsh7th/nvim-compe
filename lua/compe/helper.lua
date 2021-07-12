@@ -67,6 +67,7 @@ Helper.convert_lsp = function(args)
   for i, completion_item in ipairs(completion_items) do
     local word = ''
     local abbr = ''
+    local insert_text = completion_item.insertText ~= '' and not completion_item.insertText and completion_item.insertText or nil
     if completion_item.insertTextFormat == 2 then
       word = completion_item.label
       abbr = completion_item.label
@@ -74,15 +75,15 @@ Helper.convert_lsp = function(args)
       local text = word
       if completion_item.textEdit ~= nil then
         text = completion_item.textEdit.newText or text
-      elseif completion_item.insertText ~= nil then
-        text = completion_item.insertText or text
+      elseif insert_text then
+        text = insert_text or text
       end
       if word ~= text then
         abbr = abbr .. '~'
       end
       word = text
     else
-      word = completion_item.insertText or completion_item.label
+      word = insert_text or completion_item.label
       abbr = completion_item.label
     end
     word = String.trim(word)
