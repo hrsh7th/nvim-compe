@@ -106,6 +106,9 @@ function M.show(contents, opts)
   contents = vim.lsp.util.stylize_markdown(buf, contents, opts)
 
   local float_options = M.get_options(contents, opts)
+  if not float_options then
+    return
+  end
 
   -- applies the syntax and sets the lines to the buffer
   opts.width = float_options.width or opts.width
