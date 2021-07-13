@@ -70,7 +70,6 @@ function Source.documentation(_, context)
     end
     table.insert(document, doc)
 
-    table.insert(document, doc)
   end
 
   context.callback(document)
