@@ -155,7 +155,8 @@ function! s:_get_expansion(args) abort
     endif
   else
     let l:inserted = strcharpart(l:current_line, l:suggest_position.character, l:current_position.character - l:suggest_position.character)
-    let l:new_text = get(l:completion_item, 'insertText', l:completion_item.label)
+    let l:new_text = get(l:completion_item, 'insertText', v:null)
+    let l:new_text = !empty(l:new_text) ? l:new_text : l:completion_item.label
     if s:_trim_tabstop(l:new_text) !=# l:inserted
       return {
       \   'overflow_before': l:request_position.character - l:suggest_position.character,
