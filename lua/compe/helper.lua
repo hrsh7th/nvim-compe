@@ -67,7 +67,7 @@ Helper.convert_lsp = function(args)
   for i, completion_item in ipairs(completion_items) do
     local word = ''
     local abbr = ''
-    local insert_text = completion_item.insertText ~= '' and not completion_item.insertText and completion_item.insertText or nil
+    local insert_text = completion_item.insertText ~= '' and completion_item.insertText and completion_item.insertText or nil
     if completion_item.insertTextFormat == 2 then
       word = completion_item.label
       abbr = completion_item.label
