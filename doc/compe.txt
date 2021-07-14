@@ -357,7 +357,6 @@ Common: ~
 path                Path completion.
 buffer              Buffer completion.
 datetime            Date and time completion
-time                Inste
 tags                Tag completion.
 spell               Spell file completion.
 calc                Lua math expressions.
