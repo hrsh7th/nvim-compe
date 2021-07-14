@@ -83,7 +83,11 @@ Helper.convert_lsp = function(args)
       end
       word = text
     else
-      word = insert_text or completion_item.label
+      if completion_item.textEdit ~= nil and completion_item.textEdit.newText ~= nil then
+        word = completion_item.textEdit.newText
+      else
+        word = insert_text or completion_item.label
+      end
       abbr = completion_item.label
     end
     word = String.trim(word)
