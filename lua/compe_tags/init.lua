@@ -77,8 +77,6 @@ function Source.complete(self, context)
         }}}
     })
   end
-
-  print(vim.inspect(out))
   context.callback({
     items = out or {},
     incomplete = false
