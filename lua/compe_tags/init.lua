@@ -60,9 +60,11 @@ function Source.complete(self, context)
             label = tag.name .. tag.signature
         end
     end
-    kind = kind .. ']'
-    if label == nil then
-        label = tag.name
+    if label == nil and #tags > 1 then
+        label = tags[1].name
+        kind = nil
+    else
+        kind = kind .. ']'
     end
     table.insert(out, {
         abbr=label,
@@ -77,6 +79,7 @@ function Source.complete(self, context)
         }}}
     })
   end
+
   context.callback({
     items = out or {},
     incomplete = false
@@ -128,3 +131,4 @@ function Source.documentation(_, context)
 end
 
 return Source.new()
+
