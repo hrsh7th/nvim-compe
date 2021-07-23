@@ -26,12 +26,12 @@ endfunction
 "
 " confirm
 "
-" @param {LSP.Position}                       args.suggest_position
-" @param {LSP.Position}                       args.request_position
-" @param {LSP.Position}                       args.current_position
-" @param {string}                             args.current_line
-" @param {LSP.CompletionItem}                 args.completion_item
-" @param {(args: { body: string; }) => void?} args.expand_snippet
+" @param {LSP.Position}                                                 args.suggest_position
+" @param {LSP.Position}                                                 args.request_position
+" @param {LSP.Position}                                                 args.current_position
+" @param {string}                                                       args.current_line
+" @param {LSP.CompletionItem}                                           args.completion_item
+" @param {(args: { body: string; insert_text_mode: number; }) => void?} args.expand_snippet
 "
 " # Pre-condition
 "
@@ -109,7 +109,7 @@ function! s:confirm(args) abort
     if l:expansion.is_snippet && !empty(l:ExpandSnippet)
       call s:TextEdit.apply('%', [{ 'range': l:range, 'newText': '' }])
       call cursor(s:Position.lsp_to_vim('%', l:range.start))
-      call l:ExpandSnippet({ 'body': l:expansion.new_text })
+      call l:ExpandSnippet({ 'body': l:expansion.new_text, 'insert_text_mode': get(l:completion_item, 'insertTextMode', 2) })
 
     " TextEdit.
     else

@@ -17,6 +17,7 @@ Auto completion plugin for nvim.
   - [Neovim-specific](#neovim-specific)
   - [External-plugin](#external-plugin)
 - [External sources](#external-sources)
+- [Known issues](#known-issues)
 - [FAQ](#faq)
   - [Can't get sorting to work correctly](#cant-get-sorting-to-work-correctly)
   - [How to use LSP snippet?](#how-to-use-lsp-snippet)
@@ -241,6 +242,17 @@ highlight link CompeDocumentation NormalFloat
 - [latex-symbols](https://github.com/GoldsteinE/compe-latex-symbols)
 - [tmux](https://github.com/andersevenrud/compe-tmux)
 - [vCard](https://github.com/cbarrete/completion-vcard)
+
+## Known issues
+
+You can see the known issues in here.
+
+[OS related](https://github.com/hrsh7th/nvim-compe/issues?q=+label%3Aos-related+)
+[Server related](https://github.com/hrsh7th/nvim-compe/issues?q=+label%3Aserver-related+)
+[Upstream issue](https://github.com/hrsh7th/nvim-compe/issues?q=+label%3Aupstream-issue+)
+[Next version](https://github.com/hrsh7th/nvim-compe/issues?q=+label%3Anext-version+)
+
+Note: The next-version means [nvim-cmp](https://github.com/hrsh7th/nvim-cmp) now.
 
 ## FAQ
 
