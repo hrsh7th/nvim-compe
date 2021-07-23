@@ -5,7 +5,7 @@ function Source.new()
   return setmetatable({}, { __index = Source })
 end
 
-function Source.get_metadata(_)
+function Source.get_metadata(self)
   return {
     priority = 90;
     menu = '[Tag]';
@@ -16,7 +16,32 @@ function Source.determine(_, context)
   return compe.helper.determine(context)
 end
 
-function Source.complete(_, context)
+function Source.complete(self, context)
+--  here for reference:
+--  this is an example of what is returned by this function in LSP
+--     {
+--       abbr = "get_contexts(carla_proj)",
+--       filter_text = "get_contexts(carla_proj)",
+--       kind = "Function",
+--       preselect = false,
+--       sort_text = "aget_contexts",
+--       suggest_offset = 5,
+--       user_data = {
+--         compe = {
+--           completion_item = {
+--             detail = "asmd_resynth",
+--             documentation = "get_contexts(carla_proj: Path) -> t.Dict[str, t.Optional[Path]]\n\nLoads contexts and Carla project files from the provided directory\n\nReturns a dictionary which maps context names t
+-- o the corresponding carla\nproject file. The additional context 'orig' with project `None` is added.",
+--             insertText = "get_contexts",
+--             kind = 3,
+--             label = "get_contexts(carla_proj)",
+--             sortText = "aget_contexts"
+--           },
+--           request_position = <table 1>
+--         }
+--       },
+--       word = "get_contexts"
+--     }
   local _, items = pcall(function()
     return vim.fn.getcompletion(context.input, "tag")
   end)
@@ -24,9 +49,40 @@ function Source.complete(_, context)
     return context.abort()
   end
 
+  out = {}
+  for k, v in ipairs(items) do
+    local tags = vim.fn.taglist(v)
+    local kind = '['
+    local label = nil
+    for i, tag in ipairs(tags) do
+        kind = kind .. tag.kind
+        if tag.signature ~= nil and #tags == 1 then
+            label = tag.name .. tag.signature
+        end
+    end
+    if label == nil and #tags > 1 then
+        label = tags[1].name
+        kind = nil
+    else
+        kind = kind .. ']'
+    end
+    table.insert(out, {
+        abbr=label,
+        word=v,
+        filter_text=label,
+        kind=kind,
+        preselect=false,
+        user_data={compe={completion_item={
+            label=label, 
+            detail=v,
+            insertText=v,
+        }}}
+    })
+  end
+
   context.callback({
-    items = items or {},
-    incomplete = true
+    items = out or {},
+    incomplete = false
   })
 end
 
@@ -69,7 +125,6 @@ function Source.documentation(_, context)
         doc = doc .. '\n  in ' .. tag.enum
     end
     table.insert(document, doc)
-
   end
 
   context.callback(document)
