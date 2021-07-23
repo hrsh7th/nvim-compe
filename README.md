@@ -213,6 +213,7 @@ highlight link CompeDocumentation NormalFloat
 
 - buffer
 - path
+- datetime
 - tags
 - spell
 - calc

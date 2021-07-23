@@ -34,6 +34,10 @@ Lazy._sources = {
     require'compe'.register_source('buffer', require'compe_buffer')
   end,
 
+  datetime = function()
+    require'compe'.register_source('datetime', require'compe_datetime')
+  end,
+
   luasnip = function()
     if pcall(require, 'luasnip') then
       require'compe'.register_source('luasnip', require'compe_luasnip')
