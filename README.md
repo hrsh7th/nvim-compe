@@ -242,6 +242,7 @@ highlight link CompeDocumentation NormalFloat
 - [latex-symbols](https://github.com/GoldsteinE/compe-latex-symbols)
 - [tmux](https://github.com/andersevenrud/compe-tmux)
 - [vCard](https://github.com/cbarrete/completion-vcard)
+- [lbdb](https://github.com/codybuell/compe-lbdb)
 
 ## Known issues
 
