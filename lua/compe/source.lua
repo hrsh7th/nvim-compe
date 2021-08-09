@@ -149,6 +149,7 @@ Source.trigger = function(self, context, callback)
 
     -- Completion
     self.source:complete({
+      metadata = self.metadata;
       context = self.context;
       input = self.context:get_input(state.keyword_pattern_offset);
       keyword_pattern_offset = state.keyword_pattern_offset;

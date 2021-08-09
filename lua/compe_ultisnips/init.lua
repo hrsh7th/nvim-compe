@@ -51,12 +51,16 @@ function M:complete(args)
   local snippets_list = vim.g.current_ulti_dict_info
 
   local completion_list = {}
+  local kind = 'Snippet'
+  if args.metadata.kind ~= nil then
+     kind = args.metadata.kind
+  end
   for key, value in pairs(snippets_list) do
     local item = {
       word =  key,
       abbr =  key,
       user_data = value,
-      kind = 'Snippet',
+      kind = kind,
       dup = 1
     }
     table.insert(completion_list, item)
