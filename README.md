@@ -247,10 +247,10 @@ highlight link CompeDocumentation NormalFloat
 
 You can see the known issues in here.
 
-[OS related](https://github.com/hrsh7th/nvim-compe/issues?q=+label%3Aos-related+)
-[Server related](https://github.com/hrsh7th/nvim-compe/issues?q=+label%3Aserver-related+)
-[Upstream issue](https://github.com/hrsh7th/nvim-compe/issues?q=+label%3Aupstream-issue+)
-[Next version](https://github.com/hrsh7th/nvim-compe/issues?q=+label%3Anext-version+)
+- [OS related](https://github.com/hrsh7th/nvim-compe/issues?q=+label%3Aos-related+)
+- [Server related](https://github.com/hrsh7th/nvim-compe/issues?q=+label%3Aserver-related+)
+- [Upstream issue](https://github.com/hrsh7th/nvim-compe/issues?q=+label%3Aupstream-issue+)
+- [Next version](https://github.com/hrsh7th/nvim-compe/issues?q=+label%3Anext-version+)
 
 Note: The next-version means [nvim-cmp](https://github.com/hrsh7th/nvim-cmp) now.
 
