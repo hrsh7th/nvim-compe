@@ -84,6 +84,8 @@ function M.show(contents, opts)
   local config = Config.get()
   opts = opts or {}
   opts.border = config.documentation.border
+  opts.max_width = config.documentation.max_width
+  opts.max_height = config.documentation.max_height
 
   contents = contents or {}
   if type(contents) == "table" then
