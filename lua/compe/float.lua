@@ -50,7 +50,7 @@ function M.get_options(contents, opts)
 
     local col = right and right_col - 1 or (pum.col - width - 3)
     return {
-      relative = "editor",
+      relative = "win",
       style = "minimal",
       width = width,
       height = height,
