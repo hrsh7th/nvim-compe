@@ -70,6 +70,7 @@ Config._normalize = function(config)
   config.max_abbr_width = config.max_abbr_width or 100
   config.max_kind_width = config.max_kind_width or 100
   config.max_menu_width = config.max_menu_width or 100
+  config.allow_hidden_buffers = config.allow_hidden_buffers or false
   config.autocomplete = Boolean.get(config.autocomplete, true)
 
   local documentation_defaults = {

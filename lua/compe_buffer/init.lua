@@ -1,5 +1,6 @@
 local compe = require'compe'
 local Buffer = require'compe_buffer.buffer'
+local Config = require'compe.config'
 
 local Source = {
   buffers = {};
@@ -64,8 +65,17 @@ end
 --- _get_bufs
 function Source._get_buffers(self)
   local bufs = {}
-  for _, win in ipairs(vim.api.nvim_list_wins()) do
-    bufs[vim.api.nvim_win_get_buf(win)] = true
+  local config = Config.get()
+
+  if config.allow_hidden_buffers then
+
+    for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+      bufs[buf] = true
+    end
+  else
+    for _, win in ipairs(vim.api.nvim_list_wins()) do
+      bufs[vim.api.nvim_win_get_buf(win)] = true
+    end
   end
 
   local buffers = {}
