@@ -1,6 +1,6 @@
 # Warning
 
-nvim-compe is now deprecated. Please use [nvim-cmp](https://github.com/hrsh7th/nvim-cmp) that successor of nvim-compe.
+nvim-compe is now deprecated. Please use [nvim-cmp](https://github.com/hrsh7th/nvim-cmp) the successor of nvim-compe.
 
 nvim-compe still works but new feature and bugfixes will be stopped.
 
