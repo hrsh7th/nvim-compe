@@ -29,7 +29,7 @@ Source.determine = function(self, context)
   end
 
   return {
-    keywod_pattern_offset = keyword_pattern_offset,
+    keyword_pattern_offset = keyword_pattern_offset,
     trigger_character_offset = trigger_character_offset,
   }
 end
