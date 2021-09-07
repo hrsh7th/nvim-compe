@@ -6,6 +6,7 @@ local Source = {}
 function Source.new(client, filetype)
   local self = setmetatable({}, { __index = Source })
   self.client = client
+  self.request_ids = {}
   self.filetype = filetype
   return self
 end
@@ -35,21 +36,21 @@ function Source.complete(self, args)
     return args.abort()
   end
 
-  local request = vim.lsp.util.make_position_params()
-  request.context = {}
-  request.context.triggerKind = (args.trigger_character_offset > 0 and 2 or (args.incomplete and 3 or 1))
+  local params = vim.lsp.util.make_position_params()
+  params.context = {}
+  params.context.triggerKind = (args.trigger_character_offset > 0 and 2 or (args.incomplete and 3 or 1))
   if args.trigger_character_offset > 0 then
-    request.context.triggerCharacter = args.context.before_char
+    params.context.triggerCharacter = args.context.before_char
   end
 
-  self.client.request('textDocument/completion', request, function(err, _, response)
+  self:_request('textDocument/completion', params, function(err, response)
     if err or response == nil then
       return args.abort()
     end
     args.callback(compe.helper.convert_lsp({
       keyword_pattern_offset = args.keyword_pattern_offset,
       context = args.context,
-      request = request,
+      request = params,
       response = response,
     }))
   end)
@@ -60,7 +61,7 @@ function Source.resolve(self, args)
   local completion_item = self:_get_paths(args, { 'completed_item', 'user_data', 'compe', 'completion_item' })
   local has_resolve = self:_get_paths(self.client.server_capabilities, { 'completionProvider', 'resolveProvider' })
   if has_resolve and completion_item then
-    self.client.request('completionItem/resolve', completion_item, function(err, _, result)
+    self:_request('completionItem/resolve', completion_item, function(err, result)
       if not err and result then
         args.completed_item.user_data.compe.completion_item = result
       end
@@ -126,6 +127,26 @@ function Source._create_document(_, filetype, completion_item)
     table.insert(items, doc)
   end
   return util.convert_input_to_markdown_lines(items) or {}
+end
+
+function Source._request(self, method, params, callback)
+  if self.request_ids[method] ~= nil then
+    self.client.cancel_request(self.request_ids[method])
+    self.request_ids[method] = nil
+  end
+
+  local _, request_id
+  _, request_id = self.client.request(method, params, function(arg1, arg2, arg3, arg4)
+    if self.request_ids[method] ~= request_id then
+      return
+    end
+    if type(arg4) == 'number' then
+      callback(arg1, arg3) -- old signature
+    else
+      callback(arg1, arg2) -- new signature
+    end
+  end)
+  self.request_ids[method] = request_id
 end
 
 --- _get_paths
