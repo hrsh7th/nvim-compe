@@ -62,7 +62,7 @@ end
 function Source.confirm(_, context)
   local item = context.completed_item
   local snip = luasnip.snippets[item.kind][item.user_data.ft_indx]:copy()
-  snip:trigger_expand(Luasnip_current_nodes[vim.api.nvim_get_current_buf()])
+  snip:trigger_expand(luasnip.session.current_nodes[vim.api.nvim_get_current_buf()])
 end
 
 return Source.new()
