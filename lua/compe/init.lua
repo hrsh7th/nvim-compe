@@ -1,5 +1,6 @@
 local Debug = require'compe.utils.debug'
 local Callback = require'compe.utils.callback'
+local api = vim.api
 local Completion = require'compe.completion'
 local Source = require'compe.source'
 local Config = require'compe.config'
@@ -65,6 +66,50 @@ end
 --- unregister_source
 compe.unregister_source = function(id)
   Completion.unregister_source(id)
+end
+
+do
+  local function replace(keys)
+    return vim.api.nvim_replace_termcodes(keys, true, true, true)
+  end
+
+  local function feedkeys(keys)
+    api.nvim_feedkeys(replace(keys), 'n', true)
+  end
+
+  local input = api.nvim_input
+
+  local function mode() return api.nvim_get_mode()['mode'] end
+
+  -- use with expr mapping
+  compe.confirm = function(keys)
+    if vim.fn.pumvisible() == 0 then return replace(keys) end
+
+    local mode_correct = mode():match('i') ~= nil
+
+    if mode_correct
+      and vim.fn.complete_info({'selected'})['selected'] == -1
+      and Config.get().preselect == 'confirm'
+      then
+        feedkeys("<Down>") -- selected the next one
+    end
+
+    local function run()
+      vim.fn.luaeval('require"compe"._confirm_pre()')
+      input('<Plug>(compe-confirm)')
+    end
+
+    -- we have to check this first because calling complete_info again will cause it to screw up
+    if Config.get().preselect == 'confirm' then
+      run()
+    elseif mode_correct and vim.fn.complete_info({'selected'})['selected'] ~= -1 then
+      run()
+    else
+      return replace(keys)
+    end
+
+    return replace('<Ignore>')
+  end
 end
 
 --- Private API
